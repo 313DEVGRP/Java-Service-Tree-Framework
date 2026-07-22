@@ -98,3 +98,8 @@
 **교훈**: 2계층 도메인 서브에이전트(`frontend-expert` 등)를 Producer-Reviewer의 **리뷰어**로 쓸 수 있다 — 정본 reviewer 슬롯(codex-critic)이 아니어도 사용자가 지정하면 가능. 단 도메인 서브에이전트는 `workers_approved` 승인 게이트 밖이므로, 실제 호출(비용) 발생 사실을 투명성 차원에서 `task.md`·`log.md`에 병기하고, "직접 파일 수정 가능" 기본 능력을 이 흐름에선 "리뷰 후 수정 요청만"으로 brief에서 명시적으로 한정해야 역할 혼선이 없다. 이어달리기가 필요한 수정 반영은 새 Agent 호출 대신 **SendMessage로 같은 워커 세션(agentId)을 재개**하면 이전 구현 컨텍스트가 유지돼 diff 기반 수정이 정확하다.
 **근거**: frontend-expert는 README 2계층·게이트 밖이나 사용자 지정으로 리뷰어 투입. claude-main 재호출은 SendMessage로 세션 af8fad… 재개 → v1 컨텍스트 유지한 채 v2 diff 생성. Producer-Reviewer 1사이클로 종료.
 **worker**: orchestrator(리뷰어 지정·역할 한정 brief·세션 재개 판단)
+
+## [2026-07-22] [landing-calendar-redesign]
+**교훈**: "기능 보존 + 디자인만 변경" 리스타일 작업은 방향 제안 단계(claude-main)에서 **선택자·값 매핑을 표로 확정**하고 **보존 불변식(id·i18n 키·option)을 명시**해 두면, 구현 워커가 이탈 없이 1패스로 끝내 리뷰 재수정이 0회가 된다. 이번엔 claude-main이 §4에 "기존 라이트값 → 다크 glass값" 라인별 치환표를 미리 만들어 frontend-expert가 그대로 적용 → claude-main 리뷰 [개선 불필요]. 검증은 grep 단일 명령(`data-lc-i18n 6키 + id 3 + option 4 = 13 매치`)으로 보존을 정량 확인. 색 충돌 우려(Caveat)는 **구현 전에** grep로 형제 액센트 전수 조사해 선제 해소(형제는 --*-accent 토큰 미사용, business만 예외 → indigo 고유성 확보). 회피 패턴: 리스타일은 기존 `<style>` 선택자 구조를 유지하고 **값만** 치환하면 회귀 위험이 최소화된다(선택자 삭제·재작성 금지).
+**근거**: Producer-Reviewer 1사이클·재수정 0회 종료. 방향(§4 표)→구현→리뷰 3단계 모두 동일 매핑 참조. 사전 grep로 indigo 충돌 0건 확인 후 채택.
+**worker**: claude-main(치환표 확정·어울림 리뷰), frontend-expert(1패스 구현), orchestrator(사전 색충돌 grep·grep 정량 보존검증)
