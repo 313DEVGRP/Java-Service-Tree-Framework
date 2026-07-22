@@ -1,0 +1,24 @@
+# Binaries
+mat
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Go
+*.test
+*.out
+/dist/
+/bin/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local Claude Code settings
+.claude/settings.local.json

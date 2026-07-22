@@ -16,3 +16,6 @@
 
 # 런타임 캐시 — 로컬 경로·UUID 포함, git 추적 안 함
 cache/
+
+# Module 시스템 제외
+/Java-Service-Tree-Framework-Frontend-Web/
