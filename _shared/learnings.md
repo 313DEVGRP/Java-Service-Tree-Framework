@@ -88,3 +88,13 @@
 "pro-high 쓰지 마라"(D4/INV9) 같은 **환경 한계발 금지 규칙**은 그 환경(백엔드)이 바뀌면 근거가 사라진다. pro-high 제외 사유는 옛 antigravity-claude-proxy의 `400 INVALID_ARGUMENT`였는데, 백엔드를 `agy` CLI로 바꾸니 pro-high가 정상 작동(spike 실증). → 금지 규칙엔 **"무엇 때문에 금지인지(원인 계층)"를 함께 적어야**, 원인이 사라졌을 때 안전하게 해제할 수 있다. 또 모델 셀렉션이 도구마다 다름을 확인: agy는 모델이 **전역·계정단위**(`/model`)라 per-call 핀 불가 → worker별 다른 모델 동시 사용은 안 되고, gemini 전용 전역을 pro-high로 고정해 운용. 마이그레이션은 D4·INV9·INV10·routing·validate C6를 **한 묶음으로** 갱신해야 내부 모순(validate가 새 정본을 FAIL)이 안 생긴다.
 **근거**: agy spike S1 GREEN + 3자 검수(codex #8이 "옛 정책과 충돌" 지적 → 검증하니 정책을 갱신해야 하는 것이었음). backends.json이 gemini 호출 정본, mcp__gemini-pro__/mcp__gemini__ 브리지 폐기.
 **worker**: orchestrator(마이그레이션·라이브 편집), codex-critic+gemini=agy(검수)
+
+## [2026-07-22] [landing-calendar-i18n]
+**교훈**: 리뷰어가 워커 산출물의 "숨은 회귀"를 잡으면, Orchestrator는 **리뷰 지적을 원본 소스로 직접 재대조**(never-trust-upstream을 리뷰어에도 적용)해야 하고, 수정 워커에는 **원본 코드 근거(파일:라인)를 인용해 수정 요청**해야 재현·재검증이 가능하다. 이번엔 frontend-expert(2계층 도메인 서브에이전트)가 리뷰어로 투입돼 claude-main의 i18n 구현에서 실동작 회귀 2건을 검출: ①페이지가 전역 로더(`loadPluginGroupsParallelAndSequential`→`loadLocale`→`bindLocaleText`가 `[data-locale]` 전체 순회)를 이미 트리거하므로, 페이지-로컬 i18n이 같은 `data-locale` 속성을 쓰면 이중 바인딩·경고, ②로케일 번들이 `dist/`가 아닌 `packages/core/`에만 존재. 수정 워커(claude-main 재호출)는 재검증 중 **더 깊은 3번째 회귀**까지 자발 발견(공통 저장키에 미지원 로케일 저장 시 전역 정규화 코드가 다음 로드에서 덮어씀). Orchestrator가 세 주장을 모두 소스로 확인 후 수락. 핵심 회피 패턴: **기존 전역 시스템과 겹치는 신규 기능은 전용 속성/전용 저장키로 스코프 분리**하면 전역 코드를 한 줄도 안 건드리고 회귀를 원천 차단할 수 있다.
+**근거**: 리뷰 3건 전부 진성(common.js:2408 allowlist·:2449 querySelectorAll, dist/ 번들 부재를 Orchestrator가 직접 확인). 워커는 텍스트만 반환하고 실제 파일 반영은 Orchestrator가 수행하므로, 반영 후 orphan 참조(`landingUserLocale`)·잔존 속성(`data-locale`)·파일 실존을 grep/디스크로 재검증해 루프 종료.
+**worker**: claude-main(구현·v2 수정), frontend-expert(2계층 리뷰어, 회귀 2건 검출), orchestrator(지적 소스 재대조·수정요청 근거 인용·반영·반영후 재검증)
+
+## [2026-07-22] [landing-calendar-i18n]
+**교훈**: 2계층 도메인 서브에이전트(`frontend-expert` 등)를 Producer-Reviewer의 **리뷰어**로 쓸 수 있다 — 정본 reviewer 슬롯(codex-critic)이 아니어도 사용자가 지정하면 가능. 단 도메인 서브에이전트는 `workers_approved` 승인 게이트 밖이므로, 실제 호출(비용) 발생 사실을 투명성 차원에서 `task.md`·`log.md`에 병기하고, "직접 파일 수정 가능" 기본 능력을 이 흐름에선 "리뷰 후 수정 요청만"으로 brief에서 명시적으로 한정해야 역할 혼선이 없다. 이어달리기가 필요한 수정 반영은 새 Agent 호출 대신 **SendMessage로 같은 워커 세션(agentId)을 재개**하면 이전 구현 컨텍스트가 유지돼 diff 기반 수정이 정확하다.
+**근거**: frontend-expert는 README 2계층·게이트 밖이나 사용자 지정으로 리뷰어 투입. claude-main 재호출은 SendMessage로 세션 af8fad… 재개 → v1 컨텍스트 유지한 채 v2 diff 생성. Producer-Reviewer 1사이클로 종료.
+**worker**: orchestrator(리뷰어 지정·역할 한정 brief·세션 재개 판단)
