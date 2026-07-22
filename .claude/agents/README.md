@@ -27,7 +27,7 @@
 
 | 파일 | name | 도메인 |
 |------|------|--------|
-| `frontend-publisher.md` | `frontend-publisher` | vanilla JS · jQuery · Bootstrap 기반 서버렌더링 프론트엔드 |
+| `frontend-expert.md` | `frontend-expert` | vanilla JS · jQuery · Bootstrap 기반 서버렌더링 프론트엔드 |
 
 **이 계층에 에이전트를 추가하려면** 이 표에 한 줄 추가하고 `.claude/agents/<name>.md` 를 둔다.
 정본 5개(Worker Pool 문서)는 건드리지 않는다.
