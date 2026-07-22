@@ -1,0 +1,69 @@
+{
+  "schema_version": "1",
+  "flavor": "claude",
+  "multiagent_root_env": "MULTIAGENT_ROOT",
+  "workers": {
+    "claude-main": {
+      "model": "host-default",
+      "call_type": "native",
+      "native": { "subagent_type": "claude-main", "prompt_source": "brief", "model_alias": "opus" },
+      "approval_class": "worker",
+      "result_capture": "orchestrator"
+    },
+    "codex-main": {
+      "model": "codex-default",
+      "call_type": "mcp",
+      "mcp": {
+        "tool": "mcp__codex__codex",
+        "args_template": { "prompt": "@brief_content", "sandbox": "read-only", "approval-policy": "never" }
+      },
+      "brief_mode": "content",
+      "approval_class": "worker",
+      "result_capture": "tool-return",
+      "timeout": 300,
+      "fallbacks": [
+        {
+          "model": "codex-default", "call_type": "cli", "brief_mode": "stdin", "timeout": 300,
+          "approval_class": "worker", "result_capture": "envelope",
+          "cli": { "command": "codex", "args_template": ["exec", "-"],
+                   "non_interactive": { "stdin": "brief", "no_tty": true, "on_permission_prompt": "fail" } }
+        }
+      ]
+    },
+    "codex-critic": {
+      "model": "codex-default",
+      "call_type": "mcp",
+      "mcp": {
+        "tool": "mcp__codex__codex",
+        "args_template": { "prompt": "@brief_content", "sandbox": "read-only", "approval-policy": "never" }
+      },
+      "brief_mode": "content",
+      "approval_class": "worker",
+      "result_capture": "tool-return",
+      "timeout": 300
+    },
+    "gemini": {
+      "model": "gemini-3.1-pro-high",
+      "call_type": "cli",
+      "brief_mode": "content",
+      "cli": {
+        "command": "agy",
+        "args_template": ["--prompt", "@brief_content"],
+        "non_interactive": { "stdin": "/dev/null", "no_tty": true, "on_permission_prompt": "fail" }
+      },
+      "cwd_policy": "isolated_tmp",
+      "write_policy": "none",
+      "approval_class": "worker",
+      "result_capture": "envelope",
+      "timeout": 300,
+      "fallbacks": [
+        {
+          "model": "gemini-3.1-pro-high", "call_type": "api", "timeout": 300,
+          "approval_class": "worker", "result_capture": "envelope",
+          "api": { "ref": "adapters/gemini_api.sh", "required_env": ["GEMINI_API_KEY"],
+                   "brief_pass": "arg1", "retry": { "max": 2, "backoff_s": 2 } }
+        }
+      ]
+    }
+  }
+}
