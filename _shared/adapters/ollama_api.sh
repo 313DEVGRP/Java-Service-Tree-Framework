@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ollama_api.sh — ollama worker의 HTTP API 어댑터 (localhost 로컬 추론).
+# ollama_api.sh — ollama worker의 HTTP API 어댑터 (자체호스팅 Ollama 데몬 추론).
 # 사용: ollama_api.sh <brief-file>   (call_worker.sh가 api 경로로 호출)
 # stdout = 모델 응답 텍스트, exit 0=성공.
 #
@@ -21,7 +21,7 @@ MODEL="${OLLAMA_MODEL:-gemma3}"
 req="$(jq -n --arg m "$MODEL" --rawfile p "$BRIEF" \
         '{model:$m, prompt:$p, stream:false}')"
 
-# 로컬 추론은 300s 안에 못 끝날 수 있어 curl 자체 타임아웃은 넉넉히(디스패처가 상위 타임아웃 관리).
+# 추론이 300s 안에 못 끝날 수 있어 curl 자체 타임아웃은 넉넉히(디스패처가 상위 타임아웃 관리).
 resp="$(curl -sS --fail-with-body --max-time 290 \
           -X POST "$HOST/api/generate" \
           -H 'Content-Type: application/json' \
