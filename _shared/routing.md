@@ -23,7 +23,7 @@
 │   └── codex-main
 │
 ├── [reviewer] 산출물 리뷰 / 비판적 검증?
-│   └── codex-critic   (Codex의 주된 역할)
+│   └── codex-critic   (Codex의 주된 역할)  · 로컬·오프라인 보조 검증 필요 시 ollama
 │
 ├── [multimodal] 이미지 · 스크린샷 분석 / 50페이지+ 문서 / 제3자 시각의 검토?
 │   └── gemini
@@ -126,6 +126,20 @@ decision tree로 "누구를" 고른 뒤, "어떻게 엮을지" 고른다. **단�
 - **비용**: agy 쿼터 소모 → 승인 필요. 빠른 경로는 backends에서 `model`을 flash/pro-low로.
 - **파일 쓰기**: ❌ MCP 응답을 Orchestrator가 받아 기록
 
+### ollama
+- **슬롯**: reviewer (보조 — codex-critic이 주)
+- **용도**: 로컬·오프라인 독립 검증. 쿼터·네트워크 없이 산출물을 제3의 시각으로 리뷰. codex-critic 검증에 교차 다양성을 더하고 싶거나, 외부 벤더 호출이 어려운 환경(오프라인·비용 억제)에서 대체·보조 검증자로.
+- **선행 조건**: 리뷰 대상 산출물 경로 존재. codex-critic과 동일 — 로컬 Ollama 데몬이 떠 있고 대상 모델이 pull 돼 있어야 함(`ollama list`로 확인).
+- **결과물**: 비평 리스트, 수정 제안
+- **호출 명령**: `_shared/backends.json`의 `ollama` 항목이 정본. 디스패처로 호출:
+  ```
+  bash _shared/adapters/call_worker.sh ollama <brief-file>   # 결과 = JSON envelope
+  ```
+  백엔드 = HTTP API(`adapters/ollama_api.sh` → `localhost:11434/api/generate`). 로컬이라 API 키 불필요. 기본 모델 `gemma3`(env `OLLAMA_MODEL`·`OLLAMA_HOST`로 재정의, 정본은 backends.json `model`). 폴백 없음(로컬 단일 백엔드).
+- **소스·다중파일 검토는 인라인 권장**: gemini와 동일 이유로, 로컬 모델은 파일시스템 접근이 없다 — 검토 대상 스니펫을 brief 본문에 인라인하라(어댑터는 brief 전문을 prompt로 전달).
+- **비용**: 로컬 컴퓨팅만 소모(외부 쿼터·요금 없음). 단 worker 승인 게이트는 동일 적용 → `workers_approved` 필요.
+- **파일 쓰기**: ❌ 디스패처 envelope를 Orchestrator가 받아 기록 (`write_policy: none`)
+
 ## 모델 정책
 
 각 worker가 실제 어떤 모델로 도는지 정리. 사용자가 매번 명시할 필요는 없으며, 아래 기본이 자동 적용된다.
@@ -135,6 +149,7 @@ decision tree로 "누구를" 고른 뒤, "어떻게 엮을지" 고른다. **단�
 - **codex-main / codex-critic**: 사용자의 `~/.codex/config.toml` 기본값이 자동 적용된다 (현재 예: 최신 gpt + reasoning effort `high`). config.toml이 정본이라 여기에 버전을 핀하지 않는다. MCP 호출 시 `model` 파라미터를 비워두면 config 기본값 사용.
   - 가벼운 작업은 `profile: lightweight`로 전환 가능 (config.toml의 가벼운 모델 프로필)
   - 작업 성격상 다른 모델이 필요하면 brief.md에 명시
+- **ollama**: 백엔드 = **로컬 Ollama HTTP API**(`_shared/backends.json` 정본, 어댑터 `adapters/ollama_api.sh`, 디스패처 `call_worker.sh`). 기본 `gemma3`. 로컬 실행이라 버전은 `ollama pull`로 관리 — backends.json엔 태그 없는 모델명만 핀한다. 모델 교체는 backends.json `model` 수정 또는 호출 시 env `OLLAMA_MODEL`. 폴백 없음(단일 로컬 백엔드).
 - **gemini**: 백엔드 = Antigravity **`agy` CLI**(`_shared/backends.json` 정본, 디스패처 `call_worker.sh`). 기본 `gemini-3.1-pro-high`(agy에선 정상 — 옛 프록시 `400 INVALID_ARGUMENT`은 비해당), 빠른 경로 `gemini-3-flash`/`pro-low`, 폴백 `api`. 옛 `mcp__gemini-pro__*` 프록시 브리지·CLI 래퍼 `mcp__gemini__*`는 **폐기**. agy 모델은 전역·계정단위(`/model`)라 per-call 핀 불가 → gemini 전용 전역을 pro-high로 둔다. 근거: `_shared/learnings.md` [2026-06-02] · `design-basis.md` D4.
 
 이 정책은 사용자별 config에 따라 달라질 수 있다 — starter clone 받은 학습자는 본인의 `~/.codex/config.toml` 기본값을 한 번 확인하고 자기 환경에 맞게 조정한다.
@@ -148,6 +163,7 @@ decision tree로 "누구를" 고른 뒤, "어떻게 엮을지" 고른다. **단�
 | 대규모 구현·테스트 | claude-main (설계) → codex-main (구현·테스트) |
 | 브라우저 자동화 / 이미지 생성 | codex-main |
 | 구현 + 비평 | 생성 워커 → codex-critic → 반영 |
+| 오프라인·로컬 비평 | 생성 워커 → ollama → 반영 (외부 쿼터 없이) |
 | 대용량 문서 처리 | gemini |
 | 전체 검토 | claude-main → codex-critic |
 

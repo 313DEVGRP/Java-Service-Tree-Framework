@@ -64,6 +64,17 @@
                    "brief_pass": "arg1", "retry": { "max": 2, "backoff_s": 2 } }
         }
       ]
+    },
+    "ollama": {
+      "model": "gemma3",
+      "call_type": "api",
+      "brief_mode": "content",
+      "api": { "ref": "adapters/ollama_api.sh", "required_env": [], "brief_pass": "arg1" },
+      "cwd_policy": "isolated_tmp",
+      "write_policy": "none",
+      "approval_class": "worker",
+      "result_capture": "envelope",
+      "timeout": 300
     }
   }
 }

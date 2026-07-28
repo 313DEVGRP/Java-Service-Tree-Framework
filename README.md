@@ -9,6 +9,7 @@ Claude Code를 오케스트레이터로 두고 Claude·Codex·Gemini를 워커�
   - `claude-main` — [strategist] 기획·설계·아키텍처·전략·디자인 방향·문체 글쓰기
   - `codex-main` — [engineer·computer-use] 대규모 구현·테스트·로컬 검증·브라우저 자동화·이미지 생성
   - `codex-critic` — [reviewer] 산출물 리뷰·비평 (Codex의 주된 역할)
+  - `ollama` — [reviewer·local] 로컬·오프라인 보조 검증 (쿼터·네트워크 없이 제3자 시각)
   - `gemini` — [multimodal] 이미지·긴 문서·제3자 시각의 검토
 
   슬롯→워커 배정의 정본은 `_shared/capability-profile.md`(가변층) — 신모델 출시 시 프로필만 갱신.

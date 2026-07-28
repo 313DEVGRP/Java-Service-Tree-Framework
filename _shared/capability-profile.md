@@ -11,7 +11,7 @@
 | strategist | claude-main (경량은 Orchestrator 직접) | 설계·UI/UX 디자인·전략·문체 우위 |
 | engineer | codex-main | 대규모 구현·테스트 철저, 비용·속도·토큰 효율 우위 |
 | computer-use | codex-main | 브라우저 조작·복잡 워크플로우 수행 우위 |
-| reviewer | codex-critic | 교차 벤더 독립 검증 (자기검수 회피) |
+| reviewer | codex-critic (주) · ollama (로컬 보조) | 교차 벤더 독립 검증 (자기검수 회피). ollama는 로컬·오프라인 보조 검증자 |
 | multimodal | gemini | 멀티모달·대용량 문서 처리 |
 
 ## 배정 이력 (append-only)
@@ -19,6 +19,10 @@
 - **2026-07-13** 초기 배정 + computer-use 슬롯 신설. 근거: 외부 리뷰 10건 종합 판정
   (Anthropic 최신 플래그십 vs OpenAI 최신 플래그십) — 디자인·전략·글쓰기 = Claude 우위,
   대규모 구현·테스트·브라우저 조작·비용·속도 = GPT 우위로 수렴. 요지는 design-basis D9.
+- **2026-07-27** reviewer 슬롯에 ollama(로컬 보조) 추가. 근거: 사용자 요청. 로컬·오프라인
+  독립 검증자 확보 — 쿼터·네트워크 없이 codex-critic 교차 다양성 보강. 기본 모델 gemma3
+  (backends.json에서 교체 가능). 백엔드 = HTTP API(localhost:11434, `adapters/ollama_api.sh`).
+  주 검증자는 codex-critic 유지, ollama는 보조 — '검증 1회 원칙'은 슬롯 단위로 적용.
 
 ## 갱신 절차
 
