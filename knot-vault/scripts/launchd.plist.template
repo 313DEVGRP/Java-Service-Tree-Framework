@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  knot drain 무인 실행용 launchd 템플릿 (mac).
+  placeholder 3종을 설치 setup이 등록 시 치환한다 — 번들엔 사용자값·개인경로 0.
+    __KNOT_VAULT__   vault 절대경로
+    __RUNNER__       러너(agy|claude|codex|gemini)
+    __INTERVAL_SEC__ 실행 간격(초). 예: 3600=매시 / 86400=매일
+  설치 위치: ~/Library/LaunchAgents/com.knot.drain.plist  →  launchctl load
+  비밀값은 여기 두지 않는다. 외부 알림은 vault 밖(~/.config/knot/notify.sh 등)에서 drain.sh가 참조.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.knot.drain</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__KNOT_VAULT__/scripts/drain.sh</string>
+    <string>--runner</string>
+    <string>__RUNNER__</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>__KNOT_VAULT__</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>KNOT_VAULT</key>
+    <string>__KNOT_VAULT__</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+  <key>StartInterval</key>
+  <integer>__INTERVAL_SEC__</integer>
+  <key>StandardOutPath</key>
+  <string>__KNOT_VAULT__/.knot/launchd.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>__KNOT_VAULT__/.knot/launchd.err.log</string>
+</dict>
+</plist>
