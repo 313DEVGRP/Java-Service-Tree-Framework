@@ -1,0 +1,326 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>wiki 동시 편집 동기화 불일치 — 원인 분석 및 개선안</title><style>
+@page { size: A4; margin: 18mm 16mm 20mm 16mm; }
+* { box-sizing: border-box; }
+body {
+  font-family: "Malgun Gothic","맑은 고딕","Segoe UI",sans-serif;
+  font-size: 10.2pt; line-height: 1.65; color: #1a1d21; margin: 0;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+h1,h2,h3,h4 { line-height:1.35; margin:1.6em 0 .6em; font-weight:700; }
+h1 { font-size:19pt; border-bottom:2.5px solid #1a1d21; padding-bottom:.35em; }
+h2 { font-size:14pt; margin-top:1.9em; border-bottom:1px solid #c8ccd2; padding-bottom:.28em; }
+h3 { font-size:11.6pt; color:#0b3d63; }
+h2, h3 { break-after: avoid; page-break-after: avoid; }
+p, li { orphans:2; widows:2; }
+code, pre {
+  font-family: Consolas,"D2Coding","Courier New",monospace;
+  font-size: 8.9pt;
+}
+code { background:#f2f4f7; padding:.1em .35em; border-radius:3px; color:#8a2f5f; }
+pre { background:#f7f8fa; border:1px solid #dfe3e8; border-left:3px solid #6b7785;
+      padding:.75em .9em; border-radius:4px; overflow-x:auto; break-inside:avoid; }
+pre code { background:none; padding:0; color:#1a1d21; }
+table { border-collapse:collapse; width:100%; margin:1em 0; font-size:9.1pt; break-inside:avoid; }
+th,td { border:1px solid #ccd1d8; padding:.42em .6em; text-align:left; vertical-align:top; }
+th { background:#eef1f5; font-weight:700; }
+tbody tr:nth-child(even) { background:#fafbfc; }
+blockquote { margin:1em 0; padding:.6em 1em; background:#fff8e6;
+             border-left:4px solid #e0a800; color:#5a4300; break-inside:avoid; }
+blockquote p { margin:0; }
+hr { border:0; border-top:1px solid #dfe3e8; margin:2em 0; }
+strong { font-weight:700; }
+ul,ol { padding-left:1.5em; }
+li { margin:.22em 0; }
+.pagebreak { page-break-after: always; break-after: page; }
+
+.cover { padding-top:14mm; }
+.cover-kicker { font-size:9.5pt; letter-spacing:.16em; color:#5a6572;
+                text-transform:uppercase; margin-bottom:.9em; }
+h1.cover-title { font-size:25pt; line-height:1.3; border:0; margin:0 0 1.6em;
+                 padding:0; letter-spacing:-.01em; }
+table.meta { font-size:9.6pt; }
+table.meta th { width:24%; background:#f2f4f7; white-space:nowrap; }
+.cover-note { margin-top:2.2em; padding:.85em 1em; background:#eef4fb;
+              border-left:4px solid #2b6cb0; font-size:9.4pt; color:#1c3d5a; }
+</style></head><body><hr />
+<h2>title: wiki 동시 편집 동기화 불일치 — 원인 분석 및 개선안</h2>
+<div class="cover">
+<div class="cover-kicker">A-RMS · 원인 분석 보고서</div>
+<h1 class="cover-title">wiki 동시 편집 동기화 불일치<br>원인 분석 및 개선안</h1>
+<table class="meta">
+<tr><th>분석 대상</th><td>Java-Service-Tree-Framework-Frontend-Web<br>Java-Service-Tree-Framework-Broker-Hub</td></tr>
+<tr><th>증상</th><td>① 같은 내용이 복붙처럼 중복 삽입 ② 편집 내용 유실·의도치 않은 내용 반영</td></tr>
+<tr><th>분석 방법</th><td>정적 코드 분석 (브라우저 실행·재현 검증 미수행)</td></tr>
+<tr><th>작성일</th><td>2026-08-07</td></tr>
+<tr><th>산출 경로</th><td>tasks/wiki-concurrent-edit-sync/</td></tr>
+</table>
+<p class="cover-note">본 문서의 각 항목은 <strong>사실</strong>(코드로 확인)과 <strong>가설</strong>(추론)을 구분해 표기한다.
+가설 항목은 실측 검증 전까지 확정된 원인으로 취급하지 않는다.</p>
+</div>
+
+<div class="pagebreak"></div>
+
+<h1>wiki 동시 편집 동기화 — 원인 분석</h1>
+<h2>요약</h2>
+<p>동기화 채널은 <strong>블록 단위 LCS diff 하나뿐</strong>이고, 서버는 그 diff를 <strong>검증·정렬·변환 없이 그대로 되뿌리는 릴레이</strong>다. 서버에 OT 구현(<code>OtService</code>/<code>OtController</code>, revision 관리)이 존재하지만 <strong>위키 에디터 클라이언트는 그 경로를 전혀 쓰지 않는다</strong> (프론트가 publish 하는 destination은 <code>/app/join</code>, <code>/app/leave</code>, <code>/app/selection</code> 3개뿐 — session-manager.js:135,186,208).</p>
+<p>핵심 결함 2개:</p>
+<ol>
+<li><strong><code>lastBlocks</code>가 원격 반영 시 갱신되지 않는다</strong> (adms.js:235 vs 164). 이것 하나로 중복 삽입이 <strong>echo 없이도</strong> 결정론적으로 재현된다. → 원인 A의 주범.</li>
+<li><strong>블록 통째(<code>outerHTML</code>) replace 단위</strong>라서 같은 블록을 두 사람이 만지면 나중 것이 앞의 것을 통째로 덮는다. 게다가 base가 어긋난 상태에서 <code>applyBlockDiff</code>의 방어 가드가 <strong>delete/replace만 조용히 삼키고 insert는 그대로 실행</strong>한다(collab-diff.js:123,139 vs 131). → 원인 B.</li>
+</ol>
+<p>선행 가설 4건 중 <strong>1번은 반증</strong>(서버 echo는 있으나 session-manager.js:165에서 이미 필터됨), 2·4번은 <strong>사실 확인</strong>, 3번은 <strong>단독 원인으로는 반증</strong>(증폭 요인).</p>
+<hr />
+<h2>동기화 구조</h2>
+<p><strong>송신</strong> (adms.js:157-168)
+<code>keyup</code> → 150ms debounce → <code>getEditorBlocks</code>(body 직계 자식의 <code>outerHTML</code> 배열, <code>data-remote-cursor</code> 제외) → <code>computeBlockDiff(lastBlocks, current)</code> → <code>lastBlocks = current</code> <strong>선반영</strong> → <code>sessionManager.remoteUserUpdate(JSON.stringify({type:"diff", ops}))</code></p>
+<p><strong>서버</strong> (EditorController.java:152-200)
+<code>/app/selection</code> → Redis에 상태 저장 → <code>messagingTemplate.convertAndSend("/topic/sessions/{sid}/selections/document/{did}", message)</code> — <strong>원본 메시지 그대로, 발신자 포함 전 구독자에게 broadcast</strong>. 순번·revision·변환 없음.</p>
+<p><strong>수신</strong> (session-manager.js:162-171 → adms.js:229-250)
+<code>response.userInfo.id !== self._userInfo.userId</code> 로 자기 것 필터 → <code>onContentsChange</code> → <code>type==="diff"</code> 면 <code>applyBlockDiff(editor, parsed.ops)</code></p>
+<p><strong>세션 키</strong>: <code>sessionId = UUID.nameUUIDFromBytes(documentId)</code> (SessionController.java:59) — 결정적이라 같은 위키를 연 사람끼리 같은 토픽에 모인다.</p>
+<hr />
+<h2>원인 A: 중복 삽입</h2>
+<h3>A-1. <code>lastBlocks</code> stale — <strong>주원인</strong></h3>
+<p><strong>근거(파일:줄)</strong>
+- <code>adms.js:139</code> <code>var lastBlocks = []</code> (contentDom 바깥 스코프)
+- <code>adms.js:164</code> 송신 시에만 <code>lastBlocks = currentBlocks.slice()</code>
+- <code>adms.js:235</code> <code>applyBlockDiff(...)</code> — <strong><code>lastBlocks</code> 갱신 없음</strong>. <code>onContentsChange</code>는 <code>lastBlocks</code>와 같은 스코프(adms.js:229)라 갱신 가능한데 하지 않는다
+- <code>collab-diff.js:109-150</code> <code>applyBlockDiff</code>는 DOM만 직접 조작 → <code>dataReady</code> 미발생 → <code>adms.js:145-149</code>의 재동기화 방어가 <strong>작동하지 않음</strong>
+- <code>collab-diff.js:131-137</code> insert는 <code>children[pos]</code> 존재 여부와 무관하게 <strong>항상 실행</strong></p>
+<p><strong>사실|가설</strong>: <strong>사실</strong> (코드 확인)</p>
+<p><strong>재현 시나리오</strong> (A·B 모두 <code>[P1,P2]</code>, <code>lastBlocks</code> 모두 <code>[P1,P2]</code>)</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>이벤트</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>B가 끝에 새 문단 P3 입력 → B DOM <code>[P1,P2,P3]</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>B keyup+150ms → <code>ops=[retain,retain,insert P3]</code>, <code>lastBlocks_B=[P1,P2,P3]</code>, publish</td>
+</tr>
+<tr>
+<td>3</td>
+<td>A 수신 → <code>applyBlockDiff</code> → <strong>A DOM <code>[P1,P2,P3]</code>, 그러나 <code>lastBlocks_A</code>는 여전히 <code>[P1,P2]</code></strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td>A가 P1을 수정 → A DOM <code>[P1',P2,P3]</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>A keyup+150ms → <code>computeBlockDiff([P1,P2], [P1',P2,P3])</code> = <code>[replace P1', retain, **insert P3**]</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>B 수신 → <code>children=[P1,P2,P3]</code>. replace(0) OK, retain(1), insert 시 <code>children[2]=P3</code>가 존재하므로 <code>insertBefore(P3사본, P3)</code></td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>B DOM = <code>[P1',P2,P3사본,P3]</code> — P3 중복</strong></td>
+</tr>
+</tbody>
+</table>
+<p>7 이후 A(3블록)와 B(4블록)의 길이가 어긋나 이후 모든 op의 인덱스가 밀린다. <strong>echo 여부와 무관하게 성립</strong>한다.</p>
+<h3>A-2. 중복이 "쌓이기만" 하는 비대칭</h3>
+<p><strong>근거</strong>: <code>collab-diff.js:123</code> (<code>delete</code>는 <code>children[pos]</code>가 없으면 skip), <code>:139</code> (<code>replace</code>도 동일), 반면 <code>:131-136</code> (<code>insert</code>는 <code>children[pos]</code>가 없으면 <code>appendChild</code>로 <strong>무조건 성공</strong>)</p>
+<p><strong>사실|가설</strong>: <strong>사실</strong></p>
+<p>base가 어긋나면 삭제·치환은 조용히 무시되고 삽입만 살아남는다. 그래서 증상이 "가끔 어긋남"이 아니라 "<strong>중복만 단조 증가</strong>"로 나타난다.</p>
+<h3>A-3. 자기 diff 재적용 (선행 가설 1) — <strong>반증</strong></h3>
+<p><strong>근거</strong>
+- 서버는 발신자 포함 broadcast가 <strong>맞다</strong> (<code>EditorController.java:191</code> <code>convertAndSend</code>, 발신자 제외 로직 없음)
+- 그러나 <code>session-manager.js:165</code> <code>if (response.userInfo.id !== self._userInfo.userId)</code> 에서 <strong>diff/cursor 구분 없이 이미 걸러진다</strong>. 양쪽 모두 String (<code>common.js:834</code> <code>userID = json.sub</code>, <code>UserInfo.java:6</code> <code>private String id</code>) → 타입 불일치 없음</p>
+<p><strong>사실|가설</strong>: <strong>사실 (반증)</strong></p>
+<p><code>adms.js:240</code>의 <code>String(contents.id) !== String(userInfo.userId)</code>는 이 필터가 있는 한 <strong>도달 불가능한 이중 방어</strong>다. 과거에 이 문제를 의심했던 흔적으로 보이나, 현재 중복 삽입의 원인은 아니다.</p>
+<h3>A-4. 동일 블록 LCS 모호성 (선행 가설 3) — <strong>단독 원인으로는 반증, 증폭 요인</strong></h3>
+<p><strong>근거</strong>: <code>collab-diff.js:12</code> <code>outerHTML</code> 문자열, <code>:32,:40</code> <code>===</code> 비교, <code>:44</code> 동점 시 insert 우선</p>
+<p><strong>사실|가설</strong>: 비교 방식은 <strong>사실</strong>, 영향 범위는 <strong>가설</strong></p>
+<p><code>applyBlockDiff</code>가 <code>computeBlockDiff</code>의 인덱스 규약을 정확히 미러링하므로, <strong>수신자 상태 == 송신자 <code>lastBlocks</code>인 한</strong> LCS가 어느 쪽을 매칭하든 결과는 수렴한다(시각적으로 엉뚱한 블록이 지워질 뿐). 따라서 이것만으로 발산하지는 않는다. 다만 빈 <code>&lt;p&gt;&lt;br&gt;&lt;/p&gt;</code>가 여러 개인 실제 문서에서는 A-1로 base가 어긋난 순간 오정렬 확률과 파괴력을 크게 키운다.</p>
+<hr />
+<h2>원인 B: 내용 유실·오반영</h2>
+<h3>B-1. 블록 통째 replace → 같은 문단 동시 편집 시 스왑·소실</h3>
+<p><strong>근거</strong>: <code>collab-diff.js:57</code> (<code>delete+insert</code> → <code>replace</code>), <code>:138-148</code> <code>body.replaceChild(newElRep, children[pos])</code>, <code>adms.js:170</code> 150ms debounce</p>
+<p><strong>사실|가설</strong>: <strong>사실</strong></p>
+<p>블록 내부 텍스트를 병합하는 코드가 없다. <code>replaceChild</code>는 로컬 캐럿이 놓인 노드도 통째로 교체한다.</p>
+<p><strong>재현 시나리오 ①(소실)</strong> — 두 사람이 같은 문단 P1 편집</p>
+<ol>
+<li>A가 P1에 타이핑(디바운스 대기 중, 아직 미전송)</li>
+<li>B의 타이머가 먼저 만료 → <code>replace P1b</code> publish</li>
+<li>A 수신 → <code>replaceChild(P1b, P1)</code> → <strong>A가 방금 친 글자와 캐럿이 소실</strong></li>
+<li>A 타이머 만료 → <code>computeBlockDiff([P1,P2], [P1b,P2])</code> → B가 이미 가진 P1b를 되돌려 보냄 → <strong>A의 입력은 어디에도 남지 않음</strong></li>
+</ol>
+<p><strong>재현 시나리오 ②(오반영·핑퐁)</strong> — 양쪽이 거의 동시에 전송</p>
+<ol>
+<li>A publish <code>replace P1a</code> (base <code>[P1,P2]</code>), B publish <code>replace P1b</code> (같은 base) — 변환 없이 교차</li>
+<li>A 수신 → A 화면 = <strong>P1b</strong>. B 수신 → B 화면 = <strong>P1a</strong>. <code>lastBlocks_A=[P1a,..]</code>, <code>lastBlocks_B=[P1b,..]</code></li>
+<li>A가 이어서 타이핑 → base <code>P1a</code> 기준 diff → <code>replace P1b+수정</code> 전송 → B 화면이 뒤집힘. 반대도 동일</li>
+<li><strong>"내가 쓴 게 상대 화면에, 상대 게 내 화면에" 상태가 계속 순환</strong></li>
+</ol>
+<h3>B-2. 전송 실패 시 영구 유실 (재전송 없음)</h3>
+<p><strong>근거</strong>
+- <code>adms.js:164</code>가 <code>remoteUserUpdate</code>(:165) <strong>호출 전에</strong> <code>lastBlocks</code>를 전진시킨다 → 전송 실패해도 그 변경분은 다시는 diff에 나오지 않음
+- <code>session-manager.js:192-194</code> <code>if (!this._sessionId || !this._documentId) return;</code> — <strong>조용히 폐기</strong>
+- <code>session-manager.js:61-64</code> <code>_handleConnectionFailure</code> → <code>this._pendingActions = []</code> — <strong>큐에 쌓인 미전송 diff 전부 폐기</strong>
+- <code>session-manager.js:208</code> <code>publish</code> — ack·재시도·시퀀스 없음</p>
+<p><strong>사실|가설</strong>: <strong>사실</strong></p>
+<p><strong>재현 시나리오</strong>: 네트워크 순단 → A가 5초간 계속 타이핑 → 각 <code>sendDiffIfChanged</code>가 <code>lastBlocks</code> 전진 후 <code>_ensureConnected</code>로 큐잉 → <code>onWebSocketError</code> 발생 → <code>_pendingActions=[]</code> → 5초분 편집이 <strong>아무 로그·경고 없이 소멸</strong>, 이후 diff는 새 base 기준이라 복구 불가.</p>
+<h3>B-3. 브로드캐스트 순서 보장 없음 (선행 가설 4 확장)</h3>
+<p><strong>근거</strong>
+- ops payload에 base version/seq 없음 (<code>adms.js:165</code>)
+- <code>WebSocketConfig.java:17-20</code> — <code>config.enableSimpleBroker("/topic")</code> 만 호출. <strong><code>setPreservePublishOrder(true)</code> 미설정</strong>(기본 false), <code>configureClientInboundChannel</code> 미오버라이드(기본 스레드 풀)</p>
+<p><strong>사실|가설</strong>: 설정 부재는 <strong>사실</strong>, 실제 역전 발생은 <strong>가설</strong>(부하 의존)</p>
+<p>Spring STOMP는 기본값에서 동일 세션의 연속 메시지를 서로 다른 스레드로 처리·전달할 수 있다. 순서가 뒤집힌 두 diff는 인덱스 기반이라 전혀 다른 문서를 만든다. 150ms debounce는 빠른 입력에서 연속 전송을 만들어 이 구간에 정확히 걸린다.</p>
+<h3>B-4. sanitize/<code>firstChild</code>에 의한 조용한 드롭</h3>
+<p><strong>근거</strong>: <code>collab-diff.js:79</code> (<code>script/iframe/object/embed</code> 제거) vs <code>editor-operation.js:11</code> <code>allowedContent: true</code>, <code>:10</code> <code>extraPlugins: ["drawio", ...]</code> / <code>collab-diff.js:130,142</code> <code>tmp.firstChild</code> — null이면 아무것도 하지 않고 통과</p>
+<p><strong>사실|가설</strong>: 비대칭 자체는 <strong>사실</strong>, 실제 발생 빈도는 <strong>가설</strong>(drawio/accordion 위젯이 body 직계에 <code>iframe</code>/<code>object</code>를 만드는지에 의존)</p>
+<p>sanitize 후 남는 게 없으면 <code>insert</code>는 무시되고 <code>replace</code>는 원본을 그대로 둔다. <strong>송신자 화면에는 있고 수신자 화면에는 없는 블록</strong>이 생기며, 이후 diff는 이 사실을 모른 채 인덱스를 계산한다.</p>
+<h3>B-5. 원격 커서 span이 저장 본문에 섞임</h3>
+<p><strong>근거</strong>: <code>collab-diff.js:238</code> <code>editorDoc.body.appendChild(cursor)</code> — 커서를 <strong>에디터 body 안에</strong> 삽입. <code>adms.js:283-292</code> 저장 직전 처리는 <code>.panel-body</code> 비우기뿐, 커서 제거 없음. <code>adms.js:303</code> <code>getData()</code>. <code>editor-operation.js:11</code> <code>allowedContent: true</code> → CKEditor 출력 필터가 걷어내지 않음</p>
+<p><strong>사실|가설</strong>: <strong>가설</strong> (경로는 사실, <code>getData()</code> 출력에 실제 포함되는지는 미실행 검증)</p>
+<p>성립하면 저장본에 상대 사용자 이름 라벨과 인라인 style이 그대로 박힌다.</p>
+<h3>B-6. 저장이 last-writer-wins</h3>
+<p><strong>근거</strong>: <code>adms.js:294-304</code> <code>updateWiki.do</code> payload = <code>{wikiId, authorEmail, authorId, contents}</code> — <strong>버전·ETag 없음</strong>. <code>adms.js:312</code> 저장자만 <code>closeRoom()</code>, 나머지 참여자에게는 "저장됨" 통지가 없음</p>
+<p><strong>사실|가설</strong>: <strong>사실</strong></p>
+<p>A가 저장하고 방을 나간 뒤에도 B는 계속 편집하고, B가 저장하면 A의 결과를 통째로 덮는다. A-1/B-1로 이미 발산한 두 DOM 중 <strong>나중에 저장 버튼을 누른 쪽만 남는다</strong>.</p>
+<h3>B-7. 편집 진입 시 서버 문서 상태를 null로 덮음</h3>
+<p><strong>근거</strong>: <code>adms.js:343</code> <code>sessionManager.setRoom(getWikiId())</code> — <strong>content 인자 미전달</strong> → <code>session-manager.js:80</code> <code>content: undefined</code> → JSON에서 필드 누락 → <code>SessionController.java:98</code> <code>otService.setDocumentContent(sid, did, null)</code></p>
+<p><strong>사실|가설</strong>: <strong>사실</strong></p>
+<p>현재 diff 경로는 이 값을 읽지 않아 증상은 없지만, <code>broadcastFullDocumentState</code>(<code>EditorController.java:211</code> 정의)가 이 null을 계속 내보내고 있다. 실제 호출부는 <code>EditorController.java:104</code>(join)·<code>:142</code>(leave)·<code>WebSocketEventListener.java:120</code>이며, selection 경로의 호출(<code>:198</code>)은 주석 처리되어 있다. 서버 권위 상태를 도입하려는 어떤 수정도 여기서 먼저 막힌다.</p>
+<hr />
+<h2>개선안</h2>
+<h3>단기 완화 (구조 변경 없음)</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>조치</th>
+<th>근거 위치</th>
+<th>효과</th>
+<th>영향범위</th>
+<th>난이도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1</td>
+<td><code>applyBlockDiff</code> 직후 <code>lastBlocks = getEditorBlocks(editor)</code> 재동기화</td>
+<td><code>adms.js:235</code> 아래 1줄</td>
+<td><strong>원인 A-1 직접 제거</strong>. 중복 삽입 대부분 소멸</td>
+<td>adms.js 1줄</td>
+<td>하</td>
+</tr>
+<tr>
+<td>S2</td>
+<td><code>lastBlocks</code> 전진을 publish <strong>성공 이후로</strong> 이동 + <code>_handleConnectionFailure</code>에서 큐 비우지 말고 유지</td>
+<td><code>adms.js:164</code>, <code>session-manager.js:63</code></td>
+<td>B-2 유실 방지</td>
+<td>adms.js·session-manager.js</td>
+<td>하</td>
+</tr>
+<tr>
+<td>S3</td>
+<td><code>remoteUserUpdate</code>가 세션 없음/미연결로 전송 못 하면 <strong>false 반환</strong>, 호출부에서 <code>lastBlocks</code> 전진 취소</td>
+<td><code>session-manager.js:192</code></td>
+<td>B-2 보완</td>
+<td>소</td>
+<td>하</td>
+</tr>
+<tr>
+<td>S4</td>
+<td><code>applyBlockDiff</code> 진입 시 로컬 캐럿 블록 인덱스를 기억하고, 적용 후 CKEditor selection 복원</td>
+<td><code>collab-diff.js:109</code></td>
+<td>B-1 시나리오①의 캐럿·입력 소실 완화</td>
+<td>collab-diff.js</td>
+<td>중</td>
+</tr>
+<tr>
+<td>S5</td>
+<td><code>WebSocketConfig</code>에 <code>config.setPreservePublishOrder(true)</code></td>
+<td><code>WebSocketConfig.java:18</code></td>
+<td>B-3 완화</td>
+<td>서버 1줄</td>
+<td>하</td>
+</tr>
+<tr>
+<td>S6</td>
+<td>저장 직전 <code>data-remote-cursor</code> 노드 제거 후 <code>getData()</code></td>
+<td><code>adms.js:283</code> 블록</td>
+<td>B-5 차단</td>
+<td>adms.js</td>
+<td>하</td>
+</tr>
+<tr>
+<td>S7</td>
+<td><code>sendDiffIfChanged</code>가 <code>[전체 delete + 전체 insert]</code> 형태(retain 0개, 블록 N개 초과)를 만들면 전송 중단 + 재동기화 요청</td>
+<td><code>adms.js:160</code></td>
+<td>폭주 diff 서킷브레이커</td>
+<td>adms.js</td>
+<td>하</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>S1~S3만 적용해도 신고된 두 증상의 <strong>다수는 사라진다</strong>. 다만 B-1 시나리오②(동시 같은 블록 편집)는 남는다 — 이건 구조 문제다.</p>
+</blockquote>
+<h3>근본 해결</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>조치</th>
+<th>영향범위</th>
+<th>난이도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R1</td>
+<td><strong>ops에 <code>baseRev</code> 부여 + 서버 권위 revision.</strong> <code>EditorController.handleSelectionUpdate</code>를 릴레이가 아니라 "현재 rev와 baseRev가 같을 때만 수락, rev+1 후 broadcast, 불일치면 발신자에게 reject + 최신 스냅샷 push" 로 변경. 클라이언트는 reject 시 <code>setData</code> 후 <code>lastBlocks</code> 재동기화</td>
+<td>서버 컨트롤러 + 클라 수신부</td>
+<td>중</td>
+</tr>
+<tr>
+<td>R2</td>
+<td><strong>블록에 안정 ID 부여</strong> (<code>data-block-id</code>, 생성 시 1회 발급). diff를 <code>outerHTML</code> 위치 기반이 아니라 ID 기반으로 → A-2·A-4 소멸, 순서 역전 내성 확보</td>
+<td>collab-diff.js 전면 + CKEditor 삽입 훅</td>
+<td>중~상</td>
+</tr>
+<tr>
+<td>R3</td>
+<td><strong>블록 내부 텍스트 병합.</strong> <code>replace</code>를 통째 교체가 아니라 블록 내 문자 단위 diff로 → B-1 시나리오①·② 해결</td>
+<td>collab-diff.js 신규 로직</td>
+<td>상</td>
+</tr>
+<tr>
+<td>R4</td>
+<td><strong>저장 시 낙관적 락.</strong> <code>updateWiki.do</code>에 <code>baseVersion</code> 추가, 서버가 충돌 시 409 반환</td>
+<td>프론트 + Backend-Core</td>
+<td>중</td>
+</tr>
+<tr>
+<td>R5</td>
+<td><strong>이미 있는 OT 경로로 이관.</strong> <code>OtService</code>/<code>OtController</code>가 revision·transform을 이미 갖고 있다. 자체 diff 프로토콜을 유지·보수하는 것보다 이쪽에 CKEditor 어댑터를 붙이는 편이 총비용이 낮을 수 있다 (단 <code>setRoom</code> content 누락 B-7 선행 수정 필요)</td>
+<td>프론트 동기화 계층 교체</td>
+<td>상</td>
+</tr>
+</tbody>
+</table>
+<p><strong>권장 순서</strong>: S1 → S2/S3 → S5/S6 → (R1 + R2) → R4 → R3. R1+R2까지 가면 "수렴은 보장, 같은 문단 동시 편집은 나중 것 우선"이라는 <strong>설명 가능한 semantics</strong>에 도달한다. R3/R5는 그 다음 판단.</p>
+<hr />
+<h2>Issues/Caveats</h2>
+<ol>
+<li><strong>서버 echo 정책은 확정됨.</strong> <code>EditorController.java:191</code>은 발신자 제외 없이 broadcast → <strong>echo 있음</strong>. 다만 <code>session-manager.js:165</code>에서 클라이언트가 필터하므로 실질 영향 없음. brief가 요구한 "echo 유무 2분기"는 불필요해졌다.</li>
+<li><strong>정적 분석만 수행했다.</strong> 브라우저 실행·재현 검증은 하지 않았다. 재현 시나리오는 코드 경로를 따라 구성한 것이며, 특히 B-3(순서 역전)·B-4(sanitize 드롭)·B-5(커서 저장 혼입)는 <strong>실측 확인이 필요</strong>하다.</li>
+<li><strong><code>setPreservePublishOrder</code> 기본값 false</strong>는 Spring 문서 근거이며 이 repo에 명시 설정이 없다는 것만 코드로 확인했다.</li>
+<li><strong>다중 인스턴스 배포 시 추가 결함 가능.</strong> <code>WebSocketConfig.java:18</code>은 <code>enableSimpleBroker</code> — 인메모리 브로커다. Broker-Hub를 2대 이상 띄우면 서로 다른 인스턴스에 붙은 사용자는 <strong>아예 서로를 못 본다</strong>(참여자 목록은 Redis라 보이는데 편집은 안 오는 형태). 배포 형상을 확인해야 한다. <code>SessionController.java:23</code> <code>activeSessions</code>도 static in-memory + TODO 주석이 달려 있다.</li>
+<li><strong>B-5는 미검증 가설.</strong> CKEditor4의 <code>getData()</code>가 <code>allowedContent:true</code>에서 커서 span을 그대로 출력하는지 실제 확인이 필요하다.</li>
+<li><strong><code>adms.js:248</code> 잠재 버그(범위 외, 참고).</strong> <code>parsed.type</code>이 <code>diff</code>/<code>cursor</code>가 아니면 <code>return</code> 없이 흘러 <code>setData(data)</code>에 <strong>JSON 문자열 원문</strong>이 들어간다. 현재 타입이 2개뿐이라 미발현이지만, 타입을 추가하는 순간 문서가 JSON 텍스트로 덮인다. 이번 증상의 원인은 아니다.</li>
+<li><strong><code>_ensureConnected</code>와 <code>_setupReconnectHandler</code>의 <code>onConnect</code> 이중 래핑</strong>(<code>session-manager.js:104</code> vs <code>:45</code>)을 검토했다. <code>_subscribeContentsChange</code>가 앞서 <code>_unsubscribeContentsChange()</code>를 호출하므로 <strong>중복 구독은 발생하지 않는다</strong>(중복 수신은 원인 아님). 다만 자동 재연결 시 죽은 subscription의 <code>unsubscribe()</code>가 예외를 던지면 <code>:54</code> catch에 걸려 <strong>구독 복구 전체가 중단</strong>되고, 그 사용자는 계속 송신하면서 수신만 끊긴 채 발산한다 — <strong>가설</strong>, 실측 필요.</li>
+</ol>
+<hr /></body></html>
