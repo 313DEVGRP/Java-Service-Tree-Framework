@@ -36,3 +36,14 @@ vault 밖 pptx 변경은 건드리지 않았다.
 
 표면화한 열린 질문 4건 — 재직 시기·기간 부재, 역할 수준·팀 규모 불명, vault에 넣은 목적 불명,
 현 소속 여부 미확인.
+
+## [2026-08-13] ingest — 이동민 첫 소속 정정 (Daum → Daum Soft)
+
+계기: query "이동민" 응답 후 사용자가 첫 소속 표기를 **Daum Soft**로 정정.
+
+갱신한 페이지 (2): `leedongmin`(표 1행), `leedongmin-career`(요약 1줄 + 정정 경위 문단). 둘 다 `updated: 2026-08-13`.
+`index.md` 2줄 갱신(요약 표기 + updated).
+
+`raw/2026-07-30-leedongmin.md`는 **수정하지 않았다** — schema §구조와 소유권에 따라 raw/는 내용 불변이고
+에이전트는 읽기 전용. 따라서 원자료("Daum")와 wiki("Daum Soft") 표기가 의도적으로 불일치하며,
+`leedongmin-career`에 이 정정이 우선한다고 명기해 뒀다.

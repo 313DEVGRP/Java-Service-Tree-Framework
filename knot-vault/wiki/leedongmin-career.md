@@ -1,7 +1,7 @@
 ---
 type: source
 created: 2026-07-30
-updated: 2026-07-30
+updated: 2026-08-13
 sources: [raw/2026-07-30-leedongmin.md]
 aliases: []
 ---
@@ -12,7 +12,9 @@ aliases: []
 
 ## 요약
 
-Daum(검색엔진 솔루션 개발) → AhnLab(전사 개발 프로세스 정의·운용) → NC(글로벌 배포 시스템 개발·운용) → Megazone Cloud(클라우드 진단 시스템 개발).
+Daum Soft(검색엔진 솔루션 개발) → AhnLab(전사 개발 프로세스 정의·운용) → NC(글로벌 배포 시스템 개발·운용) → Megazone Cloud(클라우드 진단 시스템 개발).
+
+원자료는 첫 소속을 "Daum"으로 적었으나 2026-08-13 사람이 **Daum Soft**로 정정했다. `raw/`는 내용 불변이므로 원문은 그대로 두고 이 페이지와 [[leedongmin]]에만 반영했다 — 두 표기가 다르면 이 정정이 우선이다.
 
 ## 핵심 takeaway
 
