@@ -95,3 +95,12 @@ MAT_ROOT=<설치한-폴더> mat
 ## 라이선스
 
 개인 사용 및 학습 목적.
+
+# 마법의 4줄
+요구사항정의서_엑셀양식_v3_1_3.xlsx 의 {REQ-LANDING-FUNC-01} 요구사항을 기준으로
+tasks/요구사항_TASK_전환_Format.md
+tasks/요구사항_TASK_전환_Sample.md
+두개의 md 파일을 참고하여 작업을 만들어줘.
+
+# mat 환경 변수
+$env:MAT_ROOT = "C:\~~~\Java-Service-Tree-Framework-main"
