@@ -63,3 +63,6 @@ MAT_ROOT=~/VSCodeWorkspace/MultiAgent mat <task>     # 특정 작업에 고정
 ## 상태
 
 동작하는 read-only 관찰 도구. starter 표준 레이아웃을 따르는 작업을 모니터링한다.
+
+
+$env:MAT_ROOT = "C:\DEV\sourcecode\Java-Service-Tree-Framework\"
