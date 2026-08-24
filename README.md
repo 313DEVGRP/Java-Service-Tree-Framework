@@ -106,4 +106,5 @@ tasks/요구사항_TASK_전환_Sample.md
 두개의 md 파일을 참고하여 작업을 만들어줘.
 
 # mat 환경 변수
+go build -o mat.exe .
 $env:MAT_ROOT = "C:\~~~\Java-Service-Tree-Framework-main"
