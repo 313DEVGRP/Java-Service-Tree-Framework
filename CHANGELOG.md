@@ -3,6 +3,30 @@
 이 파일은 MultiAgent orchestration 시스템의 주요 변경을 기록한다.
 형식은 [Keep a Changelog](https://keepachangelog.com/), 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## [1.4.0] - 2026-07-27
+
+### Added
+- **`ollama` 워커 추가 — reviewer 슬롯 보조(자체호스팅)** — 벤더 쿼터에 묶이지 않는 독립
+  검증자 확보로 codex-critic의 교차 다양성 보강. 주 검증자는 codex-critic 유지, ollama는 보조
+  ("검증 1회 원칙"은 슬롯 단위 적용). 기본 모델 `gemma3`(`backends.json`에서 교체 가능),
+  백엔드 = HTTP API(`_shared/adapters/ollama_api.sh`, env `OLLAMA_HOST`로 호스트 재정의).
+  기존 어댑터+디스패처 패턴 재사용 — 새 design-basis 결정·새 INV 없이 `backends.json` 워커 레코드
+  1개 + 어댑터 1개 추가로 완결. 근거: `_shared/learnings.md` [2026-07-27].
+
+### Changed
+- 담당명 병기 사본 동기화 — `capability-profile.md`(배정 정본)·`routing.md`·`CLAUDE.md`·`README.md`
+  + 비용표 `approval-policy.md`. 구조 파일(`orchestrator-rules`·`system-invariants`·`design-basis`)은
+  미편입(capability-profile §4 갱신 절차).
+
+### Fixed
+- **`ollama` 도입 시 기재 오류 정정(2026-07-28)** — 'localhost:11434 로컬·오프라인'으로 적었으나
+  어댑터 실제 기본값은 자체호스팅 **원격** 데몬이다. '벤더 쿼터 없음'은 유효하나
+  '오프라인·네트워크 불필요'는 성립하지 않는다 — 네트워크 단절 시 이 슬롯 사용 불가.
+  `capability-profile.md`·`routing.md`·`CLAUDE.md`·`README.md` 병기 사본 동일 정정.
+
+### Note
+- 로컬·무료 워커도 승인 게이트 대상이다. 게이트 기준은 "비용≠0"이 아니라 **"worker 여부"**이므로
+  `ollama`도 `workers_approved`에 명시적 기록이 필요하다(`approval-policy.md`).
 ## [1.3.0] - 2026-07-13
 
 ### Added
@@ -92,5 +116,11 @@
 ### Verification
 - 배선(INV11a/b/c) PASS · 회귀 없음, 탁상 분기 커버리지, 실전 콜드세션 3/3 PASS, codex-critic adversarial 리뷰 5 ISSUE 반영.
 
+[1.4.0]: https://github.com/netwaif/multi-agent-starter/releases/tag/v1.4.0
+[1.3.0]: https://github.com/netwaif/multi-agent-starter/releases/tag/v1.3.0
+[1.2.2]: https://github.com/netwaif/multi-agent-starter/releases/tag/v1.2.2
+[1.2.1]: https://github.com/netwaif/multi-agent-starter/releases/tag/v1.2.1
+[1.2.0]: https://github.com/netwaif/multi-agent-starter/releases/tag/v1.2.0
+[1.1.0]: https://github.com/netwaif/multi-agent-starter/releases/tag/v1.1.0
 [1.0.1]: https://github.com/netwaif/multi-agent-starter/releases/tag/v1.0.1
 [1.0.0]: https://github.com/netwaif/multi-agent-starter/releases/tag/v1.0.0

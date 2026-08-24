@@ -8,11 +8,11 @@
 
 ---
 
-## KI-1 (audit C3) — 표준 `worker-brief.md`를 쓰면 mat이 워커 목적을 ` ```yaml `로 표시
+## ✅ KI-1 (audit C3) — 표준 `worker-brief.md`를 쓰면 mat이 워커 목적을 ` ```yaml `로 표시
 
-- **상태**: 열림 / **보류** (경미·표시 한정. 크리티컬 C1·C2는 PR #3·#5에서 해소됨)
-- **심각도**: 낮음 — 시스템·워커 호출·데이터에 영향 없음. [mat](https://github.com/netwaif/mat) **모니터 화면 표시만** 오염. mat 미사용 시 영향 0.
-- **재현**: 항상. `_templates/worker-brief.md` 표준 구조를 그대로 채운 brief를 쓰는 모든 작업. (이 audit의 codex-main brief에서도 실증됨.)
+- **상태**: **닫힘** (2026-08-24) — 1.1.0의 「Worker 행동 규약」 블록 삽입으로 **부수 해소**. 전용 수정 PR 없음
+- **심각도**: 낮음 (해소 전 기준) — 시스템·워커 호출·데이터에 영향 없었음. [mat](https://github.com/netwaif/mat) 모니터 화면 표시만 오염
+- **재현**: 현재 템플릿에서 **재현 불가** (아래 §해소 근거)
 
 ### 증상
 
@@ -22,21 +22,32 @@ mat의 핵심 화면 요소인 "워커 한 줄 목적"이 실제 Objective가 �
 
 | repo | 파일·라인 | 내용 |
 |------|-----------|------|
-| starter | `_templates/worker-brief.md` | 1행 `# Brief`(heading), 2–4행 `<!-- -->`(comment), 6행 `## Execution Context`(heading), **8행 ` ```yaml ` fence** |
+| starter | `_templates/worker-brief.md` **(해소 전 구조)** | 1행 `# Brief`(heading), 2–4행 `<!-- -->`(comment), 6행 `## Execution Context`(heading), **8행 ` ```yaml ` fence** |
 | mat | `internal/parser/task.go:280` | brief 존재 시 무조건 `w.Purpose = firstMeaningfulLine(brief 내용)` |
 | mat | `internal/parser/task.go:499–515` | `firstMeaningfulLine`은 **빈 줄·`#`시작·`<!--`시작만 skip**, 그 다음 줄을 그대로 반환 |
 | mat | `internal/parser/task.go:71–76` | `w.Purpose == ""`일 때만 `planned_workers.purpose`로 fallback |
 
 표준 brief에서 heading·comment를 건너뛴 첫 "의미 있는" 줄은 `## Execution Context` 다음의 ` ```yaml ` fence다. 이 값이 비어있지 않으므로 `planned_workers.purpose` fallback도 발동하지 않는다.
 
-### 수정 후보 (택1, 미결정)
+### 해소 근거 (2026-08-24 실측)
 
-- **(a) starter 템플릿** — `_templates/worker-brief.md`를 첫 의미 있는 줄이 실제 한 줄 목적이 되도록 재구성 (예: Execution Context yaml 위에 평문 목적 1줄, 또는 Objective를 평문으로 선두 배치).
-  - 장점: starter 단독 수정, mat 재빌드 불필요, 자기완결.
-  - 단점: 전 worker 공용 템플릿 변경. 1200자 한도·codex Execution Context yaml 요구와 양립해야.
-- **(b) mat 파서** — `firstMeaningfulLine`이 코드펜스(` ``` `/` ```yaml `)도 skip하거나, 명시적 purpose 필드를 우선.
-  - 장점: 임의 brief에 견고.
-  - 단점: mat 재빌드·재배포 필요(`go build -o mat .` + 재실행). mat은 선택적 외부 도구라 비-mat 환경엔 무의미.
+1.1.0에서 `_templates/worker-brief.md` **6행에 「## Worker 행동 규약」 섹션이 삽입**되면서,
+heading·comment 다음의 첫 의미 있는 줄이 yaml fence가 아니라 규약 첫 항목이 됐다.
+수정 후보 (a)(템플릿 재구성)·(b)(mat 파서)는 **둘 다 불필요** — 어느 쪽도 채택하지 않았다.
+
+| 항목 | KI-1 기재 (해소 전) | 현재 실측 |
+|------|--------------------|----------|
+| `worker-brief.md` 6행 | `## Execution Context` | `## Worker 행동 규약 (고정 …)` |
+| `worker-brief.md` 8행 | ` ```yaml ` fence | `- 요청 범위만 최소로. …` |
+| `firstMeaningfulLine` 반환값 | ` ```yaml ` | `- 요청 범위만 최소로. 사변적 추상화·기능 추가 금지` |
+
+검증: `internal/parser/task.go:499–516`의 skip 규칙(빈 줄·`#`·`<!--`)을 현재 템플릿에 재현 → fence 미도달.
+mat 파서(`task.go:280`·`499`)는 **수정하지 않았다** — 임의 brief에 대한 견고성 개선 여지는 남아 있으나,
+표준 템플릿에서는 증상이 발생하지 않으므로 이 이슈로 추적하지 않는다.
+
+> 잔존 사항(이슈 아님): 표시되는 값이 Objective가 아니라 규약 첫 줄이다. mat 화면상
+> 모든 워커가 동일 문자열을 보이므로 목적 구분에는 기여하지 않는다. 개선하려면 수정 후보 (b)
+> 또는 `planned_workers.purpose` 우선 처리가 필요하다.
 
 ### 참고
 

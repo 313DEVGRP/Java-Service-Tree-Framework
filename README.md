@@ -20,11 +20,17 @@ Claude Code를 오케스트레이터로 두고 Claude·Codex·Gemini를 워커�
 ```
 <설치한-폴더>/
 ├── CLAUDE.md              # 운영 규칙 전문 (이 폴더 안에서 claude 실행 시만 적용)
+├── .claude/agents/        # ①워커 풀 정의 + ②도메인 서브에이전트 (계층 구분: 같은 폴더 README)
 ├── _shared/
-│   ├── routing.md             # worker 선택 decision tree + 호출 명령
+│   ├── routing.md             # 능력 슬롯 decision tree + worker 역할 상세 (안정층)
+│   ├── capability-profile.md  # 슬롯 → 워커 배정 정본 (가변층, 이력 append-only)
+│   ├── backends.json          # worker 호출 스펙 정본 (call_type·모델·폴백·timeout)
 │   ├── approval-policy.md     # 승인 게이트 정책 (claude-main 포함)
-│   ├── orchestrator-rules.md  # 세션 시작 시 자체 점검 규칙
-│   └── learnings.md           # 시스템 일반 재사용 교훈 (추적·공개, append-only)
+│   ├── orchestrator-rules.md  # 세션 시작 시 자체 점검 + §3 작업 재진입 프로토콜
+│   ├── design-basis.md        # 설계 결정 기록 (D1~D9) — 왜 이 규칙인지
+│   ├── system-invariants.md   # INV1~12 자가점검 (시스템 파일 수정 후 실행)
+│   ├── learnings.md           # 시스템 일반 재사용 교훈 (추적·공개, append-only)
+│   └── adapters/              # 디스패처 call_worker.sh + cli·api 어댑터
 ├── _templates/
 │   ├── task.md            # status, goal, constraints, planned_workers, workers_approved
 │   ├── context.md         # 현재 스냅샷 ≤ 1500자 / 300단어
@@ -73,12 +79,9 @@ MAT_ROOT=<설치한-폴더> mat
 
 설치·키 조작 등 자세한 내용은 [mat 저장소](https://github.com/netwaif/mat) 참고.
 
-> ⚠️ mat에서 워커 한 줄 목적이 ` ```yaml `로 보이면 **알려진 경미 이슈**(KI-1)다.
-> 시스템·진행에는 영향 없다. [`KNOWN_ISSUES.md`](./KNOWN_ISSUES.md) 참고.
-
 ## 알려진 이슈
 
-해결·보류 중인 알려진 결함은 [`KNOWN_ISSUES.md`](./KNOWN_ISSUES.md)에 추적한다.
+알려진 결함(해결·보류)은 [`KNOWN_ISSUES.md`](./KNOWN_ISSUES.md)에 추적한다. 현재 열린 이슈 없음 (KI-1 닫힘, 2026-08-24).
 
 ## 핵심 원칙
 
