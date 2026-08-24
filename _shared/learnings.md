@@ -89,28 +89,7 @@
 **근거**: agy spike S1 GREEN + 3자 검수(codex #8이 "옛 정책과 충돌" 지적 → 검증하니 정책을 갱신해야 하는 것이었음). backends.json이 gemini 호출 정본, mcp__gemini-pro__/mcp__gemini__ 브리지 폐기.
 **worker**: orchestrator(마이그레이션·라이브 편집), codex-critic+gemini=agy(검수)
 
-## [2026-07-22] [landing-calendar-i18n]
-**교훈**: 리뷰어가 워커 산출물의 "숨은 회귀"를 잡으면, Orchestrator는 **리뷰 지적을 원본 소스로 직접 재대조**(never-trust-upstream을 리뷰어에도 적용)해야 하고, 수정 워커에는 **원본 코드 근거(파일:라인)를 인용해 수정 요청**해야 재현·재검증이 가능하다. 이번엔 frontend-expert(2계층 도메인 서브에이전트)가 리뷰어로 투입돼 claude-main의 i18n 구현에서 실동작 회귀 2건을 검출: ①페이지가 전역 로더(`loadPluginGroupsParallelAndSequential`→`loadLocale`→`bindLocaleText`가 `[data-locale]` 전체 순회)를 이미 트리거하므로, 페이지-로컬 i18n이 같은 `data-locale` 속성을 쓰면 이중 바인딩·경고, ②로케일 번들이 `dist/`가 아닌 `packages/core/`에만 존재. 수정 워커(claude-main 재호출)는 재검증 중 **더 깊은 3번째 회귀**까지 자발 발견(공통 저장키에 미지원 로케일 저장 시 전역 정규화 코드가 다음 로드에서 덮어씀). Orchestrator가 세 주장을 모두 소스로 확인 후 수락. 핵심 회피 패턴: **기존 전역 시스템과 겹치는 신규 기능은 전용 속성/전용 저장키로 스코프 분리**하면 전역 코드를 한 줄도 안 건드리고 회귀를 원천 차단할 수 있다.
-**근거**: 리뷰 3건 전부 진성(common.js:2408 allowlist·:2449 querySelectorAll, dist/ 번들 부재를 Orchestrator가 직접 확인). 워커는 텍스트만 반환하고 실제 파일 반영은 Orchestrator가 수행하므로, 반영 후 orphan 참조(`landingUserLocale`)·잔존 속성(`data-locale`)·파일 실존을 grep/디스크로 재검증해 루프 종료.
-**worker**: claude-main(구현·v2 수정), frontend-expert(2계층 리뷰어, 회귀 2건 검출), orchestrator(지적 소스 재대조·수정요청 근거 인용·반영·반영후 재검증)
-
-## [2026-07-22] [landing-calendar-i18n]
-**교훈**: 2계층 도메인 서브에이전트(`frontend-expert` 등)를 Producer-Reviewer의 **리뷰어**로 쓸 수 있다 — 정본 reviewer 슬롯(codex-critic)이 아니어도 사용자가 지정하면 가능. 단 도메인 서브에이전트는 `workers_approved` 승인 게이트 밖이므로, 실제 호출(비용) 발생 사실을 투명성 차원에서 `task.md`·`log.md`에 병기하고, "직접 파일 수정 가능" 기본 능력을 이 흐름에선 "리뷰 후 수정 요청만"으로 brief에서 명시적으로 한정해야 역할 혼선이 없다. 이어달리기가 필요한 수정 반영은 새 Agent 호출 대신 **SendMessage로 같은 워커 세션(agentId)을 재개**하면 이전 구현 컨텍스트가 유지돼 diff 기반 수정이 정확하다.
-**근거**: frontend-expert는 README 2계층·게이트 밖이나 사용자 지정으로 리뷰어 투입. claude-main 재호출은 SendMessage로 세션 af8fad… 재개 → v1 컨텍스트 유지한 채 v2 diff 생성. Producer-Reviewer 1사이클로 종료.
-**worker**: orchestrator(리뷰어 지정·역할 한정 brief·세션 재개 판단)
-
-## [2026-07-22] [landing-calendar-redesign]
-**교훈**: "기능 보존 + 디자인만 변경" 리스타일 작업은 방향 제안 단계(claude-main)에서 **선택자·값 매핑을 표로 확정**하고 **보존 불변식(id·i18n 키·option)을 명시**해 두면, 구현 워커가 이탈 없이 1패스로 끝내 리뷰 재수정이 0회가 된다. 이번엔 claude-main이 §4에 "기존 라이트값 → 다크 glass값" 라인별 치환표를 미리 만들어 frontend-expert가 그대로 적용 → claude-main 리뷰 [개선 불필요]. 검증은 grep 단일 명령(`data-lc-i18n 6키 + id 3 + option 4 = 13 매치`)으로 보존을 정량 확인. 색 충돌 우려(Caveat)는 **구현 전에** grep로 형제 액센트 전수 조사해 선제 해소(형제는 --*-accent 토큰 미사용, business만 예외 → indigo 고유성 확보). 회피 패턴: 리스타일은 기존 `<style>` 선택자 구조를 유지하고 **값만** 치환하면 회귀 위험이 최소화된다(선택자 삭제·재작성 금지).
-**근거**: Producer-Reviewer 1사이클·재수정 0회 종료. 방향(§4 표)→구현→리뷰 3단계 모두 동일 매핑 참조. 사전 grep로 indigo 충돌 0건 확인 후 채택.
-**worker**: claude-main(치환표 확정·어울림 리뷰), frontend-expert(1패스 구현), orchestrator(사전 색충돌 grep·grep 정량 보존검증)
-
 ## [2026-07-27] [add-ollama-worker]
 **교훈**: 새 worker 추가가 반드시 새 설계 결정(design-basis D항목)이나 새 불변식(INV)을 요구하는 건 아니다 — 기존 어댑터+디스패처 패턴(gemini의 cli/api 슬롯)을 재사용하면, backends.json에 워커 레코드 1개 + `adapters/<w>_api.sh` 1개만 추가하고 나머지는 병기(편의 사본) 동기화로 끝난다. capability-profile §3 "담당명 병기 사본을 전부 동기화"의 대상은 **워커 목록·슬롯 배정을 나열하는 파일**(profile·routing·CLAUDE·README + 비용표 approval-policy)이고, **구조 파일**(orchestrator-rules·system-invariants·design-basis)은 §4대로 손대지 않는다 — 거기서 gemini가 보이는 건 "목록"이 아니라 gemini 전용 정책/불변식 맥락이라 새 워커가 자동 편입 대상이 아니기 때문. 로컬 워커(ollama)의 함정: **비용=0이라 승인 게이트 밖이라고 오해하기 쉬움** → 게이트 기준은 "비용≠0"이 아니라 "worker 여부"이므로 workers_approved 대상 동일(approval-policy에 명시). 어댑터는 gemini_api.sh 인터페이스(`<brief-file>`→stdout 텍스트, exit 0)를 그대로 따르면 디스패처(call_worker.sh) 수정 불필요 — 단 CLI allowlist(agy|codex|claude)는 로컬 데몬 바이너리를 안 받으므로 로컬 HTTP는 반드시 **api 경로**(adapters/ 스크립트)로 태워야 통과한다.
 **근거**: backends.json jq 유효성 + INV9(gemini=agy·pro-high) 잔존 확인 PASS. api.ref 실존 확인. required_env=[]로 localhost는 키 검사 우회(로컬은 인증 불필요). 폴백 없음(단일 로컬 백엔드).
 **worker**: orchestrator(설계 결정 4문항 확인·정본 6파일 동기화·구조파일 비편입 판단·검증)
-
-## [2026-07-28] [arms-i18n-label-audit]
-**교훈**: 자체호스팅 reviewer(ollama/`gemma3`)는 **긴 인라인 brief에서 지시(비평)보다 문서 형식을 모방**한다. 이번 호출은 exit 0·21s로 정상 종료했지만 산출물은 brief의 헤더 구조(Objective/Constraints/Do NOT)를 복제한 재작성물이었고, 요구한 3섹션(분류기준 평가·누락 관점·우선순위 이견)은 전무했으며 사실 오독 3건(태깅 110건을 "미적용"으로 반전 / 키 54개를 "54 languages"로 / 0바이트 파일을 "missing"으로)에 요구하지 않은 번역 예시 5건을 창작했다. → **exit 0을 성공으로 읽지 말 것**. 검증은 종료코드가 아니라 "brief의 output_format 3섹션이 실제로 있는지"로 판정한다. 또 이런 실패는 모델 용량 한계라 동일 모델 재호출로 개선되지 않으므로(routing "재호출은 검증 실패 시만"의 문자적 적용은 쿼터 낭비) **재시도 대신 대체 워커 승인을 사용자 판단으로 넘긴다** — 승인 없는 codex-critic 전환은 게이트 위반이다. 회피 패턴: 로컬 소형 모델에는 자유서술 비평보다 **판정 항목을 닫힌 질문으로 쪼갠 체크리스트**를 주는 편이 낫다.
-**부수 교훈**: 사전 정찰(orchestrator 내부 추론, worker 아님)로 판정 기준을 미리 확정해 brief에 실으면 워커가 기준 재발명 없이 바로 측정에 들어가 1패스로 끝난다. 다만 정찰 결론을 **상한으로 못박지 말 것** — 이번엔 정찰이 "`data-locale` 6파일뿐 → 미적용 추정"까지였는데, 워커가 그 위에서 태깅된 110건조차 런타임에 죽어 있는 원인 4건(ko.json trailing comma로 JSON 파싱 실패 / 코드는 `ja`인데 파일은 `jp.json`이라 404 / 빈 span 영구 공백 / `currentLanguagePack`이 대입만 되고 읽히지 않음)을 규명했다. 리뷰어가 무력화된 상황에서 산출물을 수락하려면 Orchestrator가 **핵심 주장을 코드에서 직접 실측**해야 한다(never-trust-upstream) — 4건 전부 재현 확인 후 수락, 미확보 항목("제3자 관점 누락 점검")은 Acceptance Criteria에 미충족으로 남겨 은폐하지 않았다.
-**근거**: ollama envelope stdout 원문을 workers/ollama/result.md에 보존(요약 대체 금지 = telephone game 방지)하고 오독 3건을 주석으로 병기. Orchestrator 재확인: `python json.load` → JSONDecodeError line 26 / `common.js:2417 allowedLocale=["ko","ja","en"]` vs `jp.json` / `reportWeekly/content-container.html:494` 빈 span / `currentLanguagePack` 참조 grep 0건. target repo는 `git status` 클린으로 read-only 준수 확인.
-**worker**: claude-main(감사·리포트 315줄), ollama(비평 실패 — 형식 모방), orchestrator(사전 정찰·판정기준 확정·주장 4건 소스 실측·실패 판정·재시도 보류)
