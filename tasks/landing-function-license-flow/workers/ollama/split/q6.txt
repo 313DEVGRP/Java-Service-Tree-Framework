@@ -1,0 +1,27 @@
+다음 질문에 답하라. 답 이외의 말은 절대 쓰지 마라.
+설명·요약·인사·제안 금지. 아래 형식 한 줄만 출력하라.
+
+형식: YES 또는 NO. NO면 허용목록에 없는 값만.
+
+---
+아래 [사용 색상]이 전부 [허용 목록] 안에 있는가?
+
+[허용 목록]
+#cbd5e1 #94a3b8 #f1f5f9 #64748b #60a5fa #34d399 #fbbf24 #f87171 #a78bfa #6ee7b7 #f8f8f8 #7cb5e0 #93c5fd #f472b6 rgba(226,232,240,0.75) rgba(255,255,255,0.12)
+
+[사용 색상]
+--lf-accent = #7cb5e0
+--lf-accent-2 = #93c5fd
+--lf-text = #cbd5e1
+--lf-text-mute = #94a3b8
+--lf-ink = #f1f5f9
+--lf-warn = #fbbf24
+--lf-ok = #34d399
+--lf-danger = #f87171
+--lf-violet = #a78bfa
+--lf-rose = #f472b6
+--lf-muted = rgba(226,232,240,0.75)
+--lf-line = rgba(255,255,255,0.12)
+---
+
+답(한 줄):

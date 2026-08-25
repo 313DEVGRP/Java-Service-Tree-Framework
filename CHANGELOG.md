@@ -3,6 +3,39 @@
 이 파일은 MultiAgent orchestration 시스템의 주요 변경을 기록한다.
 형식은 [Keep a Changelog](https://keepachangelog.com/), 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## 1.5.0 - 2026-08-25
+
+### Changed
+- **`codex-critic` 비활성 — reviewer 슬롯 배정 해제, 슬롯 공석**. 사용자 통보(사용 불가)에 따른 조치.
+  `backends.json`에 `disabled: true` + `disabled_reason` 추가, 디스패처가 호출을 차단한다(exit 2).
+  **정의·설계근거는 보존한다** — 워커 레코드, `design-basis` D2, `system-invariants` INV2,
+  `_templates` 예시는 그대로. 존재하지 않는 워커를 가리키는 불변식이 생기면 자가점검이 모순되므로
+  가변층(배정)만 바꾸고 안정층(정의)은 건드리지 않았다. 복구는 `disabled` 두 필드 제거 + 배정 복원.
+- **대체 배정 없음** — gemini 겸임 등을 하지 않는다(사용자 선택). 이 시점부터 **주 검증자가 없으며**,
+  산출물 수락 판정은 Orchestrator의 소스 직접 실측이 유일한 근거다. '자기검수 회피' 원칙
+  (design-basis Consensus 항)이 약해진 상태이므로, 검증 워커 확보 시 우선 복구 대상.
+
+### Added
+- **디스패처 `disabled` 강제** (`_shared/adapters/call_worker.sh`). 종전에는 `backends.json`에
+  플래그를 넣어도 검사하지 않아 무의미했다. role 조회 직후 `disabled` 확인 후 `die ... 2`.
+  회귀 검증: codex-critic 차단(exit 2) / ollama 정상(status ok) / 미정의 role 기존 에러 유지.
+## 1.4.1 - 2026-08-25
+
+### Changed
+- **`ollama` 어댑터 `/api/generate` → `/api/chat` 전환** (`_shared/adapters/ollama_api.sh`).
+  brief에 `<!-- SYSTEM -->…<!-- /SYSTEM -->` 마커가 있으면 그 안쪽을 system 메시지로 분리해 보낸다.
+  마커가 없으면 전문을 user로 보내므로 **기존 brief는 동작 변화 없음**(하위호환 검증 완료).
+  디스패처 계약(`<brief-file>` → stdout, exit 0) 유지 — `backends.json` 수정 불필요.
+- **`ollama` 슬롯 용도 한정** — 배정은 유지(reviewer 보조)하되 적용 범위를 축소한다:
+  **입력 4,000자 이하의 닫힌 체크리스트 전용**. 긴 문서 검증·자유서술 비평에는 배정하지 않는다.
+  판정 정확도 한계(실측 3/8, 부정 판정 전부 오답)로 **단독 수락/반려 근거로 쓰지 않고**
+  Orchestrator 소스 실측을 병행한다. 정본 `capability-profile.md` 2026-08-25 이력.
+
+### Note
+- 근거는 3단계 실측: (1) 모델 교체(qwen2.5:7b, 1.8배)로도 개선 없음 → 용량 문제 아님
+  (2) 분할 호출로 형식 준수 0/8 → 6/8 개선 (3) `/api/chat` 대조 실험에서 동일 system 기준
+  user 219~4,000자는 8/8, 11,585자는 0/8 → **user 페이로드 절대 길이**가 임계 요인이며
+  system 분리로 상쇄되지 않는다. 자세한 실험 기록은 `capability-profile.md` 배정 이력.
 ## 1.4.0 - 2026-07-27
 
 ### Added

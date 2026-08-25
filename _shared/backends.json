@@ -31,6 +31,8 @@
       ]
     },
     "codex-critic": {
+      "disabled": true,
+      "disabled_reason": "2026-08-25 사용자 통보 — 사용 불가. reviewer 배정 해제(capability-profile). 정의는 보존하므로 재사용 시 이 두 필드만 제거하면 복구된다",
       "model": "codex-default",
       "call_type": "mcp",
       "mcp": {

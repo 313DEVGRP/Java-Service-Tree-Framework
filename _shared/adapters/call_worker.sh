@@ -44,6 +44,11 @@ BRIEF="$(cd "$(dirname -- "$BRIEF")" && pwd)/$(basename -- "$BRIEF")"
 rec="$(jq -c --arg r "$ROLE" '.workers[$r] // empty' "$BACKENDS")"
 [ -n "$rec" ] || die "role 미정의: $ROLE" 2
 
+# disabled 워커는 호출 차단 (backends.json의 disabled:true). 배정 해제된 워커의 오호출 방지.
+if [ "$(jq -r '.disabled // false' <<<"$rec")" = "true" ]; then
+  die "worker 비활성: $ROLE — $(jq -r '.disabled_reason // "backends.json에 disabled:true"' <<<"$rec")" 2
+fi
+
 # 폴백 가용성 사전 점검(경고만): primary가 죽고 나서야 폴백 불가를 아는 것을 방지
 while IFS= read -r _fe; do
   [ -n "$_fe" ] && [ -z "${!_fe:-}" ] && \
