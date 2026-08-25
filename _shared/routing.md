@@ -103,9 +103,9 @@ decision tree로 "누구를" 고른 뒤, "어떻게 엮을지" 고른다. **단�
   - 어느 경우에도 `_shared/`, `_templates/`, 다른 작업 폴더는 쓰지 말 것
 
 ### codex-critic
-> ⚠️ **인증 필요 (2026-08-25 실측)** — 설정상 활성이나 `mcp__codex__codex` 호출이 `401 Unauthorized`로
-> 실패한다(`~/.codex/auth.json` 부재 · `OPENAI_API_KEY` 미설정). codex-main도 동일 영향.
-> `codex login` 또는 `OPENAI_API_KEY` 설정 시 즉시 동작. 그전까지 검증은 Orchestrator 소스 실측에 의존.
+> ✅ **가용 확인 (2026-08-25 실측)** — `codex login` 완료(ChatGPT 인증) 상태에서 `mcp__codex__codex`
+> 실호출 정상. 인증이 없으면(`~/.codex/auth.json` 부재 · `OPENAI_API_KEY` 미설정) `401 Unauthorized`로
+> 실패하고 codex-main도 동일 영향 — 그때는 검증을 Orchestrator 소스 실측으로 대체한다.
 - **슬롯**: reviewer
 - **용도**: 리뷰 대상 산출물(주로 claude-main 코드·설계, 또는 brief에 명시된 기존 코드·문서·소스)을 실제 repo/파일/CLI 관점에서 리뷰·비평. 실현 가능성, 비용, 테스트 커버리지, 사이드 이펙트 검토. **Codex의 주된 역할.**
 - **선행 조건**: 리뷰 대상 산출물 경로가 존재 — 보통 claude-main `result.md`, 또는 brief에 명시된 기존 코드·문서·소스

@@ -50,7 +50,9 @@ if [ "$(jq -r '.disabled // false' <<<"$rec")" = "true" ]; then
 fi
 
 # 폴백 가용성 사전 점검(경고만): primary가 죽고 나서야 폴백 불가를 아는 것을 방지
-while IFS= read -r _fe; do
+# IFS=$'\r' : Windows jq 빌드는 stdout에 CRLF를 쓴다. $()는 후행 CR을 깎지만
+# read 루프는 각 필드에 CR을 남겨 변수명·CLI 인자를 오염시킨다(LF-only 빌드에선 no-op).
+while IFS=$'\r' read -r _fe; do
   [ -n "$_fe" ] && [ -z "${!_fe:-}" ] && \
     echo "call_worker: 경고 — 폴백 필수 env 미설정: $_fe (primary 실패 시 폴백 불가)" >&2
 done < <(jq -r '.fallbacks[]?.api.required_env[]? // empty' <<<"$rec")
@@ -84,7 +86,7 @@ run_backend() {
     case "$command_bin" in agy|codex|claude) ;; *) die "command allowlist 위반: $command_bin" 7;; esac
     cmd+=("$command_bin")
     args_json="$(jq -r '.cli.args_template[]' <<<"$spec")"   # jq 실패 시 set -e 트리거
-    while IFS= read -r a; do
+    while IFS=$'\r' read -r a; do
       case "$a" in
         "@brief")         cmd+=("$BRIEF");;
         "@brief_content") cmd+=("$(cat -- "$BRIEF")");;
@@ -110,7 +112,7 @@ run_backend() {
     case "$ref" in adapters/*) ;; *) die "api.ref는 adapters/ 내부만" 7;; esac
     case "$ref" in *..*) die "api.ref에 '..' 금지" 7;; esac
     [ -f "$ROOT/_shared/$ref" ] || die "api 스크립트 없음: $ref" 4
-    while IFS= read -r reqenv; do
+    while IFS=$'\r' read -r reqenv; do
       [ -n "$reqenv" ] || continue
       if [ -z "${!reqenv:-}" ]; then
         # die 대신 에러 envelope 반환: 폴백 체인에서 실패 사유가 최종 envelope에 남도록
@@ -170,5 +172,15 @@ while [ "$i" -lt "${nf:-0}" ]; do
   fi
   i=$((i+1))
 done
-jq -n --argjson e "${env_fb:-$env_primary}" '$e + {fallback_used:true}'
-exit 1
+# 최종 실패 envelope. run_backend가 die로 죽으면 $() 서브셸이 끝나 env_*가 빈 문자열이 되는데,
+# 그대로 --argjson에 넘기면 jq가 실패하고 set -e로 아래 exit이 무시돼 die의 고유 코드(3·4·7 등)가
+# jq의 exit 2로 뭉개진다. 빈 값이면 envelope을 합성하고, 원래 종료코드를 보존한다.
+final_env="${env_fb:-$env_primary}"
+final_rc="${frc:-$prc}"; [ "${final_rc:-0}" -eq 0 ] && final_rc=1
+if [ -n "$final_env" ]; then
+  jq -n --argjson e "$final_env" '$e + {fallback_used:true}'
+else
+  msg="디스패처가 백엔드 실행 전에 중단됨 (role: $ROLE) — 상세는 stderr 참조"
+  jq -n --argjson exit "$final_rc" --arg msg "$msg" '{status:"error", exit_code:$exit, backend:"none", model:"?", duration_s:0, stdout:"", stderr_sanitized:$msg, fallback_used:false}'
+fi
+exit "$final_rc"

@@ -11,7 +11,7 @@
 | strategist | claude-main (경량은 Orchestrator 직접) | 설계·UI/UX 디자인·전략·문체 우위 |
 | engineer | codex-main | 대규모 구현·테스트 철저, 비용·속도·토큰 효율 우위 |
 | computer-use | codex-main | 브라우저 조작·복잡 워크플로우 수행 우위 |
-| reviewer | codex-critic (재활성 2026-08-25) | 교차 벤더 독립 검증 (자기검수 회피). ollama는 제거됨(2026-08-25). **⚠️ 인증 미설정 상태**: `~/.codex/auth.json` 부재·`OPENAI_API_KEY` 미설정으로 실호출이 `401 Unauthorized`로 실패한다(2026-08-25 실측). 설정 차단은 해제됐으므로 인증만 갖추면 즉시 동작한다. 인증 전까지는 검증이 Orchestrator 소스 실측에 의존하며 그 사실을 각 작업에 명시한다 |
+| reviewer | codex-critic (재활성 2026-08-25) | 교차 벤더 독립 검증 (자기검수 회피). ollama는 제거됨(2026-08-25). **가용 확인됨(2026-08-25 실측)**: `codex login` 완료(ChatGPT 인증)로 `mcp__codex__codex` 실호출 정상. 인증이 풀리면 `401 Unauthorized`로 실패하며 codex-main도 동일 영향 — 그 경우 검증은 Orchestrator 소스 실측에 의존하고 '제3자 독립 검증 미충족'을 각 작업에 명시한다 |
 | multimodal | gemini | 멀티모달·대용량 문서 처리 |
 
 ## 배정 이력 (append-only)
@@ -74,6 +74,16 @@
   → 시스템 설정상 차단은 해제됐고(`disabled` 제거 확인), 인증(`codex login` 또는 `OPENAI_API_KEY`)만
     갖추면 즉시 동작한다. 그전까지 reviewer 검증은 Orchestrator 소스 실측에 의존하며,
     각 작업 Acceptance Criteria에 '제3자 독립 검증 미충족'을 명시한다(은폐 금지).
+
+- **2026-08-25** reviewer 슬롯 **가용 상태 정정**(배정 변경 아님 — 사실 정정). 위 재활성 항목은 실호출이
+  `401 Unauthorized`로 불가하다고 기재했으나, 이후 `codex login`(ChatGPT 인증)이 완료되어
+  `~/.codex/auth.json`이 존재하고 `mcp__codex__codex` 실호출이 정상 동작함을 실측 확인했다
+  (스모크 3회 전부 `OK` 반환). codex-main도 동일하게 가용하다. **따라서 reviewer 슬롯은 현재 살아 있고**,
+  '주 검증자 없음'을 전제로 한 서술(자기검수 회피 원칙 미성립)은 이 시점부터 해당하지 않는다.
+  이력 삭제 없이 정정 항목만 추가하며, 「현재 배정」 표와 `routing.md`의 병기 경고 블록을 함께 갱신했다.
+  단, 인증은 환경이 소유하는 사실이라 언제든 풀릴 수 있으므로 **조건형 서술로 바꿔** 유지한다
+  (인증 없으면 401 → Orchestrator 소스 실측으로 대체). `OPENAI_API_KEY`는 여전히 미설정이나
+  `auth.json`만으로 동작하므로 필수가 아니다.
 
 ## 갱신 절차
 
