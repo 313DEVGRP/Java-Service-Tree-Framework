@@ -31,8 +31,6 @@
       ]
     },
     "codex-critic": {
-      "disabled": true,
-      "disabled_reason": "2026-08-25 사용자 통보 — 사용 불가. reviewer 배정 해제(capability-profile). 정의는 보존하므로 재사용 시 이 두 필드만 제거하면 복구된다",
       "model": "codex-default",
       "call_type": "mcp",
       "mcp": {
@@ -66,17 +64,6 @@
                    "brief_pass": "arg1", "retry": { "max": 2, "backoff_s": 2 } }
         }
       ]
-    },
-    "ollama": {
-      "model": "gemma3",
-      "call_type": "api",
-      "brief_mode": "content",
-      "api": { "ref": "adapters/ollama_api.sh", "required_env": [], "brief_pass": "arg1" },
-      "cwd_policy": "isolated_tmp",
-      "write_policy": "none",
-      "approval_class": "worker",
-      "result_capture": "envelope",
-      "timeout": 300
     }
   }
 }

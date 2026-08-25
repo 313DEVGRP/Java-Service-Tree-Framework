@@ -3,7 +3,7 @@
 ## 메타
 
 ```yaml
-status: reviewing
+status: done
 created: 2026-08-24
 updated: 2026-08-25
 priority: high
@@ -31,12 +31,14 @@ A-RMS 기능 페이지(`landing_function`)를 라이선스 타입(POC·PRO·ENT)
 
 ## Acceptance Criteria
 
-- [ ] POC 7단계 흐름이 화면에 순서대로 표현됨
-- [ ] `common.css` + 기존 `landing_*` CSS 전수 확인 근거가 result에 제시됨 (파일 목록·재사용 클래스)
-- [ ] 색감·컴포넌트가 기존 랜딩 페이지와 통일 (신규 색상 토큰 0)
-- [ ] 입력(JIRA Admin 접속정보)·출력(4관점 리포트·개인 KPI·주간 보고) 화면 명시
-- [ ] PRO·ENT 골격 존재
-- [ ] 대상 모듈 작업트리가 Orchestrator 반영 전까지 clean (워커 직접 쓰기 없음)
+- [x] POC 7단계 흐름이 화면에 순서대로 표현됨 — fnx-step-num 1~7 순서 확인
+- [x] `common.css` + 기존 `landing_*` CSS 전수 확인 근거가 result에 제시됨 — 인용 줄번호 6건 Orchestrator 실측 정확
+- [x] 색감·컴포넌트가 기존 랜딩 페이지와 통일 (신규 색상 토큰 0) — hex 13종 전수 대조, 전부 기존 실존
+- [x] 입력(JIRA Admin 접속정보)·출력(4관점 리포트·개인 KPI·주간 보고) 화면 명시 — S3/S5 패널
+- [x] PRO·ENT 골격 존재 — S6/S7
+- [x] 대상 모듈 작업트리가 Orchestrator 반영 전까지 clean (워커 직접 쓰기 없음)
+- [ ] **제3자 독립 검증 — 미충족**. ollama 검증 실패(형식·정확도 양쪽), codex-critic 비활성으로
+      reviewer 슬롯 공석. 모든 판정은 Orchestrator 소스 실측 단독 근거 (은폐하지 않고 명시)
 
 ## Worker Plan
 

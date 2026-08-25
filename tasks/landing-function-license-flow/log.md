@@ -35,3 +35,28 @@
 [2026-08-25 09:58] [WORKER_CALL] ollama 분할 호출 8회 시작 (gemma3, 배정 변경 없음)
 [2026-08-25 10:04] [VERIFICATION] ollama 분할 호출 검증 — 형식 6/8 준수(통합 0/8 대비 개선, 원인 진단 실증). 그러나 내용 정확도 3/8. NO 3건(Q1 7단계 누락·Q4 출력 누락·Q6 색상 위반) 전부 Orchestrator 소스 대조로 오답 확인. YES 3건은 정답. 즉 부정 판정을 신뢰할 수 없어 독립 검증자 가치 없음
 [2026-08-25 10:04] [DECISION] ollama 검증 산출물을 설계안 수락/반려 근거로 미사용. Acceptance Criteria 제3자 검증 항목은 미충족 유지(은폐 금지). 분할 호출 기법 자체는 유효하므로 교훈으로 보존
+[2026-08-25 10:32] [DECISION] 사용자 결정: 기존 landing_function/content-container.html(53,330 bytes) **전면 대체**. claude-main Issue #6 권고와 일치 — 부분 교체 시 fn-*/fnx-* 두 체계가 한 파일에 공존해 유지보수 악화. context.md 미해결 이슈 해소
+[2026-08-25 10:32] [DECISION] codex-critic 비활성으로 reviewer 슬롯 공석 → 이 작업의 검증은 Orchestrator 소스 실측이 유일 근거. Acceptance Criteria 제3자 검증 항목은 미충족 유지(은폐 금지, routing.md 검증 원칙 주석대로)
+[2026-08-25 10:35] [ERROR] frontend-expert brief 가변 2289자 > 한도 1200자. claude-main brief와 동일 사유(템플릿 구조상 한도 달성 불가 — 빈 템플릿 1728자, 과거 실측 brief 9건 전부 초과). 은폐하지 않고 기록한 채 진행
+[2026-08-25 10:35] [WORKER_CALL] frontend-expert(2계층 도메인 서브에이전트, 게이트 밖이나 사용자 승인 범위) brief 전달. 설계 result.md 기반 content-container.html 전면 구현. write_scope none — 텍스트 반환, 반영은 Orchestrator
+[2026-08-25 10:46] [WORKER_CALL] frontend-expert 응답 수신 (63721 tokens, 5 tool_uses, 306s). content-container.html 전문 + 구현 노트 + Issues 8건
+[2026-08-25 10:52] [VERIFICATION] frontend-expert result 검증 (never-trust-upstream — 워커 자가체크 미수락, Orchestrator 실측)
+  - output_format ✅ HTML 전문(81,902 bytes) + 구현노트 + Issues 8건
+  - HTML 구조 유효성 ✅ 태그 짝 오류 0, 닫히지 않은 태그 0, CSS 중괄호 균형 198/198
+  - --lf-* 토큰 12개 선언 ✅
+  - 신규 색상 0개 ✅ — hex 13종 전수 대조. #f8fafc(기존 4회)·#dbeafe(기존 27회)는 설계 §2-1 목록 밖이나 기존 코드 실존 확인 → 신규 아님. #f8f8f8은 주석 내 설명 텍스트(오탐)
+  - fn-* 잔존 0건 ✅ — grep이 잡은 fn-wrap은 설계 지정 래퍼 .arms-fn-wrap의 부분 문자열(오탐)
+  - form/name/submit 0건 ✅ — submit 1건은 주석 내 단어(오탐). button 5개 전부 type="button"
+  - 7단계 1~7 순서 ✅
+  - 4관점 색상 매핑 ✅ time=ok / scope=warn / resource=rose / cost=violet
+  - 반응형 991px·768px ✅ (+ prefers-reduced-motion 추가분)
+  - 판정: 수락
+[2026-08-25 11:04] [ERROR] 반영 직전 대상 모듈 상태 확인에서 landing_function/ 폴더가 세션 밖에서 삭제된 것을 발견(content-container.html·content-header.html 둘 다 D 스테이지). 워커는 write_scope none이었고 10:52 검증 시점까지 clean이었으므로 이 세션의 변경 아님. 사용자 확인 후 조치
+[2026-08-25 11:05] [DECISION] 사용자 선택: HEAD에서 복원 후 content-container.html만 전면 대체. git checkout HEAD -- arms/html/landing_function/ 로 두 파일 복원(53,330 / 515 원본 크기 확인), arms/grep.exe.stackdump(Orchestrator grep 오작동 잔여물) 제거
+[2026-08-25 11:06] [VERIFICATION] 반영 완료 및 검증
+  - 변경 범위 ✅ content-container.html 1개 파일만 (git status M 1건)
+  - 반영본 무결성 ✅ artifacts/ 원본과 diff 동일 (81,902 bytes)
+  - content-header.html 미접촉 ✅ md5 837cb55e... 반영 전후 동일
+  - common.css 미수정 ✅ / 다른 landing_* 미수정 ✅
+  - 재사용 클래스 common.css 실존 ✅ glass·sunkenBack·feature-row·float·gradient_*_border. .feature-col은 `.feature-row > .feature-col` 자식 선택자 형태(common.css:806)로 정의 — grep 패턴 오탐이었고 HTML의 17개 전부 row 컨텍스트 내 중첩 확인
+  - 판정: 반영 수락

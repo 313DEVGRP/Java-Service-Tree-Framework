@@ -23,7 +23,7 @@
 │   └── codex-main
 │
 ├── [reviewer] 산출물 리뷰 / 비판적 검증?
-│   └── (reviewer 공석 — codex-critic 비활성 2026-08-25) · 짧은 체크리스트 보조 검증 시 ollama
+│   └── codex-critic   (Codex의 주된 역할 · ollama 제거 2026-08-25)
 │
 ├── [multimodal] 이미지 · 스크린샷 분석 / 50페이지+ 문서 / 제3자 시각의 검토?
 │   └── gemini
@@ -39,8 +39,8 @@
 1. **선행 의존성 우선**: codex-critic은 리뷰 대상(보통 claude-main 결과)이 먼저 있어야 함 → 해당 산출물 뒤에 호출
 2. **Orchestrator 내부 추론 우선**: 별도 worker 호출 전에 orchestrator 자체 추론으로 해결 가능한지 먼저 판단. 그래도 부족할 때만 claude-main 호출 (claude-main도 비용·쿼터 대상)
 3. **검증은 한 번만**: codex-critic은 작업당 1회 원칙. 재호출은 검증 실패 시만
-   > 2026-08-25 현재 codex-critic 비활성 → **주 검증자 없음**. 검증은 Orchestrator 소스 실측으로 수행하고,
-   > 그 사실을 result·log에 남긴다(자기검수 회피 원칙이 약해진 상태이므로 은폐 금지).
+   > codex 인증 미설정 시 이 슬롯은 401로 실패한다. 그 경우 검증을 Orchestrator 소스 실측으로 수행하고,
+   > 제3자 검증 미충족 사실을 result·log에 남긴다(은폐 금지).
 4. **gemini는 명시적 트리거 시만**: 멀티모달 또는 "제3자 시각의 검토 필요" 명시 없으면 호출 금지
 
 ## 토폴로지 패턴 (worker를 어떻게 엮을까)
@@ -103,10 +103,10 @@ decision tree로 "누구를" 고른 뒤, "어떻게 엮을지" 고른다. **단�
   - 어느 경우에도 `_shared/`, `_templates/`, 다른 작업 폴더는 쓰지 말 것
 
 ### codex-critic
-> ⛔ **비활성 (2026-08-25)** — 사용 불가로 reviewer 배정 해제. `backends.json`에 `disabled: true`이며
-> 디스패처가 호출을 차단한다(exit 2). 아래 정의는 **재사용 대비 보존분**이며 현재 배정되지 않는다.
-> 정본: `capability-profile.md` 2026-08-25 이력. 복구는 `disabled` 두 필드 제거 + 배정 복원.
-- **슬롯**: reviewer (현재 미배정 — 슬롯 공석)
+> ⚠️ **인증 필요 (2026-08-25 실측)** — 설정상 활성이나 `mcp__codex__codex` 호출이 `401 Unauthorized`로
+> 실패한다(`~/.codex/auth.json` 부재 · `OPENAI_API_KEY` 미설정). codex-main도 동일 영향.
+> `codex login` 또는 `OPENAI_API_KEY` 설정 시 즉시 동작. 그전까지 검증은 Orchestrator 소스 실측에 의존.
+- **슬롯**: reviewer
 - **용도**: 리뷰 대상 산출물(주로 claude-main 코드·설계, 또는 brief에 명시된 기존 코드·문서·소스)을 실제 repo/파일/CLI 관점에서 리뷰·비평. 실현 가능성, 비용, 테스트 커버리지, 사이드 이펙트 검토. **Codex의 주된 역할.**
 - **선행 조건**: 리뷰 대상 산출물 경로가 존재 — 보통 claude-main `result.md`, 또는 brief에 명시된 기존 코드·문서·소스
 - **결과물**: 비평 리스트, 수정 제안
@@ -131,26 +131,6 @@ decision tree로 "누구를" 고른 뒤, "어떻게 엮을지" 고른다. **단�
 - **비용**: agy 쿼터 소모 → 승인 필요. 빠른 경로는 backends에서 `model`을 flash/pro-low로.
 - **파일 쓰기**: ❌ MCP 응답을 Orchestrator가 받아 기록
 
-### ollama
-- **슬롯**: reviewer (보조 — 주 검증자 공석. codex-critic 비활성 2026-08-25)
-- **용도**: 자체호스팅 독립 검증. 벤더 쿼터 없이 산출물을 제3의 시각으로 리뷰. codex-critic 검증에 교차 다양성을 더하고 싶거나, 외부 벤더 호출이 어려운 환경(비용 억제)에서 대체·보조 검증자로. 단, 데몬이 원격이라 **네트워크는 필요**하다 — 오프라인 대체재가 아니다.
-- **⚠️ 용도 한정 (2026-08-25 실측, 정본 `capability-profile.md`)**:
-  - **입력 4,000자 이하의 닫힌 체크리스트 전용.** user 페이로드가 길면 지시를 무시하고 대상을 요약·칭찬한다(11,585자에서 요구 형식 8문항 중 0건 응답, 4,000자 이하는 8/8 준수).
-  - 긴 문서 검증·자유서술 비평에는 **배정하지 말 것**. 모델 교체로 해결되지 않는다(qwen2.5:7b 동일 실패).
-  - 판정 정확도 한계가 별도로 존재(실측 3/8, 부정 판정 전부 오답). **단독 수락/반려 근거로 쓰지 말고 Orchestrator 소스 실측을 병행**한다.
-  - 긴 대상은 ① 판정에 필요한 최소 발췌만 전달하거나 ② 1문항씩 분할 호출한다.
-- **선행 조건**: 리뷰 대상 산출물 경로 존재. `OLLAMA_HOST`(기본 `http://mad.hyper-mig.com:11434`)에 Ollama 데몬이 떠 있고 대상 모델이 pull 돼 있어야 함(`curl $OLLAMA_HOST/api/tags`로 확인).
-- **결과물**: 비평 리스트, 수정 제안
-- **호출 명령**: `_shared/backends.json`의 `ollama` 항목이 정본. 디스패처로 호출:
-  ```
-  bash _shared/adapters/call_worker.sh ollama <brief-file>   # 결과 = JSON envelope
-  ```
-  백엔드 = HTTP API(`adapters/ollama_api.sh` → `$OLLAMA_HOST/api/chat`, 기본 호스트 `http://mad.hyper-mig.com:11434`). 자체호스팅이라 API 키 불필요. 기본 모델 `gemma3`(env `OLLAMA_MODEL`·`OLLAMA_HOST`로 재정의, 정본은 backends.json `model`). 폴백 없음(단일 백엔드) — 호스트 무응답 시 이 슬롯은 사용 불가.
-- **소스·다중파일 검토는 인라인 권장**: gemini와 동일 이유로, 이 워커는 파일시스템 접근이 없다 — 검토 대상 스니펫을 brief 본문에 인라인하라. 단 위 4,000자 한도를 지킬 것.
-- **지시/대상 분리**: brief에 `<!-- SYSTEM -->…<!-- /SYSTEM -->` 마커를 두면 그 안쪽이 system 메시지로 전달된다(마커 없으면 전문이 user — 기존 brief 그대로 동작). 다만 실측상 이 분리가 길이 문제를 상쇄하지는 못한다.
-- **비용**: 로컬 컴퓨팅만 소모(외부 쿼터·요금 없음). 단 worker 승인 게이트는 동일 적용 → `workers_approved` 필요.
-- **파일 쓰기**: ❌ 디스패처 envelope를 Orchestrator가 받아 기록 (`write_policy: none`)
-
 ## 모델 정책
 
 각 worker가 실제 어떤 모델로 도는지 정리. 사용자가 매번 명시할 필요는 없으며, 아래 기본이 자동 적용된다.
@@ -160,7 +140,6 @@ decision tree로 "누구를" 고른 뒤, "어떻게 엮을지" 고른다. **단�
 - **codex-main / codex-critic**: 사용자의 `~/.codex/config.toml` 기본값이 자동 적용된다 (현재 예: 최신 gpt + reasoning effort `high`). config.toml이 정본이라 여기에 버전을 핀하지 않는다. MCP 호출 시 `model` 파라미터를 비워두면 config 기본값 사용.
   - 가벼운 작업은 `profile: lightweight`로 전환 가능 (config.toml의 가벼운 모델 프로필)
   - 작업 성격상 다른 모델이 필요하면 brief.md에 명시
-- **ollama**: 백엔드 = **자체호스팅 Ollama HTTP API**(`_shared/backends.json` 정본, 어댑터 `adapters/ollama_api.sh`, 디스패처 `call_worker.sh`). 기본 `gemma3`, 기본 호스트 `http://mad.hyper-mig.com:11434`(env `OLLAMA_HOST`). 버전은 데몬 쪽 `ollama pull`로 관리 — backends.json엔 태그 없는 모델명만 핀한다. 모델 교체는 backends.json `model` 수정 또는 호출 시 env `OLLAMA_MODEL`. 폴백 없음(단일 백엔드).
 - **gemini**: 백엔드 = Antigravity **`agy` CLI**(`_shared/backends.json` 정본, 디스패처 `call_worker.sh`). 기본 `gemini-3.1-pro-high`(agy에선 정상 — 옛 프록시 `400 INVALID_ARGUMENT`은 비해당), 빠른 경로 `gemini-3-flash`/`pro-low`, 폴백 `api`. 옛 `mcp__gemini-pro__*` 프록시 브리지·CLI 래퍼 `mcp__gemini__*`는 **폐기**. agy 모델은 전역·계정단위(`/model`)라 per-call 핀 불가 → gemini 전용 전역을 pro-high로 둔다. 근거: `_shared/learnings.md` [2026-06-02] · `design-basis.md` D4.
 
 이 정책은 사용자별 config에 따라 달라질 수 있다 — starter clone 받은 학습자는 본인의 `~/.codex/config.toml` 기본값을 한 번 확인하고 자기 환경에 맞게 조정한다.
@@ -174,7 +153,6 @@ decision tree로 "누구를" 고른 뒤, "어떻게 엮을지" 고른다. **단�
 | 대규모 구현·테스트 | claude-main (설계) → codex-main (구현·테스트) |
 | 브라우저 자동화 / 이미지 생성 | codex-main |
 | 구현 + 비평 | 생성 워커 → codex-critic → 반영 |
-| 쿼터 없는 자체호스팅 비평 | 생성 워커 → ollama → 반영 (외부 벤더 쿼터 없이) |
 | 대용량 문서 처리 | gemini |
 | 전체 검토 | claude-main → codex-critic |
 

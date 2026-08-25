@@ -8,10 +8,7 @@ Claude Code를 오케스트레이터로 두고 Claude·Codex·Gemini를 워커�
 - **Workers** = 외부 모델 호출. 모두 승인 게이트 통과 필요.
   - `claude-main` — [strategist] 기획·설계·아키텍처·전략·디자인 방향·문체 글쓰기
   - `codex-main` — [engineer·computer-use] 대규모 구현·테스트·로컬 검증·브라우저 자동화·이미지 생성
-  - `codex-critic` — [reviewer] ⛔ **비활성** (2026-08-25 사용 불가). reviewer 슬롯은 현재 공석 —
-    검증은 Orchestrator 소스 실측으로 수행한다
-  - `ollama` — [reviewer·self-hosted] 자체호스팅 보조 검증 (벤더 쿼터 없이 제3자 시각).
-    용도 한정: 입력 4,000자 이하 닫힌 체크리스트 전용
+  - `codex-critic` — [reviewer] 산출물 리뷰·비평 (Codex의 주된 역할)
   - `gemini` — [multimodal] 이미지·긴 문서·제3자 시각의 검토
 
   슬롯→워커 배정의 정본은 `_shared/capability-profile.md`(가변층) — 신모델 출시 시 프로필만 갱신.

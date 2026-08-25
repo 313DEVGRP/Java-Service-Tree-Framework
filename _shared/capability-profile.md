@@ -11,7 +11,7 @@
 | strategist | claude-main (경량은 Orchestrator 직접) | 설계·UI/UX 디자인·전략·문체 우위 |
 | engineer | codex-main | 대규모 구현·테스트 철저, 비용·속도·토큰 효율 우위 |
 | computer-use | codex-main | 브라우저 조작·복잡 워크플로우 수행 우위 |
-| reviewer | **공석** (codex-critic 배정 해제 2026-08-25) · ollama (보조, 용도 한정) | 주 검증자 없음 — 검증은 Orchestrator 소스 실측으로 수행한다. ollama는 **입력 4,000자 이하 닫힌 체크리스트 전용**이며 판정 정확도 한계(실측 3/8)로 단독 수락/반려 근거로 쓰지 않는다. codex-critic은 사용 불가(사용자 통보) — 정의·설계근거(design-basis D2·INV2)는 유지하므로 재사용 시 배정만 복구하면 된다 |
+| reviewer | codex-critic (재활성 2026-08-25) | 교차 벤더 독립 검증 (자기검수 회피). ollama는 제거됨(2026-08-25). **⚠️ 인증 미설정 상태**: `~/.codex/auth.json` 부재·`OPENAI_API_KEY` 미설정으로 실호출이 `401 Unauthorized`로 실패한다(2026-08-25 실측). 설정 차단은 해제됐으므로 인증만 갖추면 즉시 동작한다. 인증 전까지는 검증이 Orchestrator 소스 실측에 의존하며 그 사실을 각 작업에 명시한다 |
 | multimodal | gemini | 멀티모달·대용량 문서 처리 |
 
 ## 배정 이력 (append-only)
@@ -55,6 +55,25 @@
   산출물 수락 판정은 Orchestrator의 소스 직접 실측(never-trust-upstream)이 유일한 근거다.
   이는 '자기검수 회피' 원칙(design-basis Consensus 항)이 약해진 상태임을 의미하므로,
   검증 워커가 확보되면 우선 복구 대상이다.
+
+- **2026-08-25** reviewer 슬롯에서 **ollama 완전 제거**(배정 해제가 아닌 워커 삭제). 근거: 사용자 지시.
+  같은 날 용도 한정(4,000자 이하 체크리스트 전용)까지 했으나, 실측된 판정 정확도 3/8
+  (부정 판정 3건 전부 오답)로 독립 검증자 가치가 없다고 판단됨. 제거 범위:
+  `backends.json` 워커 레코드 · `adapters/ollama_api.sh` · 병기 사본 전체.
+  codex-critic(정의 보존)과 달리 **완전 삭제**이므로 복구는 git 이력에서 되돌려야 한다.
+  이로써 **reviewer 슬롯에 배정된 워커가 하나도 없다**(codex-critic 비활성 + ollama 제거).
+  대체 배정 없음 — gemini 겸임도 하지 않는다(사용자 선택). 검증은 Orchestrator 소스 실측 단독.
+  자기검수 회피 원칙(design-basis Consensus 항)이 성립하지 않는 상태이므로,
+  검증 워커 확보는 시스템의 최우선 복구 대상이다.
+
+- **2026-08-25** reviewer 슬롯에 **codex-critic 재활성**(사용자 지시). `backends.json`의
+  `disabled`·`disabled_reason` 두 필드 제거 — 정의를 보존해 둔 덕에 배정 복구만으로 완료.
+  **다만 실호출은 아직 불가**: MCP 도구 `mcp__codex__codex` 호출이 `401 Unauthorized`
+  (`Missing bearer or basic authentication`)로 실패한다. 원인은 워커 설정이 아니라 **codex 인증 부재** —
+  `~/.codex/auth.json` 없음, `OPENAI_API_KEY` 미설정. 같은 백엔드를 쓰는 **codex-main도 동일 영향**이다.
+  → 시스템 설정상 차단은 해제됐고(`disabled` 제거 확인), 인증(`codex login` 또는 `OPENAI_API_KEY`)만
+    갖추면 즉시 동작한다. 그전까지 reviewer 검증은 Orchestrator 소스 실측에 의존하며,
+    각 작업 Acceptance Criteria에 '제3자 독립 검증 미충족'을 명시한다(은폐 금지).
 
 ## 갱신 절차
 

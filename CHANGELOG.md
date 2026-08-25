@@ -3,6 +3,40 @@
 이 파일은 MultiAgent orchestration 시스템의 주요 변경을 기록한다.
 형식은 [Keep a Changelog](https://keepachangelog.com/), 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## 2.1.0 - 2026-08-25
+
+### Changed
+- **`codex-critic` 재활성** — reviewer 슬롯 배정 복원(사용자 지시). `backends.json`의
+  `disabled`·`disabled_reason` 두 필드 제거. 1.5.0에서 정의를 보존해 둔 덕에 배정 복구만으로 완료.
+  병기 사본(`routing.md`·`CLAUDE.md`·`README.md`) 비활성 표기 원복.
+
+### Note
+- **실호출은 인증 설정 후 가능**. 재활성 직후 실측한 `mcp__codex__codex` 호출이
+  `401 Unauthorized: Missing bearer or basic authentication`으로 실패했다.
+  원인은 워커 설정이 아니라 **codex 인증 부재** — `~/.codex/auth.json` 없음,
+  `OPENAI_API_KEY` 미설정. 같은 MCP 백엔드를 쓰는 **codex-main도 동일 영향**이다.
+  `codex login` 또는 `OPENAI_API_KEY` 설정 시 즉시 동작한다.
+  그전까지 검증은 Orchestrator 소스 실측에 의존하며, 각 작업 Acceptance Criteria에
+  '제3자 독립 검증 미충족'을 명시한다(은폐 금지).
+## 2.0.0 - 2026-08-25
+
+### Removed
+- **`ollama` 워커 완전 제거** — `backends.json` 워커 레코드, `adapters/ollama_api.sh`,
+  병기 사본(`routing.md` 워커 절·모델 정책·조합표, `CLAUDE.md`, `README.md`,
+  `approval-policy.md` 비용표) 전부 삭제. codex-critic처럼 정의를 보존하는 비활성화가 아니라
+  **삭제**이므로 복구는 git 이력에서 되돌려야 한다.
+  근거: 같은 날 용도 한정(4,000자 이하 체크리스트 전용)까지 했으나 실측 판정 정확도 3/8
+  (부정 판정 3건 전부 오답)로 독립 검증자 가치가 없다고 판단됨.
+
+### Changed
+- **reviewer 슬롯에 배정된 워커가 없다** (codex-critic 비활성 + ollama 제거).
+  워커 풀은 4종 — claude-main / codex-main / codex-critic(비활성) / gemini.
+  대체 배정 없음(사용자 선택). 산출물 수락 판정은 **Orchestrator 소스 실측이 유일한 근거**이며,
+  각 작업 Acceptance Criteria에 '제3자 독립 검증 미충족'을 명시한다(은폐 금지).
+  design-basis의 자기검수 회피 원칙이 성립하지 않는 상태 — 검증 워커 확보가 최우선 복구 대상.
+
+> MAJOR 사유: 워커 풀 구성이 축소되어 기존 task의 `workers_approved: [ollama]`가 더 이상
+> 호출되지 않는다(하위 비호환).
 ## 1.5.0 - 2026-08-25
 
 ### Changed

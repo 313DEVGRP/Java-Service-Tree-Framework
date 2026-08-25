@@ -16,8 +16,10 @@
 
 ## 미해결 이슈
 
-- PRO·ENT 흐름 상세: 요구사항에 POC만 7단계 기술됨. 이번 범위는 골격까지로 좁힘(사용자 확인 필요 시 조정)
-- 기존 `content-container.html` 53KB를 대체할지 별도 섹션으로 추가할지 — 설계 단계에서 결정
+- (해소 2026-08-25) 기존 `content-container.html` 53KB → **전면 대체** 확정 (사용자 결정)
+- (해소 2026-08-25) reviewer 슬롯 공석 → 검증은 Orchestrator 소스 실측. 제3자 검증은 미충족으로 남김
+- PRO·ENT 흐름 상세: 요구사항에 POC만 7단계 기술됨. 이번 범위는 골격까지
+- Cost 관점 색상 `#a78bfa`는 근거 있는 추론(landing_index에 Time·Scope·Resource만 색 명시)
 
 ## 참조 자료
 

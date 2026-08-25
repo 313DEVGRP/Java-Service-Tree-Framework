@@ -33,10 +33,9 @@
 | codex-critic | 낮음-중간 | Codex 호출 쿼터 |
 | gemini flash | 낮음 | Gemini 쿼터 |
 | gemini pro | 중간-높음 | Gemini 쿼터 |
-| ollama | 없음(로컬 컴퓨팅만) | 외부 쿼터 없음 — 단 승인 게이트는 동일 적용 |
 
 claude-main이 "내부 추론"과 같은 모델이라도 별도 호출이므로 쿼터·비용 발생.
-ollama는 외부 요금·쿼터가 없지만 worker이므로 `workers_approved` 승인 대상은 동일(비용≠0인 게이트가 아니라 worker 여부가 기준).
+승인 게이트의 기준은 **비용≠0이 아니라 worker 여부**다 — 요금이 없는 워커도 `workers_approved` 대상이다.
 
 ## 승인 기록 형식 (task.md에 기록)
 
