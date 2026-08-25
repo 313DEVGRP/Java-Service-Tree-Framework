@@ -22,7 +22,7 @@
 - **2026-07-27** reviewer 슬롯에 ollama(자체호스팅 보조) 추가. 근거: 사용자 요청. 벤더 쿼터에
   묶이지 않는 독립 검증자 확보 — codex-critic 교차 다양성 보강. 기본 모델 gemma3
   (backends.json에서 교체 가능). 백엔드 = HTTP API(`adapters/ollama_api.sh`, 기본 호스트
-  `http://mad.hyper-mig.com:11434`, env `OLLAMA_HOST`로 재정의).
+  `http://<자체호스팅-호스트>:11434`, env `OLLAMA_HOST`로 재정의).
   주 검증자는 codex-critic 유지, ollama는 보조 — '검증 1회 원칙'은 슬롯 단위로 적용.
 - **2026-07-28** 위 2026-07-27 항목의 사실 정정(배정 변경 아님). 도입 시 'localhost:11434
   로컬·오프라인'으로 기재했으나 어댑터 실제 기본값은 자체호스팅 **원격** 데몬이다.

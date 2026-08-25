@@ -7,6 +7,6 @@ REQ-F-001
 성격: 분석·요약
 target_repo: {Java-Service-Tree-Framework-Frontend-Web}
 write_scope: tasks-only
-워커: 생산=claude-main, 리뷰=ollama
+워커: 생산=claude-main, 리뷰=codex-critic
 산출물: 설계 문서로 artifacts/ 에
 제약: 대상 클러스터 쓰기 작업 금지, read-only 최소 권한·rate limit 전제

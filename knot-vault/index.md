@@ -5,13 +5,11 @@
 ## source
 
 - [[multiagent-subagent-audit-2026-07-29]] — 멀티에이전트+서브에이전트 전면 점검, INV1–12 실측 전항목 PASS (2026-07-29)
-- [[leedongmin-career]] — 이동민 경력 원자료. Daum Soft·AhnLab·NC·Megazone Cloud 4개 소속 (2026-08-13)
 
 ## entity
 
 - [[multiagent-orchestration-system]] — 파일시스템을 유일 인터페이스로 하는 멀티에이전트 오케스트레이션 시스템 (2026-07-29)
 - [[java-service-tree-framework]] — A-RMS 멀티모듈 저장소. 이 시스템과 vault의 설치처 (2026-07-29)
-- [[leedongmin]] — 검색엔진·개발프로세스·글로벌배포·클라우드진단 경력 (2026-08-13)
 
 ## concept
 
