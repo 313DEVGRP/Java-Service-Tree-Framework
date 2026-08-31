@@ -95,15 +95,35 @@ MAT_ROOT=<설치한-폴더> mat
 자세한 규칙은 [`CLAUDE.md`](./CLAUDE.md) 참고.
 
 ## 라이선스
-
 개인 사용 및 학습 목적.
 
 # 마법의 4줄
 요구사항정의서_엑셀양식_v3_1_3.xlsx 의 {REQ-LANDING-FUNC-01} 요구사항을 기준으로
-tasks/요구사항_TASK_전환_Format.md
-tasks/요구사항_TASK_전환_Sample.md
-두개의 md 파일을 참고하여 작업을 만들어줘.
+요구사항_TASK_전환_Format.md
+요구사항_TASK_전환_Sample.md
+두개의 md 파일을 참고하여 작업을 만들고
+만들어진 작업을 진행해 줘. 
+승인이나 결정이 필요한 내용은 나에게 물어보지 말고 우선 진행을 하고,
+로그에 임의 결정한 사항을 정리해서 남겨줘
+( 엑셀 시트가 업데이트 되었으니까, 작업을 업데이트하고 진행 해 )
 
 # mat 환경 변수
 go build -o mat.exe .
 $env:MAT_ROOT = "C:\~~~\Java-Service-Tree-Framework-main"
+
+# worker 구성
+[Worker Settings]
+- MainWorker            : claude-main
+- SubWorker             : 없음 (ollama 삭제, 대체 SubWorker 미배정)
+- MainWorker-SubAgent   : reviewer-agent (신규)
+  ※ 본 작업 자체는 reviewer-agent 로 검증할 수 없다 (자기검수 · 대상이 리뷰어 자신).
+  Orchestrator 소스 실측 + 자가 점검 스크립트로 대체한다.
+
+# 사용 예시
+claude 와 인터렉션은 powershell 을 따로 띄워서 진행한다. ( 여러작업을 진행할 수 있고, 스크롤 이슈를 해결한다. )
+mat 는 인텔리제이 아래 terminal 에서 진행한다.
+1. 워커와 서브에이전트 목록을 알려줘
+2. Task 목록을 깨끗하게 정리해 줘 ( 전체 비우기, 규칙문서도 삭제 )
+
+요구사항정의서_엑셀양식_v3_1_3.xlsx 의 {REQ-AIAGENT-DEV-02} 요구사항을 기준으로
+( Project Charter, SRS )를 기준으로 작성된 작업을 진행해 줘
