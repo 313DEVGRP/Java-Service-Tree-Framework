@@ -29,6 +29,8 @@
 |------|------|--------|
 | `frontend-expert.md` | `frontend-expert` | vanilla JS · jQuery · Bootstrap 기반 서버렌더링 프론트엔드 |
 | `backend-expert.md` | `backend-expert` | Backend-Core(A-RMS API 서버: Spring Boot 2.6 · TreeFramework · Feign · Kafka · POI)와 Auto-Code 생성기(Telosys Velocity 템플릿) |
+| `database-expert.md` | `database-expert` | A-RMS(MySQL 8) 스키마 — Flyway 마이그레이션 · nested-set 루트 seed · `_LOG` 짝 테이블/트리거 · 제품별 동적 테이블 · 엔티티↔DDL 정합성 |
 
 **이 계층에 에이전트를 추가하려면** 이 표에 한 줄 추가하고 `.claude/agents/<name>.md` 를 둔다.
 정본 5개(Worker Pool 문서)는 건드리지 않는다.
+
