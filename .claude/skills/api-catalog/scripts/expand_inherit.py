@@ -33,8 +33,11 @@ def mappings(src, skip_before=0):
         if verb == 'REQUEST':
             mm = METHOD_RE.search(a)
             verb = mm.group(1) if mm else 'ANY'
+        # 선행 '/' 가 없어도 경로다 (@GetMapping("getNodes.do/{id}") 처럼).
+        # '/' 를 포함하면 버리던 옛 필터는 그런 선언을 통째로 놓쳤다
+        # (Backend-Core 4건). call_chain.py·api_catalog.py 와 같은 조건으로 맞춘다.
         q = [x for x in PATHS_RE.findall(a)
-             if x.startswith('/') or (x and '/' not in x and 'application' not in x)]
+             if x.startswith('/') or (x and 'application' not in x and 'charset' not in x)]
         sm = SIG_RE.search(src, m.end())
         out.append({'http': verb, 'path': q[0] if q else '',
                     'javaMethod': sm.group(2) if sm else '',
