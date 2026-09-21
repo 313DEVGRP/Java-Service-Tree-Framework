@@ -14,11 +14,16 @@
 *.log
 *.tmp
 
-# 설치 실행파일 — 서드파티 배포본, 저장소에 담지 않음 (GitHub 100MB 제한)
-*.exe
-
 # 런타임 캐시 — 로컬 경로·UUID 포함, git 추적 안 함
 cache/
+
+# 작업 데이터 — 사용자 사적 자료, git 추적 안 함 (폴더 구조 유지를 위해 .gitkeep만 추적)
+tasks/*
+!tasks/.gitkeep
+
+# 프로젝트 특화 교훈 — 작성자 사적 누적물, git 추적 안 함 (폴더만 유지)
+_local/*
+!_local/.gitkeep
 
 # Module 시스템 제외
 /Java-Service-Tree-Framework-AI/

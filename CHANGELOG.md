@@ -3,98 +3,48 @@
 이 파일은 MultiAgent orchestration 시스템의 주요 변경을 기록한다.
 형식은 [Keep a Changelog](https://keepachangelog.com/), 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
-## 2.1.0 - 2026-08-25
-
-### Changed
-- **`codex-critic` 재활성** — reviewer 슬롯 배정 복원(사용자 지시). `backends.json`의
-  `disabled`·`disabled_reason` 두 필드 제거. 1.5.0에서 정의를 보존해 둔 덕에 배정 복구만으로 완료.
-  병기 사본(`routing.md`·`CLAUDE.md`·`README.md`) 비활성 표기 원복.
-
-### Note
-- **실호출은 인증 설정 후 가능**. 재활성 직후 실측한 `mcp__codex__codex` 호출이
-  `401 Unauthorized: Missing bearer or basic authentication`으로 실패했다.
-  원인은 워커 설정이 아니라 **codex 인증 부재** — `~/.codex/auth.json` 없음,
-  `OPENAI_API_KEY` 미설정. 같은 MCP 백엔드를 쓰는 **codex-main도 동일 영향**이다.
-  `codex login` 또는 `OPENAI_API_KEY` 설정 시 즉시 동작한다.
-  그전까지 검증은 Orchestrator 소스 실측에 의존하며, 각 작업 Acceptance Criteria에
-  '제3자 독립 검증 미충족'을 명시한다(은폐 금지).
-## 2.0.0 - 2026-08-25
-
-### Removed
-- **`ollama` 워커 완전 제거** — `backends.json` 워커 레코드, `adapters/ollama_api.sh`,
-  병기 사본(`routing.md` 워커 절·모델 정책·조합표, `CLAUDE.md`, `README.md`,
-  `approval-policy.md` 비용표) 전부 삭제. codex-critic처럼 정의를 보존하는 비활성화가 아니라
-  **삭제**이므로 복구는 git 이력에서 되돌려야 한다.
-  근거: 같은 날 용도 한정(4,000자 이하 체크리스트 전용)까지 했으나 실측 판정 정확도 3/8
-  (부정 판정 3건 전부 오답)로 독립 검증자 가치가 없다고 판단됨.
-
-### Changed
-- **reviewer 슬롯에 배정된 워커가 없다** (codex-critic 비활성 + ollama 제거).
-  워커 풀은 4종 — claude-main / codex-main / codex-critic(비활성) / gemini.
-  대체 배정 없음(사용자 선택). 산출물 수락 판정은 **Orchestrator 소스 실측이 유일한 근거**이며,
-  각 작업 Acceptance Criteria에 '제3자 독립 검증 미충족'을 명시한다(은폐 금지).
-  design-basis의 자기검수 회피 원칙이 성립하지 않는 상태 — 검증 워커 확보가 최우선 복구 대상.
-
-> MAJOR 사유: 워커 풀 구성이 축소되어 기존 task의 `workers_approved: [ollama]`가 더 이상
-> 호출되지 않는다(하위 비호환).
-## 1.5.0 - 2026-08-25
-
-### Changed
-- **`codex-critic` 비활성 — reviewer 슬롯 배정 해제, 슬롯 공석**. 사용자 통보(사용 불가)에 따른 조치.
-  `backends.json`에 `disabled: true` + `disabled_reason` 추가, 디스패처가 호출을 차단한다(exit 2).
-  **정의·설계근거는 보존한다** — 워커 레코드, `design-basis` D2, `system-invariants` INV2,
-  `_templates` 예시는 그대로. 존재하지 않는 워커를 가리키는 불변식이 생기면 자가점검이 모순되므로
-  가변층(배정)만 바꾸고 안정층(정의)은 건드리지 않았다. 복구는 `disabled` 두 필드 제거 + 배정 복원.
-- **대체 배정 없음** — gemini 겸임 등을 하지 않는다(사용자 선택). 이 시점부터 **주 검증자가 없으며**,
-  산출물 수락 판정은 Orchestrator의 소스 직접 실측이 유일한 근거다. '자기검수 회피' 원칙
-  (design-basis Consensus 항)이 약해진 상태이므로, 검증 워커 확보 시 우선 복구 대상.
+## [1.5.0] - 2026-09-06
 
 ### Added
-- **디스패처 `disabled` 강제** (`_shared/adapters/call_worker.sh`). 종전에는 `backends.json`에
-  플래그를 넣어도 검사하지 않아 무의미했다. role 조회 직후 `disabled` 확인 후 `die ... 2`.
-  회귀 검증: codex-critic 차단(exit 2) / ollama 정상(status ok) / 미정의 role 기존 에러 유지.
-## 1.4.1 - 2026-08-25
+- **집행층 코드화 (D14)** — `_shared/adapters/gate.sh`(worker 호출 사전 게이트, fail-closed: 승인·`[APPROVAL]`
+  로그·brief 위치/한도·외부 쓰기 조건 정확 일치·인터랙티브 세션) · `_shared/adapters/scope_check.sh`(write_scope
+  사후 검사, 보고만) · `_shared/reentry-check.sh`(재진입 status↔log 정합). 디스패처 자동 배선(역할 불일치 거부,
+  none/tasks-only는 cwd=루트, scope 위반은 폴백 없는 최종 실패). native/mcp 호출은 호출 전 gate.sh 실행(지침
+  Lifecycle 6). INV14 신설.
 
 ### Changed
-- **`ollama` 어댑터 `/api/generate` → `/api/chat` 전환** (`_shared/adapters/ollama_api.sh`).
-  brief에 `<!-- SYSTEM -->…<!-- /SYSTEM -->` 마커가 있으면 그 안쪽을 system 메시지로 분리해 보낸다.
-  마커가 없으면 전문을 user로 보내므로 **기존 brief는 동작 변화 없음**(하위호환 검증 완료).
-  디스패처 계약(`<brief-file>` → stdout, exit 0) 유지 — `backends.json` 수정 불필요.
-- **`ollama` 슬롯 용도 한정** — 배정은 유지(reviewer 보조)하되 적용 범위를 축소한다:
-  **입력 4,000자 이하의 닫힌 체크리스트 전용**. 긴 문서 검증·자유서술 비평에는 배정하지 않는다.
-  판정 정확도 한계(실측 3/8, 부정 판정 전부 오답)로 **단독 수락/반려 근거로 쓰지 않고**
-  Orchestrator 소스 실측을 병행한다. 정본 `capability-profile.md` 2026-08-25 이력.
+- 승인 항목 스키마: 외부 쓰기 승인은 `target_repo`·`write_scope`를 brief와 같은 값으로 기록(approval-policy).
 
-### Note
-- 근거는 3단계 실측: (1) 모델 교체(qwen2.5:7b, 1.8배)로도 개선 없음 → 용량 문제 아님
-  (2) 분할 호출로 형식 준수 0/8 → 6/8 개선 (3) `/api/chat` 대조 실험에서 동일 system 기준
-  user 219~4,000자는 8/8, 11,585자는 0/8 → **user 페이로드 절대 길이**가 임계 요인이며
-  system 분리로 상쇄되지 않는다. 자세한 실험 기록은 `capability-profile.md` 배정 이력.
-## 1.4.0 - 2026-07-27
-
-### Added
-- **`ollama` 워커 추가 — reviewer 슬롯 보조(자체호스팅)** — 벤더 쿼터에 묶이지 않는 독립
-  검증자 확보로 codex-critic의 교차 다양성 보강. 주 검증자는 codex-critic 유지, ollama는 보조
-  ("검증 1회 원칙"은 슬롯 단위 적용). 기본 모델 `gemma3`(`backends.json`에서 교체 가능),
-  백엔드 = HTTP API(`_shared/adapters/ollama_api.sh`, env `OLLAMA_HOST`로 호스트 재정의).
-  기존 어댑터+디스패처 패턴 재사용 — 새 design-basis 결정·새 INV 없이 `backends.json` 워커 레코드
-  1개 + 어댑터 1개 추가로 완결. 근거: `_shared/learnings.md` `[2026-07-27] [add-ollama-worker]`.
-
-### Changed
-- 담당명 병기 사본 동기화 — `capability-profile.md`(배정 정본)·`routing.md`·`CLAUDE.md`·`README.md`
-  + 비용표 `approval-policy.md`. 구조 파일(`orchestrator-rules`·`system-invariants`·`design-basis`)은
-  미편입(capability-profile §4 갱신 절차).
+## [1.4.0] - 2026-07-24
 
 ### Fixed
-- **`ollama` 도입 시 기재 오류 정정(2026-07-28)** — 'localhost:11434 로컬·오프라인'으로 적었으나
-  어댑터 실제 기본값은 자체호스팅 **원격** 데몬이다. '벤더 쿼터 없음'은 유효하나
-  '오프라인·네트워크 불필요'는 성립하지 않는다 — 네트워크 단절 시 이 슬롯 사용 불가.
-  `capability-profile.md`·`routing.md`·`CLAUDE.md`·`README.md` 병기 사본 동일 정정.
+- **codex sandbox 실행계약 모순 교정** — `backends.json`의 codex-main이 `read-only`로
+  선언돼 routing.md(`workspace-write` 고정)·CLAUDE.md 쓰기 정책 표(tasks/ 내부 직접 작성)와
+  모순되던 드리프트 수정. codex-main = `workspace-write`, codex-critic = `read-only`로
+  통일하고 CLI 폴백에도 `--sandbox`·`cwd_policy: target` 명시. 근거: design-basis D10.
+- **gemini api 폴백 비활성** — 미구현 스텁(`gemini_api.sh`, 무조건 exit 4)이 fallbacks에
+  등록돼 "폴백 있음"이라는 거짓 안전신호를 내던 문제. fallbacks에서 제거(구현 후 재등록).
 
-### Note
-- 로컬·무료 워커도 승인 게이트 대상이다. 게이트 기준은 "비용≠0"이 아니라 **"worker 여부"**이므로
-  `ollama`도 `workers_approved`에 명시적 기록이 필요하다(`approval-policy.md`).
-## 1.3.0 - 2026-07-13
+### Added
+- **INV13(backends 실행계약 정합)** — codex sandbox 계약·gemini 폴백 비활성을 jq 기반
+  PASS/FAIL로 자가점검. codex MCP stale 시 `codex exec` 헤드리스 폴백 절차를 routing.md에 정본화.
+- **불변식 자가점검 러너 `_shared/check-invariants.sh`** — 자가점검을 "grep 눈 판독"에서
+  exit-code 판정으로 전환(false PASS 방지). `--self-test` = 불변식을 하나씩 깨뜨린 fixture가
+  FAIL하는지 러너 자체 검증. system-invariants.md의 수동 스크립트 블록 대체.
+- **디스패처 payload 동봉** — `call_worker.sh <role> <brief> [payload]` + `--merged-preview`.
+  gemini 소스 검토 자료를 brief 인라인 대신 `sources/gemini-packet.md`로 동봉(디스패처 결합) —
+  brief 불변식(inline 금지·1200자)과의 모순 해소. design-basis D13.
+- backends.json에서 디스패처가 읽지 않는 선언(`write_policy`·`non_interactive`) 제거
+  (희망사항 config = 거짓 안전신호 방지, D11 후속).
+
+### Changed
+- **design-basis 결정 번호 재정렬** — 라우팅 2층 분리 D9→D12, backends 실행계약 D10→D11.
+  결정 번호를 유지보수자 루트 정본과 공유하기 위함(설치본 범위 밖 결정 D9·D10은 결번 표기).
+- **v1.3.0 개편 때 누락된 상세 규칙 복원** — gemini 이미지/PDF 검수 단일 정본 경로(필독 절)·
+  새 작업 폴더 생성 게이트 상세(orchestrator-rules §3·task-folder 안내)·worker-brief의
+  gemini 경로 주석 등 유지보수자 루트에만 남아 있던 규칙을 재수록.
+
+## [1.3.0] - 2026-07-13
 
 ### Added
 - **라우팅 2층 분리 — `_shared/capability-profile.md` 신설(가변층)** — 능력 슬롯
@@ -110,7 +60,7 @@
   보조 구현=codex-main" 구도에서 무게중심 이동. 최소 worker set 표 동기화.
 - validate에 C5b(2층 라우팅: routing→profile 참조 + 슬롯 5종) 추가, C1에 프로필 포함.
 
-## 1.2.2 - 2026-07-04
+## [1.2.2] - 2026-07-04
 
 ### Fixed
 - **gemini 워커 폴백 실패 사유 유실** — 디스패처(`call_worker.sh`)가 api 폴백의 필수 env
@@ -121,14 +71,14 @@
 - routing.md gemini — 소스·다중파일 검토 인라인 필수(agy 헤드리스 300s 타임아웃 실측),
   폴백 조건(`GEMINI_API_KEY`) 명문화, 시간 제한 작업 전 경량 스모크 권장.
 
-## 1.2.1 - 2026-07-03
+## [1.2.1] - 2026-07-03
 
 ### Fixed
 - **gemini(agy) 워커 프롬프트 미전달 수정** — Antigravity CLI 1.0.16에서 `-p` 단축 플래그가
   제거되어 backends.json의 `args_template: ["-p", …]`가 프롬프트를 조용히 무시(모델 미호출·사용량 0).
   `["--prompt", …]`로 교정. 증상: gemini 워커가 온보딩 인사만 반환.
 
-## 1.2.0 - 2026-06-28
+## [1.2.0] - 2026-06-28
 
 ### Added
 - **opt-in goal 요금가드 배선(`--with-guard`)** — 설치 시 `--with-guard`를 주면 `.claude/settings.json`에
@@ -136,7 +86,7 @@
   중에만 — `stop_hook_active` 게이트). 기본 미설치, 런타임 on/off=`coach guard on/off`. 정책은 `coach`
   (usage-coach, codexbar 의존)가 갖고 미설치·조회실패는 fail-open(작업 안 죽임).
 
-## 1.1.0 - 2026-06-10
+## [1.1.0] - 2026-06-10
 
 카파시(Karpathy) 4원칙을 층별로 도입. 기존 규칙과 충돌 없음(보강).
 
@@ -182,12 +132,6 @@
 
 ### Verification
 - 배선(INV11a/b/c) PASS · 회귀 없음, 탁상 분기 커버리지, 실전 콜드세션 3/3 PASS, codex-critic adversarial 리뷰 5 ISSUE 반영.
-
-<!-- 릴리스 링크: 상위 starter(netwaif/multi-agent-starter)에 실제 존재하는 태그만 링크한다.
-     해당 저장소는 v1.0.1 다음 v2.1.0으로 건너뛰었고(현재 v3.5.0), 이 저장소의 1.1.0~1.4.0은
-     상위 릴리스와 대응하지 않는 로컬 번호다. 실측 2026-08-24: v1.0.0·v1.0.1만 HTTP 200,
-     v1.1.0~v1.4.0은 404. 없는 태그를 링크하면 깨진 참조가 되므로, 해당 버전은 링크 정의를
-     달지 않고 헤딩에서도 대괄호를 뺀다(Markdown 미정의 참조는 대괄호가 그대로 렌더됨). -->
 
 [1.0.1]: https://github.com/netwaif/multi-agent-starter/releases/tag/v1.0.1
 [1.0.0]: https://github.com/netwaif/multi-agent-starter/releases/tag/v1.0.0

@@ -35,7 +35,6 @@
 | gemini pro | 중간-높음 | Gemini 쿼터 |
 
 claude-main이 "내부 추론"과 같은 모델이라도 별도 호출이므로 쿼터·비용 발생.
-승인 게이트의 기준은 **비용≠0이 아니라 worker 여부**다 — 요금이 없는 워커도 `workers_approved` 대상이다.
 
 ## 승인 기록 형식 (task.md에 기록)
 
@@ -54,5 +53,18 @@ workers_approved:
     purpose: 산출물 리뷰·비평 (reviewer)
     approved_by: user
 ```
+
+외부 repo 쓰기 승인은 항목에 `target_repo`·`write_scope`를 **brief와 같은 값으로** 함께 기록한다 (`gate.sh` G5가 정확 일치를 검사 — 값이 바뀌면 재승인):
+
+```yaml
+  - worker: codex-main
+    approved_at: <YYYY-MM-DD>
+    purpose: 구현 (engineer) — 외부 repo 쓰기
+    approved_by: user
+    target_repo: /absolute/path/to/repo
+    write_scope: "src/**, tests/**"
+```
+
+`log.md`의 `[APPROVAL]` 줄에도 같은 worker와 `write_scope` 값을 함께 적는다 (예: `[APPROVAL] codex-main 외부 쓰기 승인 write_scope="src/**, tests/**"`).
 
 날짜 명령어: `date +%Y-%m-%d`

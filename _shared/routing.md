@@ -23,7 +23,7 @@
 │   └── codex-main
 │
 ├── [reviewer] 산출물 리뷰 / 비판적 검증?
-│   └── codex-critic   (Codex의 주된 역할 · ollama 제거 2026-08-25)
+│   └── codex-critic   (Codex의 주된 역할)
 │
 ├── [multimodal] 이미지 · 스크린샷 분석 / 50페이지+ 문서 / 제3자 시각의 검토?
 │   └── gemini
@@ -39,8 +39,6 @@
 1. **선행 의존성 우선**: codex-critic은 리뷰 대상(보통 claude-main 결과)이 먼저 있어야 함 → 해당 산출물 뒤에 호출
 2. **Orchestrator 내부 추론 우선**: 별도 worker 호출 전에 orchestrator 자체 추론으로 해결 가능한지 먼저 판단. 그래도 부족할 때만 claude-main 호출 (claude-main도 비용·쿼터 대상)
 3. **검증은 한 번만**: codex-critic은 작업당 1회 원칙. 재호출은 검증 실패 시만
-   > codex 인증 미설정 시 이 슬롯은 401로 실패한다. 그 경우 검증을 Orchestrator 소스 실측으로 수행하고,
-   > 제3자 검증 미충족 사실을 result·log에 남긴다(은폐 금지).
 4. **gemini는 명시적 트리거 시만**: 멀티모달 또는 "제3자 시각의 검토 필요" 명시 없으면 호출 금지
 
 ## 토폴로지 패턴 (worker를 어떻게 엮을까)
@@ -90,7 +88,8 @@ decision tree로 "누구를" 고른 뒤, "어떻게 엮을지" 고른다. **단�
     - 기본: `<설치한-폴더>/tasks/<task>/` — 이 안에서 산출물·diff 직접 작성
     - 외부 쓰기 4조건 충족 시: brief.md의 `target_repo` 값으로 변경
   - `sandbox`: `workspace-write` 고정 (cwd 내부만 쓰기 가능. cwd 밖은 sandbox가 차단)
-  - `approval-policy`: `on-failure` 권장
+  - `approval-policy`: 헤드리스 호출은 `never`(backends.json 정본 — 승인 프롬프트를 받을 수 없는 환경에서 결정적 거부, fail-closed). 대화형 수동 호출 시에만 `on-failure` 선택 가능
+- **MCP 실패 시 폴백 (정본 절차, 2026-07-10 실측)**: MCP 서버 stale(모델 버전 에러 등)이면 backends.json의 CLI 폴백과 동일 인자로 헤드리스 실행 — `codex exec --sandbox workspace-write "$(cat brief.md)"`, cwd=`tasks/<task>/`. 출력은 파일로 리다이렉트(`> raw-output.txt`) 후 결론부만 읽기. codex-critic 폴백은 `--sandbox read-only` 강제
 - **brief 필수 필드** (오케스트레이터가 사용자에게 target_repo를 먼저 묻고 답을 받아 채운다 — 분석·리뷰·요약 작업은 예외):
   ```yaml
   target_repo: /absolute/path/to/repo                   # 작업 대상 절대 경로 (없으면 N/A)
@@ -103,9 +102,6 @@ decision tree로 "누구를" 고른 뒤, "어떻게 엮을지" 고른다. **단�
   - 어느 경우에도 `_shared/`, `_templates/`, 다른 작업 폴더는 쓰지 말 것
 
 ### codex-critic
-> ✅ **가용 확인 (2026-08-25 실측)** — `codex login` 완료(ChatGPT 인증) 상태에서 `mcp__codex__codex`
-> 실호출 정상. 인증이 없으면(`~/.codex/auth.json` 부재 · `OPENAI_API_KEY` 미설정) `401 Unauthorized`로
-> 실패하고 codex-main도 동일 영향 — 그때는 검증을 Orchestrator 소스 실측으로 대체한다.
 - **슬롯**: reviewer
 - **용도**: 리뷰 대상 산출물(주로 claude-main 코드·설계, 또는 brief에 명시된 기존 코드·문서·소스)을 실제 repo/파일/CLI 관점에서 리뷰·비평. 실현 가능성, 비용, 테스트 커버리지, 사이드 이펙트 검토. **Codex의 주된 역할.**
 - **선행 조건**: 리뷰 대상 산출물 경로가 존재 — 보통 claude-main `result.md`, 또는 brief에 명시된 기존 코드·문서·소스
@@ -125,9 +121,10 @@ decision tree로 "누구를" 고른 뒤, "어떻게 엮을지" 고른다. **단�
   ```
   bash _shared/adapters/call_worker.sh gemini <brief-file>   # 결과 = JSON envelope
   ```
-  백엔드 = Antigravity `agy` CLI(헤드리스), 기본 `gemini-3.1-pro-high`, 폴백 = api(`adapters/gemini_api.sh`). 폐기: `mcp__gemini-pro__*`·`mcp__gemini__*` 프록시 브리지.
-- **소스·다중파일 검토는 인라인 필수**: 소스 코드 발굴·검토를 시킬 땐 **디렉토리나 다수 파일 순회를 시키지 말 것** — agy 헤드리스가 300s 타임아웃(exit 124)으로 실패한다(2026-07-04 실측). 필요한 스니펫을 orchestrator가 brief 본문에 **인라인**하고 "파일 열지 말 것"을 명시하라(동일 과제 인라인 재호출 실측 = 27s exit 0). 단일 이미지/PDF 경로 참조는 예외(~26s 정상). 시간 제한 작업에서 gemini에 의존하기 전 경량 스모크 1회로 가용성부터 확인.
-- **폴백 조건**: api 폴백은 `GEMINI_API_KEY` 필요 — 미설정이면 디스패처가 호출 시작 시 경고를 내고, primary 실패 시 폴백 없이 실패한다(실패 사유는 envelope `stderr_sanitized`에 남음).
+  백엔드 = Antigravity `agy` CLI(헤드리스), 기본 `gemini-3.1-pro-high`, 폴백 없음(아래 폴백 조건). 폐기: `mcp__gemini-pro__*`·`mcp__gemini__*` 프록시 브리지.
+- **이미지/PDF 검수 (단일 정본 경로, 필독)**: brief.md **본문에 분석 대상의 절대경로를 직접 적고** `call_worker.sh gemini <brief>`로 호출한다. 디스패처가 본문 전체를 프롬프트로 싣고(`args_template: --prompt @brief_content` — agy 1.0.16에서 `-p` 제거, 2026-07-03 교정·실측) `</dev/null`을 보장하므로(디스패처 고정 동작) agy가 본문 경로의 파일을 연다. **agy를 손으로 부르거나 `--add-dir`·`--dangerously-skip-permissions`를 쓰지 말 것** — 각각 stdin hang(타임아웃)·auto-mode classifier 차단의 원인이며, 이를 "비전 구조적 불가"로 오진한 사례가 있다(2026-06-28). 실측: 본문 절대경로 brief → exit 0(~26s), 픽셀크기·텍스트·검증코드 정확 반향.
+- **소스·다중파일 검토는 packet 동봉 필수 (2026-07-04 실측 → 2026-07-24 payload 분리, D13)**: 소스 코드 발굴·검토를 시킬 땐 **디렉토리나 다수 파일 순회를 시키지 말 것** — agy 헤드리스가 300s 타임아웃(exit 124)으로 전멸한다(자료를 동봉해 재호출한 실측 = 27s exit 0). 필요한 스니펫은 brief에 인라인하지 말고(brief 한도·inline 금지 유지) `tasks/<task>/sources/gemini-packet.md`에 담아 **디스패처 3번째 인자로 동봉**한다: `call_worker.sh gemini <brief> <packet>` — 디스패처가 brief 뒤에 "동봉 자료" 헤더로 결합하며, brief에는 "동봉 자료만 사용, 파일 열지 말 것"을 명시. 결합 결과는 `--merged-preview`로 사전 확인 가능. 단일 이미지/PDF 경로 참조(위 항목)는 예외(~26s 정상). 시간 제한 작업에서 gemini에 의존하기 전 경량 스모크 1회로 가용성부터 확인.
+- **폴백 조건**: api 폴백 슬롯(`adapters/gemini_api.sh`)은 **미구현·비활성**(spike S3 미완 — 키가 있어도 무조건 exit 4). backends.json `fallbacks`에서 제거됨(거짓 안전신호 방지, 2026-07-24 D11). agy(primary) 실패 시 폴백 없이 실패한다(사유는 envelope `stderr_sanitized`). Gemini REST 호출 구현 후에만 fallbacks 재등록.
 - **비용**: agy 쿼터 소모 → 승인 필요. 빠른 경로는 backends에서 `model`을 flash/pro-low로.
 - **파일 쓰기**: ❌ MCP 응답을 Orchestrator가 받아 기록
 
@@ -140,7 +137,7 @@ decision tree로 "누구를" 고른 뒤, "어떻게 엮을지" 고른다. **단�
 - **codex-main / codex-critic**: 사용자의 `~/.codex/config.toml` 기본값이 자동 적용된다 (현재 예: 최신 gpt + reasoning effort `high`). config.toml이 정본이라 여기에 버전을 핀하지 않는다. MCP 호출 시 `model` 파라미터를 비워두면 config 기본값 사용.
   - 가벼운 작업은 `profile: lightweight`로 전환 가능 (config.toml의 가벼운 모델 프로필)
   - 작업 성격상 다른 모델이 필요하면 brief.md에 명시
-- **gemini**: 백엔드 = Antigravity **`agy` CLI**(`_shared/backends.json` 정본, 디스패처 `call_worker.sh`). 기본 `gemini-3.1-pro-high`(agy에선 정상 — 옛 프록시 `400 INVALID_ARGUMENT`은 비해당), 빠른 경로 `gemini-3-flash`/`pro-low`, 폴백 `api`. 옛 `mcp__gemini-pro__*` 프록시 브리지·CLI 래퍼 `mcp__gemini__*`는 **폐기**. agy 모델은 전역·계정단위(`/model`)라 per-call 핀 불가 → gemini 전용 전역을 pro-high로 둔다. 근거: `_shared/learnings.md` [2026-06-02] · `design-basis.md` D4.
+- **gemini**: 백엔드 = Antigravity **`agy` CLI**(`_shared/backends.json` 정본, 디스패처 `call_worker.sh`). 기본 `gemini-3.1-pro-high`(agy에선 정상 — 옛 프록시 `400 INVALID_ARGUMENT`은 비해당), 빠른 경로 `gemini-3-flash`/`pro-low`, 폴백 없음(api 슬롯 미구현·비활성, D11). 옛 `mcp__gemini-pro__*` 프록시 브리지·CLI 래퍼 `mcp__gemini__*`는 **폐기**. agy 모델은 전역·계정단위(`/model`)라 per-call 핀 불가 → gemini 전용 전역을 pro-high로 둔다. 근거: `_shared/learnings.md` [2026-06-02] · `design-basis.md` D4.
 
 이 정책은 사용자별 config에 따라 달라질 수 있다 — starter clone 받은 학습자는 본인의 `~/.codex/config.toml` 기본값을 한 번 확인하고 자기 환경에 맞게 조정한다.
 
