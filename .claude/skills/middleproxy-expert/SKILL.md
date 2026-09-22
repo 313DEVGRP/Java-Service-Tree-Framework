@@ -11,6 +11,9 @@ description: >-
   ReqAddKafkaMessage · ADD_NODE · changeReqTableName · RequestBodyExtractor · Schedulers.boundedElastic ·
   Swagger2Config · 업로드 락이 안 풀림 · 콜백이 안 옴 같은 주제도 대상이다.
   "미들프록시", "middle proxy", "게이트웨이", "프록시 서버", "REQADD" 요청도 여기서 시작한다.
+  단, 같은 "위키 락" 이라도 락 상태를 STOMP 로 방송하거나 편집 활동·연결 종료를 감지하는 쪽은
+  broker-expert 이고, 여기는 그 락의 획득·해제·TTL·takeover 정책과 Lua 원자 로직을 소유하는 쪽이다 —
+  "브라우저를 닫았는데 락이 안 풀린다" · "동시편집이 깨진다" 는 broker-expert 에서 시작한다.
   MVC(HttpServletRequest · WebSecurityConfigurerAdapter · @Transactional · JPA)로 작성하지 않는다 —
   이 저장소는 전부 리액티브다.
 ---
@@ -86,6 +89,14 @@ Frontend ──▶ Middle-Proxy :13131
 
 > `aichat` 이 `/auth-user/api/...` 를 쓰는 이유: 게이트웨이가 `/auth-user/api/(path)` → `/${path}` 로
 > RewritePath 하기 때문에, 프론트는 다른 백엔드 호출과 동일한 접두를 쓰고 인증도 동일하게 걸린다.
+
+> ⚠️ **`wiki` 도메인의 유일한 호출자는 Broker-Hub 다.** 프론트는 `/wiki/lock/**` 를 직접 부르지 않는다.
+> Broker-Hub 가 STOMP `/app/lock/**` 로 받은 명령을 Feign(`WikiLockClient`)으로 여기에 넘기고,
+> 결과를 `/topic/sessions/{sid}/lock/document/{did}` 로 방송한다.
+> 따라서 이 도메인의 응답 스펙(`LockState` 필드·상수)을 바꾸면 **Broker-Hub 의 동명 DTO 와
+> 프론트 구독 코드가 함께 바뀌어야 한다**(두 `LockState` 는 별개 클래스이고 상수 집합도 다르다).
+> 반대로 "브라우저를 닫았는데 락이 안 풀린다" · "락 상태가 화면에 안 뜬다" 는 이 저장소가 아니라
+> Broker-Hub 문제다 — `broker-expert` 스킬에서 시작한다.
 
 ---
 

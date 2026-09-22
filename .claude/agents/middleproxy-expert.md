@@ -6,6 +6,8 @@ description: >-
   Redis 자체 도메인(aichat · wbs/reqdef 엑셀업로드 · wiki 락 · mapping · poc · atlassian) ·
   Feign(백엔드코어통신기/엔진통신기) 작업에 사용한다. Boot 2.6 / Java 11 / 리액티브 스택이며
   Backend-Core(MVC·JPA)와 규칙이 전혀 다르다.
+  단, 같은 "위키 락" 이라도 락 상태를 STOMP 로 방송하거나 편집 활동·연결 종료를 감지하는 쪽은
+  broker-expert 이고, 여기는 그 락의 획득·해제·TTL·takeover 정책과 Lua 원자 로직을 소유하는 쪽이다.
   Examples — <example>User: "미들프록시에 새 REST 엔드포인트 하나 추가해줘." Assistant:
   "middleproxy-expert 에이전트에게 위임하겠습니다." <commentary>WebFlux 컨트롤러 + 블로킹 격리 + SecurityConfiguration 반영이 필요하므로 적합.</commentary></example>
   <example>User: "요구사항 엑셀 업로드가 중간에 멈추고 락이 안 풀려." Assistant:

@@ -71,7 +71,9 @@ description: >-
   **`/auth-*` 는 게이트웨이 개념이므로 컨트롤러에 쓰지 않는다** (일부 `docs/ai` 문서가 이를 혼동시킨다).
 - Spring Data JPA 는 `com.arms.api.globaltreemap` 에서만, MyBatis 는 `com.arms.api.util.**.mapper`
   에서만 동작한다. 그 밖에서는 빈이 생기지 않는다. **통계는 MyBatis가 아니라 Feign 위임이다.**
-- 요구사항 컬럼 추가는 Flyway + `DynamicDBMakerDao.xml` + **기존 제품 테이블 ALTER 계획**까지가 한 세트다.
+- 요구사항 컬럼 추가는 **① 템플릿 ALTER ② `DynamicDBMakerDao.xml` ③ 기존 제품 테이블 일괄 ALTER
+  프로시저**(`information_schema` 커서 — `V13`·`V15`·`V19` 패턴)까지가 한 세트다.
+  스키마·시드·매퍼는 전부 `src/main/resources/com/arms/` 에서 확인 가능하다 — 추측하지 말고 읽는다.
 - 이 서비스에는 `@Scheduled` 가 하나도 없다. 주기 실행은 `/arms/scheduler/**` 를 외부가 호출한다.
 - Engine-Fire 인덱스에 없는 값(`duedate`, FP 수치, 상태 전환 이력)은 **추측으로 채우지 않고**
   null/0/빈 배열로 응답한다.
@@ -129,7 +131,9 @@ JAVA_HOME="C:/Program Files/Microsoft/jdk-11.0.32.101-hotspot" ./gradlew compile
   공통 자산(`egovframework/`·`config/`·`EngineService`·`RouteTableConfig`)을 건드렸으면
   **영향 범위를 함께 보고**한다.
 - 계약(엔드포인트·DTO 필드·테이블 컬럼)이 불명확하면 **가정을 명시**하고 진행하거나 질문한다.
-  특히 **운영 DB의 제품별 테이블 현황은 코드로 알 수 없다** — 스키마 변경 시 반드시 확인을 요청한다.
+  스키마의 초기 구성·시드·동적 테이블 DDL 은 `src/main/resources/com/arms/` 로 전부 확인되지만,
+  **운영 DB에 실제로 존재하는 제품별 테이블 목록과 `V42`·`V48`·`V52` 계열 컬럼의 반영 여부는
+  코드로 알 수 없다** — 해당 컬럼을 건드릴 때는 확인을 요청한다.
 - 문서(`docs/ai/`)와 코드가 어긋나면 **코드를 따르고 불일치를 보고**한다. 문서를 임의로 고치지 않는다.
 - **절대 commit·push 하지 않는다.** 완료 시 변경 요약과 커밋 메시지 초안만 제시한다(브랜치 `dev`):
   ```

@@ -24,9 +24,12 @@
 **직접 서비스 호출로 "최적화"하지 않는다.**
 
 ### A4. `Unknown column 'c_xxx' in field list`
-**원인:** Flyway 는 템플릿 테이블만 바꾼다. 이미 존재하는 `T_ARMS_REQADD_<id>` 에는 컬럼이 없다.
-**대응:** 기존 제품 테이블 일괄 ALTER 스크립트를 함께 만들어 제시한다.
-(`docs/ai/12_known_issues §6` 은 "스키마 변경은 Flyway"라고만 해서 이 함정을 놓친다.)
+**원인:** 해당 마이그레이션이 **템플릿 테이블만** 바꾸고 기존 `T_ARMS_REQADD_<id>` 는 건드리지 않았다.
+`V42`(`c_req_priority_value`) · `V48`(`c_req_importance_link`·`c_req_urgency_link`) ·
+`V52~V54`(`c_req_def_id`) 가 그 경우다.
+**대응:** `information_schema` 커서 프로시저 패턴(`V13`·`V15`·`V19`)으로 일괄 ALTER 마이그레이션을
+작성한다. 전체 코드는 `references/schema-and-mappers.md` §2.
+(`docs/ai/12_known_issues §6` 은 "스키마 변경은 Flyway"라고만 해서 이 구분을 놓친다.)
 
 ---
 
@@ -75,6 +78,20 @@
 **대응:** 도메인 컨트롤러에서 자체 검색 엔드포인트를 만든다. 공통 클래스 수정은 전역 영향.
 
 ---
+
+### A5. 이력(`*Log`) 화면이 비어 있다
+**원인 후보:** `*Log` 엔티티 6개가 실존하지 않거나 잘못된 테이블을 가리킨다 —
+`T_ARMS_REQADDLOG` / `T_ARMS_REQCOMMENTLOG` / `T_ARMS_REQREVIEWLOG` / `T_ARMS_REQSTATUSLOG` /
+`T_ARMS_JIRAISSUESTATUSLOG` (DDL 은 전부 `…_LOG` 로 언더바가 있다), 그리고
+`ReqStateCategoryLogEntity` 는 `T_ARMS_REQSTATE_CATEGORY`(**본 테이블**)를 가리킨다.
+`hibernate.hbm2ddl.auto` 가 `update` 면 Hibernate 가 빈 테이블을 자동 생성해 증상이 "비어 있음"으로 보인다.
+**대응:** 임의로 고치지 않는다. 운영 DB 확인이 필요하고 고치면 조회 대상이 바뀐다.
+발견 사실을 보고하고 판단을 받는다. 상세 표는 `references/schema-and-mappers.md` §8.
+
+### A6. 트리거 DDL 이 Flyway 에서 깨진다
+**원인:** `DELIMITER $$ … END $$ DELIMITER ;` 로 감싸지 않아 `;` 에서 문장이 잘렸다.
+**대응:** 기존 20개 파일과 동일하게 감싼다. (`DynamicDBMakerDao.xml` 쪽 트리거는 MyBatis 단일 문장
+실행이라 `DELIMITER` 를 쓰지 **않는다** — 두 경로를 혼동하지 말 것.)
 
 ## C. 영속 / 성능
 
@@ -150,3 +167,13 @@ JAVA_HOME="C:/Program Files/Microsoft/jdk-11.0.32.101-hotspot" ./gradlew compile
 - `ThreadPoolConfig` 의 `taskExecutor-arms` 는 core 5 / max 10 / queue 10 + `CallerRunsPolicy` 로 작다.
   `@Async` 대량 투입 시 호출 스레드가 직접 실행하며 요청이 밀린다.
 - Feign 읽기 타임아웃이 **60분**이다. "응답이 안 와요"는 타임아웃이 아니라 상대 서비스를 먼저 본다.
+- **`TemplateFileController` 의 `globals.properties` 경로 오타** — `"com/egovframework/property/globals.properties"`
+  (실제는 `com/arms/egovframework/...`). 2곳(업로드·다운로드). 리소스가 없어
+  `PropertiesReader` 의 `properties.load(null)` 에서 **NPE** 가 난다. 이 파일을 건드릴 때 함께 고친다.
+- **`validator/com-rules.xml`·`validator-rules.xml` 은 Struts 레거시**로 코드 참조가 0건이다.
+  새 검증은 Bean Validation(`@Validated` + `treeframework/validation/group/`)으로 한다.
+- **`message/message-common_*.properties` 와 `EgovMessageSource` 는 아무도 쓰지 않는다.** 참고하지 않는다.
+- **`MyBatisDao.xml` 의 `MYBATIS_SAMPLE` 테이블은 DDL 에 없다.** 새 매퍼의 본보기로 삼지 않는다.
+- **`T_ARMS_CLIENTCASE`(+`_LOG`)는 DDL 에만 있고 코드 참조가 0건**인 고아 테이블이다.
+- DDL 매퍼가 `${c_title}` **문자열 치환**을 쓴다. 외부 입력을 그대로 넘기면 SQL 인젝션이다 —
+  `DynamicDBMakerImpl` 처럼 `접두사 + 숫자 ID` 로만 조립한다.

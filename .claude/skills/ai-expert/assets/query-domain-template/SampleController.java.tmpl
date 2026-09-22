@@ -1,0 +1,50 @@
+/*
+ * @author {{AUTHOR}}
+ * @since {{YYYY-MM-DD}}
+ * @version {{YY.MM.DD}}
+ * @see <pre>
+ *  Copyright (C) 2007 by 313 DEV GRP, Inc - All Rights Reserved
+ *  Unauthorized copying of this file, via any medium is strictly prohibited
+ *  Proprietary and confidential
+ *  Written by 313 developer group <313@313.co.kr>, December 2010
+ * </pre>
+ */
+package com.arms.api.{{domain}}.controller;
+
+import com.arms.api.{{domain}}.model.dto.{{Domain}}DTO;
+import com.arms.api.{{domain}}.service.{{Domain}}ServiceImpl;
+import com.arms.egovframework.javaservice.aigenerate.l_query.controller.UserQueryAbstractController;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * {{Domain}} 질의 컨트롤러.
+ *
+ * <pre>
+ * 상속만으로 아래 4개가 생긴다. 다시 만들지 말 것:
+ *   POST /{{domain}}/stream       text/event-stream, Flux&lt;String&gt;
+ *   POST /{{domain}}/generate     단건
+ *   GET  /{{domain}}/stop-stream?sessionId=
+ *   POST /{{domain}}/validate     LLM 호출 없이 유효성만
+ *
+ * 부모가 Keyword→HTML 게이트도 처리한다 — chat.keyword-html 에 걸리면 LLM 을 아예 안 부른다.
+ *
+ * 도메인 전용 엔드포인트가 필요하면 이 클래스에 메서드를 "추가" 한다
+ * (MultiAgentController.parseExcel / exportExcel 이 그 예).
+ * </pre>
+ */
+@Slf4j
+@RestController
+@RequestMapping("/{{domain}}")
+@Tag(name = "{{Domain}}Controller", description = "{{Domain}} AI 질의 컨트롤러")
+public class {{Domain}}Controller
+        extends UserQueryAbstractController<{{Domain}}ServiceImpl, {{Domain}}DTO> {
+
+    @Autowired
+    public {{Domain}}Controller({{Domain}}ServiceImpl service) {
+        setQueryService(service);
+    }
+}

@@ -141,24 +141,28 @@ public interface InternalService {
 
 ---
 
-## 5. 스키마 진화 — Flyway 만으로는 부족하다
+## 5. 스키마 진화 — 반영 경로가 3개다
 
-| 변경 대상 | 반영 수단 | 기존 제품 테이블에 적용되는가 |
-|---|---|---|
-| `T_ARMS_REQADD` / `_LOG` (템플릿) | `resources/com/arms/db/V*.sql` | — |
-| 앞으로 생길 `T_ARMS_REQADD_<id>` | `DynamicDBMakerDao.xml` 의 `ddlOrgExecute` / `ddlLogExecute` | — |
-| **이미 존재하는 `T_ARMS_REQADD_<id>`** | **없음** | ❌ **수동/별도 스크립트 필요** |
+| 변경 대상 | 반영 수단 |
+|---|---|
+| `T_ARMS_REQADD` / `_LOG` (템플릿) | `resources/com/arms/db/V*.sql` 의 평범한 `ALTER TABLE` |
+| 앞으로 생길 `T_ARMS_REQADD_<id>` | `DynamicDBMakerDao.xml` 의 `ddlOrgExecute` / `ddlLogExecute` |
+| **이미 존재하는 `T_ARMS_REQADD_<id>`** | **Flyway 안의 `information_schema` 커서 프로시저** (`V13`·`V15`·`V19` 참조) |
 
-예: `V52__add_reqadd_req_def_id.sql` 은 `T_ARMS_REQADD` 와 `T_ARMS_REQADD_LOG` 만 `ALTER` 한다.
-운영에 이미 있는 `T_ARMS_REQADD_1..N` 은 그대로다 → 엔티티에 필드를 추가하면
-그 제품들에서 **`Unknown column` 오류**가 난다.
+세 번째가 이 저장소의 **정식 해법**이다. `LIKE 'T_ARMS_REQADD%'` 로 템플릿·`_LOG`·제품별 테이블을
+한꺼번에 순회하며 `PREPARE`/`EXECUTE` 로 ALTER 한다. 전체 코드와 작성 규칙은
+`references/schema-and-mappers.md` §2 에 있다.
 
-따라서 요구사항 계열 컬럼 추가 작업의 산출물에는 **항상 다음 4가지가 들어가야 한다**:
+따라서 요구사항 계열 컬럼 추가 작업의 산출물에는 **항상 다음 4가지가 들어간다**:
 
-1. Flyway `V56__*.sql` (템플릿 본 테이블 + `_LOG`)
-2. `DynamicDBMakerDao.xml` 의 `ddlOrgExecute` · `ddlLogExecute` 수정
-3. **기존 제품 테이블 일괄 ALTER 계획** (예: `information_schema` 기반 동적 SQL 생성 스크립트) — 사용자에게 제시
+1. Flyway `V56__*.sql` — 템플릿 본 테이블 + `_LOG` `ALTER`
+2. 같은 파일 안에 **기존 제품 테이블 일괄 ALTER 프로시저** (`IF @column_exists = 0` 가드 포함)
+3. `DynamicDBMakerDao.xml` 의 `ddlOrgExecute` · `ddlLogExecute` 수정
 4. 엔티티 + DTO 필드
+
+> ⚠️ 2번을 빠뜨린 전례가 있다 — `V42`·`V48`·`V52~V54` 는 템플릿만 바꿨다.
+> 그래서 `c_req_priority_value` · `c_req_importance_link` · `c_req_urgency_link` · `c_req_def_id` 가
+> **오래된 제품 테이블에 존재하는지는 운영 DB 확인이 필요**하다. 관련 증상은 `Unknown column 'c_xxx'`.
 
 ### 트리거는 건드릴 필요가 없다
 

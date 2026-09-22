@@ -31,6 +31,10 @@
 | `backend-expert.md` | `backend-expert` | Backend-Core(A-RMS API 서버: Java 11 · Spring Boot 2.6 · TreeFramework nested-set · 제품별 동적 테이블 라우팅 · Feign(Engine-Fire) · Kafka · POI) — 상세 규약은 `arms-backend-core` 스킬 |
 | `database-expert.md` | `database-expert` | A-RMS(MySQL 8) 스키마 — Flyway 마이그레이션 · nested-set 루트 seed · `_LOG` 짝 테이블/트리거 · 제품별 동적 테이블 · 엔티티↔DDL 정합성 |
 | `middleproxy-expert.md` | `middleproxy-expert` | Middle-Proxy(A-RMS API 게이트웨이: Spring Cloud Gateway/WebFlux · Keycloak OIDC · Redis 세션·도메인 저장 · Kafka REQADD 프로듀서 · Feign) |
+| `broker-expert.md` | `broker-expert` | Broker-Hub(A-RMS 실시간 협업 브로커: Boot 3.5/Java 21 · STOMP/SockJS · OT 동시편집 엔진 · Redis 문서·참가자 상태 · 위키 편집락 방송(Middle-Proxy 위임)) — 상세 규약은 `broker-expert` 스킬 |
+| `engine-expert.md` | `engine-expert` | Engine-Fire(A-RMS 수집·집계 엔진: Java 21 · Spring Boot 3.5.6 · OpenSearch esframework · ALM 이슈 수집 · 요구사항 기준 집계 · 인덱스 운영) — 상세 규약은 `engine-expert` 스킬 |
+| `config-expert.md` | `config-expert` | Global-Config(A-RMS 중앙 설정·스케줄 허브: Spring Cloud Config Server/Gitea 백엔드 · 설정 변경 웹훅 전파 · 동적 크론 스케줄러 · 언어팩 · system-info) — 상세 규약은 `config-expert` 스킬 |
+| `ai-expert.md` | `ai-expert` | AI(A-RMS 생성·검색 모듈: Java 21 · Spring Boot 3.5.6 · Spring AI M8 · WebFlux · RAG/OpenSearch VectorStore · 역할별 LLM 분리 · 도구 호출·멀티에이전트 · 문서 벡터화 · 프롬프트 외부화) — 상세 규약은 `ai-expert` 스킬 |
 
 **이 계층에 에이전트를 추가하려면** 이 표에 한 줄 추가하고 `.claude/agents/<name>.md` 를 둔다.
 정본 5개(Worker Pool 문서)는 건드리지 않는다.

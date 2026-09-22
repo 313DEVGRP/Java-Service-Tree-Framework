@@ -1,0 +1,137 @@
+/*
+ * @author {{AUTHOR}}
+ * @since {{YYYY-MM-DD}}
+ * @version {{YY.MM.DD}}
+ * @see <pre>
+ *  Copyright (C) 2007 by 313 DEV GRP, Inc - All Rights Reserved
+ *  Unauthorized copying of this file, via any medium is strictly prohibited
+ *  Proprietary and confidential
+ *  Written by 313 developer group <313@313.co.kr>, December 2010
+ * </pre>
+ */
+package com.arms.api.{{domain}}.service;
+
+import com.arms.api.{{domain}}.model.dto.{{Domain}}DTO;
+import com.arms.egovframework.javaservice.aigenerate.l_query.service.ChatModelRouter;
+import com.arms.egovframework.javaservice.aigenerate.l_query.service.UserQueryService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+/**
+ * {{Domain}} 질의 서비스.
+ *
+ * <pre>
+ * 규칙:
+ *   - 고객 데이터가 프롬프트에 들어가므로 chatModelRouter.chatModel() 을 쓴다.
+ *     routingModel() 은 질문 원문만 넘기는 도구 선택에만 쓴다.
+ *   - 시스템 메시지는 Config Server 가 준다. 기본값을 주지 않는다(없으면 기동 실패 = fail-fast).
+ *   - 블로킹(call · Feign · VectorStore)은 boundedElastic 으로 격리한다.
+ *   - 스트림은 takeUntil + doFinally 로 streamStatus 를 반드시 정리한다.
+ * </pre>
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class {{Domain}}ServiceImpl implements UserQueryService<{{Domain}}DTO> {
+
+    @Value("${prompt.{{domain}}.system-message}")
+    private String systemMessage;
+
+    private final ChatModelRouter chatModelRouter;
+
+    private final ConcurrentHashMap<String, AtomicBoolean> streamStatus = new ConcurrentHashMap<>();
+
+    // ──────────────────────────────────────────────────────────────
+    // Stream
+    // ──────────────────────────────────────────────────────────────
+
+    @Override
+    public Flux<String> stream({{Domain}}DTO query) {
+
+        if (query.getSessionId() == null || query.getSessionId().isBlank()) {
+            return Flux.error(new IllegalArgumentException("sessionId 가 비어 있습니다."));
+        }
+
+        String streamId = query.getSessionId();
+
+        return Flux.defer(() -> {
+                    streamStatus.put(streamId, new AtomicBoolean(false));
+                    log.info("{{Domain}}ServiceImpl :: 스트리밍 시작 | streamId={}", streamId);
+
+                    long requestStart = System.currentTimeMillis();
+                    boolean[] firstToken = {true};
+
+                    return ChatClient.builder(chatModelRouter.chatModel()).build()
+                            .prompt()
+                            .system(systemMessage)
+                            .user(buildUserPrompt(query))
+                            .stream()
+                            .content()
+                            .takeUntil(chunk -> streamStatus
+                                    .getOrDefault(streamId, new AtomicBoolean(false)).get())
+                            .doOnNext(chunk -> {
+                                if (firstToken[0]) {
+                                    firstToken[0] = false;
+                                    log.info("{{Domain}}ServiceImpl :: 첫 토큰 도착 | streamId={}, 소요={}ms",
+                                            streamId, System.currentTimeMillis() - requestStart);
+                                }
+                            })
+                            .doOnError(e -> log.error("{{Domain}}ServiceImpl :: 스트리밍 오류 | streamId={} | error={}",
+                                    streamId, e.getMessage(), e));
+                })
+                .doFinally(signalType -> streamStatus.remove(streamId));   // ★ 취소·에러·완료 모두 정리
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // Generate
+    // ──────────────────────────────────────────────────────────────
+
+    @Override
+    public Mono<String> generate({{Domain}}DTO query) {
+
+        log.info("{{Domain}}ServiceImpl :: generate | sessionId={}", query.getSessionId());
+
+        return Mono.fromCallable(() -> ChatClient.builder(chatModelRouter.chatModel()).build()
+                        .prompt()
+                        .system(systemMessage)
+                        .user(buildUserPrompt(query))
+                        .call()
+                        .content())
+                .subscribeOn(Schedulers.boundedElastic());                 // ★ 블로킹 격리
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // Stop Stream
+    // ──────────────────────────────────────────────────────────────
+
+    @Override
+    public String stopStream(String sessionId) {
+        AtomicBoolean flag = streamStatus.get(sessionId);
+        if (flag != null) {
+            flag.set(true);
+            return "스트림 중단 요청이 접수되었습니다. sessionId=" + sessionId;
+        }
+        return "진행 중인 스트림이 없습니다. sessionId=" + sessionId;
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // Internal
+    // ──────────────────────────────────────────────────────────────
+
+    /** 섹션 머리표를 고정 순서로 쌓는다. 값이 없는 섹션은 붙이지 않는다. */
+    private String buildUserPrompt({{Domain}}DTO query) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[사용자 질의]\n").append(query.getQueryText()).append("\n\n");
+        // TODO: RAG 문서 · 집계 데이터 등 컨텍스트 섹션을 여기에 추가한다
+        return sb.toString();
+    }
+}

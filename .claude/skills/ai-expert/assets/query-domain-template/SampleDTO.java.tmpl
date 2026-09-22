@@ -1,0 +1,39 @@
+/*
+ * @author {{AUTHOR}}
+ * @since {{YYYY-MM-DD}}
+ * @version {{YY.MM.DD}}
+ * @see <pre>
+ *  Copyright (C) 2007 by 313 DEV GRP, Inc - All Rights Reserved
+ *  Unauthorized copying of this file, via any medium is strictly prohibited
+ *  Proprietary and confidential
+ *  Written by 313 developer group <313@313.co.kr>, December 2010
+ * </pre>
+ */
+package com.arms.api.{{domain}}.model.dto;
+
+import com.arms.egovframework.javaservice.aigenerate.l_query.model.UserQueryDTO;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
+import java.util.List;
+
+/**
+ * {{Domain}} 질의 DTO.
+ *
+ * <p>부모 {@link UserQueryDTO} 가 queryText · sessionId · language · createdAt · metadata 를 갖는다.
+ * 도메인 확장 필드만 여기에 추가한다.</p>
+ */
+@Getter
+@SuperBuilder                              // ★ 부모 필드까지 빌더에 포함시키려면 필수
+@NoArgsConstructor                         // ★ Jackson 역직렬화용
+@EqualsAndHashCode(callSuper = true)       // ★ 빠뜨리면 부모 필드가 동등성에서 빠진다
+public class {{Domain}}DTO extends UserQueryDTO {
+
+    /** 제품 서비스 ID. 조회 범위를 한정할 때 쓴다. */
+    private Long pdServiceId;
+
+    /** 제품 버전 ID 목록. */
+    private List<Long> pdServiceVersionIds;
+}

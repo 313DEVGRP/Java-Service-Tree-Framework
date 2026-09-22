@@ -11,8 +11,11 @@ description: >-
   Apache POI 리포트를 이 규약대로 따르게 한다.
   com/arms/api/** 또는 com/arms/egovframework/** 를 건드리거나, "요구사항 API",
   "reqAdd", "reqStatus", "pdService", "대시보드 집계 API", "Engine 호출", "Feign",
-  "Kafka 컨슈머", "엑셀 다운로드", "PPT 리포트", "Flyway 마이그레이션", "트리 노드",
-  "c_left/c_right", "백엔드 코어" 같은 요청이 나오면 반드시 이 스킬을 먼저 읽을 것.
+  "Kafka 컨슈머", "엑셀 다운로드", "PPT 리포트", "트리 노드", "c_left/c_right", "백엔드 코어"
+  같은 요청이 나오면 반드시 이 스킬을 먼저 읽을 것.
+  DB 작업도 대상이다 — src/main/resources/com/arms 의 Flyway V*.sql · 초기 스키마 · 컬럼 추가 ·
+  _LOG 짝 테이블 · 트리거 · 루트 seed · 프리셋 시드값(상태·우선순위·난이도·중요도·긴급도) ·
+  DynamicDBMakerDao.xml 동적 테이블 DDL · MyBatis 매퍼 설정이 여기 정리돼 있다.
   Spring Boot 3 · jakarta.* · Java 17+ 문법으로 새로 만들지 않는다 — 이 저장소는 Boot 2.6/Java 11이다.
 ---
 
@@ -56,6 +59,8 @@ Spring Data JPA 프로젝트처럼 접근하면 거의 모든 판단이 틀린�
 | 스택 | MVC · JPA/Hibernate · `@Transactional` | WebFlux · Redis · 리액티브 |
 
 화면·JS·CSS 는 `arms-frontend-web` 스킬(별도 저장소)이다. 여기서 만들지 않는다.
+OpenSearch 색인·집계 자체(수집 전략·인덱스·aggregation)는 `engine-expert` 스킬(Engine-Fire) 소관이다.
+Backend-Core 는 그 결과를 **Feign 으로 받아 쓰기만** 한다.
 
 ### 도메인은 두 가지 형태다
 
@@ -214,23 +219,42 @@ return ResponseEntity.ok(CommonResponse.success(vo));   // {"success":true,"resp
 
 ---
 
-## 6. 스키마 변경은 항상 "두 곳 + 기존 테이블"이다
+## 6. 스키마 변경은 "템플릿 + 동적 DDL + 기존 테이블" 3종 세트다
 
-요구사항 계열 컬럼을 하나 추가하려면:
+DB 구성은 전부 `src/main/resources/com/arms/` 에서 확인할 수 있다. 추측하지 말고 읽는다.
+Flyway `V1`~`V55`(`V33~36`·`V41` 결번, 다음은 **`V56`**) + `DynamicDBMakerDao.xml` 이 정본이다.
+상세는 `references/schema-and-mappers.md`.
 
-1. `resources/com/arms/db/V56__*.sql` — `T_ARMS_REQADD` **와** `T_ARMS_REQADD_LOG` 둘 다 `ALTER`
-   (템플릿 테이블. Flyway가 하는 일은 여기까지다)
-2. `resources/com/arms/egovframework/mybatis/mapper/DynamicDBMakerDao.xml` —
-   `ddlOrgExecute` / `ddlLogExecute` 에도 컬럼 추가 (**앞으로 생성될 제품 테이블용**)
-3. **이미 존재하는 `T_ARMS_REQADD_<id>` 테이블들** — 위 둘 중 어느 것도 이 테이블들을 고치지 않는다.
-   운영 반영 계획(마이그레이션 스크립트/수동 ALTER)을 **반드시 함께 제시**한다.
-4. `ReqAddEntity` + `ReqAddDTO` 에 필드 추가
+요구사항 계열 컬럼을 하나 추가하려면 **세 가지를 모두** 작성한다:
 
-트리거(`TG_INSERT/UPDATE/DELETE_*`)는 **트리 공통 컬럼 8개만** `_LOG`에 복사한다.
-도메인 컬럼을 추가해도 트리거는 고칠 필요가 **없다**.
+1. **템플릿 ALTER** — `db/V56__*.sql` 에서 `T_ARMS_REQADD` **와** `T_ARMS_REQADD_LOG` 둘 다.
+2. **동적 DDL 갱신** — `egovframework/mybatis/mapper/DynamicDBMakerDao.xml` 의
+   `ddlOrgExecute` / `ddlLogExecute` (**앞으로 생성될 제품 테이블용**).
+3. **기존 제품 테이블 일괄 ALTER** — 같은 `V56` 파일 안에 `information_schema` 커서 프로시저를 넣는다.
+   이 저장소의 정식 패턴이고 **`V13` · `V15` · `V19` 가 실제 사례**다(그대로 베끼면 된다).
+   ```sql
+   DECLARE cur CURSOR FOR
+       SELECT table_name FROM information_schema.tables
+        WHERE table_schema = DATABASE() AND table_name LIKE 'T_ARMS_REQADD%';
+   -- 테이블마다 information_schema.columns 로 존재 확인 후 PREPARE/EXECUTE 로 ALTER
+   ```
+   `IF @column_exists = 0` 가드를 반드시 넣는다.
 
-Flyway 버전은 `V1`~`V55`이고 `V33~36`, `V41`이 비어 있다(정상). 다음은 `V56`.
-Flyway 설정(`spring.flyway.*`)은 저장소에 없다 — **Global-Config(Config Server)에 있다.**
+그리고 `ReqAddEntity` + `ReqAddDTO` 에 필드를 추가한다.
+
+> ⚠️ **후기 마이그레이션은 3번을 빠뜨렸다.** `V42`(`c_req_priority_value`) ·
+> `V48`(`c_req_importance_link`·`c_req_urgency_link`) · `V52~V54`(`c_req_def_id`) 는 템플릿만 바꿨다.
+> 이 컬럼들이 **오래된 제품 테이블에 있는지는 운영 DB 확인이 필요**하다 — 관련 작업 시 사용자에게 묻는다.
+
+기타 규칙:
+- **트리거는 `DELIMITER $$ … END $$ DELIMITER ;`** 로 감싼다(Flyway 파서 때문. 기존 20개 파일 전부 그렇다).
+  단 `DynamicDBMakerDao.xml` 쪽 트리거는 MyBatis 단일 문장 실행이라 `DELIMITER` 를 쓰지 않는다.
+- 새 트리 테이블은 **루트 2행 seed** 필수. 자식 seed 를 추가할 때는 **부모의 `C_RIGHT` 를 함께 UPDATE**
+  한다(`V3` 의 `SET C_RIGHT=14/13` 이 그 예다). 이 두 줄을 빠뜨리면 nested-set 이 깨진다.
+- 트리거(`TG_INSERT/UPDATE/DELETE_*`)는 **트리 공통 컬럼 8개 + method/state/date 만** `_LOG` 에 복사한다.
+  도메인 컬럼을 추가해도 **트리거는 고칠 필요가 없다.**
+- 배포된 마이그레이션 파일은 **절대 수정하지 않는다**(체크섬 불일치 → 기동 실패). 새 번호로 추가한다.
+- Flyway 설정(`spring.flyway.*`)은 저장소에 없다 — **Global-Config(Config Server)에 있다.**
 
 ---
 
@@ -367,7 +391,8 @@ JAVA_HOME="C:/Program Files/Microsoft/jdk-11.0.32.101-hotspot" ./gradlew compile
 |------|----------|
 | `references/tree-framework.md` | 트리 도메인을 만들거나 공통 CRUD 동작이 궁금할 때 |
 | `references/dynamic-table-routing.md` | reqAdd·reqStatus·wiki 를 건드릴 때 / 엉뚱한 테이블이 조회될 때 |
-| `references/persistence.md` | 쿼리·트랜잭션·DataSource·Flyway 작업 |
+| `references/persistence.md` | 쿼리·트랜잭션·DataSource 선택 |
+| `references/schema-and-mappers.md` | **DB 를 건드리기 전 필독** — Flyway 규칙·동적 테이블 일괄 ALTER 패턴·전체 테이블 목록·프리셋 시드 값·MyBatis 설정·엔티티↔DDL 정합성 |
 | `references/integration.md` | Feign · Kafka · DWR · Slack · 메일 · 스케줄러 |
 | `references/reporting-excel.md` | PPT/PDF 리포트 · 엑셀 업로드/다운로드 |
 | `references/conventions.md` | 네이밍·응답·예외·로깅·Swagger 규칙 |

@@ -131,11 +131,16 @@ public class ReqAddEntity extends TreeSearchEntity implements Serializable {
   - 본 테이블과 **`_LOG` 테이블을 항상 함께** 바꾼다 (`V52`, `V55` 참조).
   - 테이블 `T_ARMS_*`, 컬럼 `c_` + snake_case, `COMMENT` 를 한글로 단다.
   - `ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin`.
+  - **트리거는 `DELIMITER $$ … END $$ DELIMITER ;`** 로 감싼다 — 트리거가 있는 20개 파일 전부 그렇다.
   - 신규 트리 테이블은 **루트 2행 seed INSERT** 를 반드시 넣는다
     (`c_id=1 type='root' left=1 right=4`, `c_id=2 type='drive' left=2 right=3`).
+    자식 seed 를 추가할 때는 **부모의 `C_RIGHT` 를 함께 UPDATE** 한다(`V3`·`V4` 참조).
   - 이미 배포된 마이그레이션 파일은 **절대 수정하지 않는다**(체크섬 불일치로 기동 실패).
-- ⚠️ **동적 테이블(`T_ARMS_REQADD_<id>` 등)은 Flyway 가 건드리지 않는다.**
-  `references/dynamic-table-routing.md` §5 참조.
+- **동적 테이블(`T_ARMS_REQADD_<id>` 등)도 Flyway 로 바꾼다** — `information_schema` 커서 프로시저
+  패턴(`V13`·`V15`·`V19`). 평범한 `ALTER TABLE` 로는 닿지 않는다.
+  전체 코드·규칙은 `references/schema-and-mappers.md` §2.
+- 스키마·시드·매퍼의 실제 내용은 전부 `src/main/resources/com/arms/` 에서 확인 가능하다.
+  DB 상태를 추측하기 전에 `references/schema-and-mappers.md` 를 먼저 읽는다.
 
 ---
 
