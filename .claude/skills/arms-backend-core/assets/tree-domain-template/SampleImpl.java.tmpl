@@ -1,0 +1,31 @@
+package com.arms.api.<domain>.service;
+
+import com.arms.api.<domain>.model.SampleEntity;
+import com.arms.egovframework.javaservice.treeframework.service.TreeServiceImpl;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.criterion.Order;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+/**
+ * @Service 에 반드시 빈 이름을 준다 - TreeServiceImpl 자신이 "treeService" 빈이라
+ * 타입 기준 주입이 모호해지기 때문이다. 컨트롤러는 @Qualifier("sample") 로 주입한다.
+ *
+ * 쓰기 메서드는 부모(TreeServiceImpl)에서 이미 SERIALIZABLE 트랜잭션이다.
+ * 여기에 @Transactional 을 추가할 때는 REQUIRED 로 합쳐진다는 점을 감안한다.
+ */
+@Slf4j
+@RequiredArgsConstructor
+@Service("sample")
+public class SampleImpl extends TreeServiceImpl implements Sample {
+
+    @Override
+    public List<SampleEntity> getSampleListByTitle(String title) throws Exception {
+        SampleEntity condition = new SampleEntity();
+        condition.setWhereLike("c_title", title);   // LIKE %title%
+        condition.setOrder(Order.asc("c_position"));
+        return this.getChildNodeWithoutPaging(condition);
+    }
+}

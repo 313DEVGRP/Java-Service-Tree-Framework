@@ -1,0 +1,19 @@
+package com.arms.api.<domain>.service;
+
+import com.arms.api.<domain>.model.SampleEntity;
+import com.arms.egovframework.javaservice.treeframework.service.TreeService;
+
+import java.util.List;
+
+/**
+ * TreeService 를 상속하면 공통 CRUD 13종이 계약에 포함된다.
+ * 여기에는 도메인 고유 메서드만 선언한다.
+ *
+ * 이름 관례: 트리 도메인은 접미사 없음(Sample / SampleImpl),
+ *           비트리 도메인은 Service 접미사(SampleService / SampleServiceImpl).
+ *           같은 패키지의 기존 관례를 따른다.
+ */
+public interface Sample extends TreeService {
+
+    List<SampleEntity> getSampleListByTitle(String title) throws Exception;
+}

@@ -1,0 +1,58 @@
+package com.arms.api.<domain>.model;
+
+import com.arms.egovframework.javaservice.treeframework.model.TreeBaseEntity;
+import com.arms.egovframework.javaservice.treeframework.model.TreeSearchEntity;
+import lombok.*;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.*;
+
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.*;
+import java.io.Serializable;
+
+/**
+ * 접근 타입이 PROPERTY 다 (@Id 가 getter 에 있다).
+ *  - 컬럼명은 프로퍼티 이름에서 유도된다. 필드명을 컬럼명과 반드시 동일하게 짓는다.
+ *  - 영속시키지 않을 파생 값은 getter 에 @Transient + @ApiModelProperty(hidden = true) 를 붙인다.
+ *  - 1:N 연관은 동적 테이블 도메인(reqAdd/reqStatus/wiki)에서는 지원되지 않는다. @Transient 로 두고
+ *    서비스에서 채운다.
+ */
+@Entity
+@Getter
+@Setter
+@Builder
+@Table(name = "T_ARMS_SAMPLE")
+@SelectBeforeUpdate(value = true)
+@DynamicInsert(value = true)
+@DynamicUpdate(value = true)
+@Cache(usage = CacheConcurrencyStrategy.NONE)
+@NoArgsConstructor
+@AllArgsConstructor
+public class SampleEntity extends TreeSearchEntity implements Serializable {
+
+    @Override
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "c_id")
+    public Long getC_id() {
+        return super.getC_id();
+    }
+
+    @Column(name = "c_sample_desc")
+    @Type(type = "text")
+    private String c_sample_desc;
+
+    @Column(name = "c_sample_etc")
+    private String c_sample_etc;
+
+    /** alterNode / copy 경로에서 호출되는 훅. TreeSearchEntity 의 abstract 메서드라 구현 필수. */
+    @Override
+    public <T extends TreeSearchEntity> void setFieldFromNewInstance(T paramInstance) {
+        if (paramInstance instanceof TreeBaseEntity) {
+            if (paramInstance.isCopied()) {
+                this.setC_title("copy_" + this.getC_title());
+            }
+        }
+    }
+}

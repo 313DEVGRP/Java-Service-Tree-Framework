@@ -1,0 +1,64 @@
+/*
+ * @author <작성자>
+ * @since <YYYY-MM-DD>
+ * @version <YY.MM.DD>
+ * @see <pre>
+ *  Copyright (C) 2007 by 313 DEV GRP, Inc - All Rights Reserved
+ *  Unauthorized copying of this file, via any medium is strictly prohibited
+ *  Proprietary and confidential
+ *  Written by 313 developer group <313@313.co.kr>, December 2010
+ * </pre>
+ */
+package com.arms.api.<domain>.controller;
+
+import com.arms.api.<domain>.model.SampleDTO;
+import com.arms.api.<domain>.model.SampleEntity;
+import com.arms.api.<domain>.service.Sample;
+import com.arms.egovframework.javaservice.treeframework.controller.CommonResponse;
+import com.arms.egovframework.javaservice.treeframework.controller.TreeAbstractController;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.criterion.Order;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.annotation.PostConstruct;
+import java.util.List;
+
+/**
+ * 상속 엔드포인트(getNode.do / addNode.do / updateNode.do / removeNode.do / moveNode.do ...)는
+ * TreeAbstractController 가 제공한다. 여기에는 도메인 고유 엔드포인트만 추가한다.
+ *
+ * 경로 prefix 규칙: /arms/**
+ * 권한 prefix(/auth-user, /auth-admin ...)는 Middle-Proxy 게이트웨이가 붙인다 - 여기 쓰지 않는다.
+ */
+@Slf4j
+@Controller
+@RequestMapping(value = {"/arms/sample"})
+public class SampleController extends TreeAbstractController<Sample, SampleDTO, SampleEntity> {
+
+    @Autowired
+    @Qualifier("sample")
+    private Sample sample;
+
+    /** ★ 이 블록이 없으면 상속받은 엔드포인트가 전부 NPE 다. */
+    @PostConstruct
+    public void initialize() {
+        setTreeService(sample);
+        setTreeEntity(SampleEntity.class);
+    }
+
+    /** 도메인 고유 조회 예시 - 신규 엔드포인트는 CommonResponse 로 응답한다. */
+    @ResponseBody
+    @GetMapping("/getSampleList.do")
+    public ResponseEntity<?> getSampleList() throws Exception {
+        SampleEntity condition = new SampleEntity();
+        condition.setOrder(Order.asc("c_position"));
+        List<SampleEntity> list = sample.getNodesWithoutRoot(condition);
+        return ResponseEntity.ok(CommonResponse.success(list));
+    }
+}

@@ -1,0 +1,21 @@
+package com.arms.api.<domain>.model;
+
+import com.arms.egovframework.javaservice.treeframework.model.TreeBaseDTO;
+import lombok.*;
+
+/**
+ * TreeBaseDTO 가 c_id / ref / c_position / c_title / c_type / copy / multiCounter 를 갖는다.
+ * ModelMapper 가 이름이 같은 프로퍼티만 매핑하므로 Entity 와 필드명을 동일하게 맞춘다.
+ */
+@Getter
+@Setter
+@Builder
+@ToString(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
+public class SampleDTO extends TreeBaseDTO {
+
+    private String c_sample_desc;
+
+    private String c_sample_etc;
+}

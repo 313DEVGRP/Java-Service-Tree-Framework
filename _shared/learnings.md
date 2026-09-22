@@ -98,3 +98,10 @@
 **교훈**: Bash 도구의 heredoc 으로 **대용량 다국어(한글) 콘텐츠 파일을 생성하면 `unexpected EOF while looking for matching '` 로 실패**하고 파일이 아예 생성되지 않는다(부분 생성도 아님). 따옴표로 감싼 delimiter 를 써도 재현. → 수십 줄 이상의 구조화된 콘텐츠 파일은 처음부터 Write 도구로 만들 것. heredoc 은 짧은 설정·로그 append 수준으로만 쓴다. 실패를 조용히 넘기지 않으려면 파일 생성 직후 `ls`/`wc -l` 로 존재를 확인하는 습관이 유효하다(이번에도 그 확인으로 미생성을 발견).
 **근거**: 130줄 규모 한글 Python 데이터 파일 생성 시도 2회 실패 → Write 도구로 1회 성공.
 **worker**: orchestrator
+
+## [2026-09-22] [worker-availability-probe]
+**교훈**: 작업 착수 시 **worker 백엔드의 실제 가용성을 `which`/연결 상태로 먼저 실측**하면 라우팅이 추측 없이 결정된다. 이번 세션은 codex MCP 가 `CONNECTION_CLOSED` 였고 `codex`·`agy` CLI 도 미설치여서 codex-main·codex-critic·gemini 가 전부 불가(CLI 폴백까지 불가)였다. 이를 먼저 확인했기 때문에 "brief 를 써 두고 호출에서 실패" 하는 낭비 없이 routing.md '복합 작업 우선순위' 2항(내부 추론 우선)으로 곧장 갔다. → MCP 서버 실패 메시지는 "미설정"이 아니라 "연결 실패"로 읽고, 폴백 CLI 존재까지 함께 확인할 것. 가용성 실측 결과와 그로 인한 라우팅 결정은 `log.md` `[DECISION]` 에 남겨야 나중에 "왜 승인 대상 worker 를 안 썼는지"가 설명된다.
+**교훈 2**: 사용자가 "승인·결정은 묻지 말고 진행"을 지시하면 `orchestrator-rules.md` §3 새 작업 폴더 생성 게이트의 **확인 절차만 면제**되고 연결고리 ①`parent:` ②부모 authoritative 산출물 경로를 자식 `context.md` 필독 입력으로 ③메모리 인덱스 포인터는 면제되지 않는다. 자율 진행일수록 계보를 즉시 채워야 사용자가 우연 발견하지 않는다.
+**교훈 3**: 자율 진행 작업에서는 **검증을 사람 눈이 아니라 재실행 가능한 스크립트로 만들어 두는 편이 남는다**. 이번엔 브라우저·백엔드 없이 돌아가는 정적 검증 15항목(`artifacts/verify_page.js`)을 만들었고, 그 중 1항목이 죽은 CSS 클래스 훅 2개를 실제로 잡아냈다. 검증 스크립트는 산출물과 함께 `artifacts/` 에 남겨 재실행 경로를 보존한다.
+**근거**: `which codex agy` 둘 다 not found, MCP 목록에 `codex (CONNECTION_CLOSED)`. 정적 검증 최초 실행 14/15 → 수정 후 15/15.
+**worker**: orchestrator 단독(worker 호출 0건)

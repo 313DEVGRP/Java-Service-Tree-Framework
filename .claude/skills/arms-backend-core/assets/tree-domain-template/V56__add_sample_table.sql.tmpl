@@ -1,0 +1,67 @@
+-- 새 트리 테이블 = 본 테이블 + _LOG 테이블 + 루트 2행 seed + 트리거 3종
+-- 파일 위치: src/main/resources/com/arms/db/V<다음번호>__add_sample_table.sql
+-- (현재 최신은 V55. V33~V36, V41 은 결번이다 — 다음 번호는 V56)
+
+CREATE TABLE IF NOT EXISTS T_ARMS_SAMPLE (
+    `c_id`          bigint(20) AUTO_INCREMENT primary key COMMENT '노드 아이디',
+    `c_parentid`    bigint(20) NOT NULL COMMENT '부모 노드 아이디',
+    `c_position`    bigint(20) NOT NULL COMMENT '노드 포지션',
+    `c_left`        bigint(20) NOT NULL COMMENT '노드 좌측 끝 포인트',
+    `c_right`       bigint(20) NOT NULL COMMENT '노드 우측 끝 포인트',
+    `c_level`       bigint(20) NOT NULL COMMENT '노드 DEPTH',
+    `c_title`       VARCHAR(255) COMMENT '노드 명',
+    `c_type`        VARCHAR(255) COMMENT '노드 타입',
+
+    `c_sample_desc` text NULL COMMENT '설명',
+    `c_sample_etc`  varchar(255) NULL COMMENT '비고'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='샘플 테이블';
+
+CREATE TABLE IF NOT EXISTS T_ARMS_SAMPLE_LOG (
+    `c_id`          bigint(20) NOT NULL COMMENT '노드 아이디',
+    `c_parentid`    bigint(20) NOT NULL COMMENT '부모 노드 아이디',
+    `c_position`    bigint(20) NOT NULL COMMENT '노드 포지션',
+    `c_left`        bigint(20) NOT NULL COMMENT '노드 좌측 끝 포인트',
+    `c_right`       bigint(20) NOT NULL COMMENT '노드 우측 끝 포인트',
+    `c_level`       bigint(20) NOT NULL COMMENT '노드 DEPTH',
+    `c_title`       VARCHAR(255) COMMENT '노드 명',
+    `c_type`        VARCHAR(255) COMMENT '노드 타입',
+
+    `c_method`      text NULL COMMENT '노드 변경 행위',
+    `c_state`       text NULL COMMENT '노드 상태값 ( 이전인지. 이후인지)',
+    `c_date`        DATETIME NULL COMMENT '노드 변경 시',
+
+    `c_sample_desc` text NULL,
+    `c_sample_etc`  varchar(255) NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='샘플 테이블 로그';
+
+-- 루트 2행 seed (TreeConstant.ROOT_CID=1 / First_Node_CID=2). 이게 없으면 addNode 가 동작하지 않는다.
+INSERT INTO T_ARMS_SAMPLE (C_ID, C_PARENTID, C_POSITION, C_LEFT, C_RIGHT, C_LEVEL, C_TITLE, C_TYPE)
+VALUES (1, 0, 0, 1, 4, 0, 'SAMPLE Table', 'root');
+INSERT INTO T_ARMS_SAMPLE (C_ID, C_PARENTID, C_POSITION, C_LEFT, C_RIGHT, C_LEVEL, C_TITLE, C_TYPE)
+VALUES (2, 1, 0, 2, 3, 1, '샘플', 'drive');
+
+-- 트리거 3종 : 트리 공통 컬럼만 _LOG 에 복사한다 (도메인 컬럼은 남기지 않는 것이 이 저장소의 관례)
+-- 참고: 기존 DynamicDBMakerDao.xml 의 INSERT 트리거는 c_method 를 'update' 로 기록하는 오기가 있다.
+--       새 테이블이라 호환 문제가 없으므로 아래는 'insert' 로 바로잡아 두었다.
+DROP TRIGGER IF EXISTS TG_INSERT_T_ARMS_SAMPLE;
+CREATE TRIGGER TG_INSERT_T_ARMS_SAMPLE BEFORE INSERT ON T_ARMS_SAMPLE FOR EACH ROW
+BEGIN
+    INSERT INTO T_ARMS_SAMPLE_LOG (C_ID,C_PARENTID,C_POSITION,C_LEFT,C_RIGHT,C_LEVEL,C_TITLE,C_TYPE,C_METHOD,C_STATE,C_DATE)
+    VALUES (NEW.C_ID,NEW.C_PARENTID,NEW.C_POSITION,NEW.C_LEFT,NEW.C_RIGHT,NEW.C_LEVEL,NEW.C_TITLE,NEW.C_TYPE,'insert','추가된데이터',now());
+END;
+
+DROP TRIGGER IF EXISTS TG_UPDATE_T_ARMS_SAMPLE;
+CREATE TRIGGER TG_UPDATE_T_ARMS_SAMPLE BEFORE UPDATE ON T_ARMS_SAMPLE FOR EACH ROW
+BEGIN
+    INSERT INTO T_ARMS_SAMPLE_LOG (C_ID,C_PARENTID,C_POSITION,C_LEFT,C_RIGHT,C_LEVEL,C_TITLE,C_TYPE,C_METHOD,C_STATE,C_DATE)
+    VALUES (OLD.C_ID,OLD.C_PARENTID,OLD.C_POSITION,OLD.C_LEFT,OLD.C_RIGHT,OLD.C_LEVEL,OLD.C_TITLE,OLD.C_TYPE,'update','변경이전데이터',now());
+    INSERT INTO T_ARMS_SAMPLE_LOG (C_ID,C_PARENTID,C_POSITION,C_LEFT,C_RIGHT,C_LEVEL,C_TITLE,C_TYPE,C_METHOD,C_STATE,C_DATE)
+    VALUES (NEW.C_ID,NEW.C_PARENTID,NEW.C_POSITION,NEW.C_LEFT,NEW.C_RIGHT,NEW.C_LEVEL,NEW.C_TITLE,NEW.C_TYPE,'update','변경이후데이터',now());
+END;
+
+DROP TRIGGER IF EXISTS TG_DELETE_T_ARMS_SAMPLE;
+CREATE TRIGGER TG_DELETE_T_ARMS_SAMPLE BEFORE DELETE ON T_ARMS_SAMPLE FOR EACH ROW
+BEGIN
+    INSERT INTO T_ARMS_SAMPLE_LOG (C_ID,C_PARENTID,C_POSITION,C_LEFT,C_RIGHT,C_LEVEL,C_TITLE,C_TYPE,C_METHOD,C_STATE,C_DATE)
+    VALUES (OLD.C_ID,OLD.C_PARENTID,OLD.C_POSITION,OLD.C_LEFT,OLD.C_RIGHT,OLD.C_LEVEL,OLD.C_TITLE,OLD.C_TYPE,'delete','삭제된데이터',now());
+END;

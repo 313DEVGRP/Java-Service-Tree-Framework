@@ -28,8 +28,9 @@
 | 파일 | name | 도메인 |
 |------|------|--------|
 | `frontend-expert.md` | `frontend-expert` | vanilla JS · jQuery · Bootstrap 기반 서버렌더링 프론트엔드 |
-| `backend-expert.md` | `backend-expert` | Backend-Core(A-RMS API 서버: Spring Boot 2.6 · TreeFramework · Feign · Kafka · POI)와 Auto-Code 생성기(Telosys Velocity 템플릿) |
+| `backend-expert.md` | `backend-expert` | Backend-Core(A-RMS API 서버: Java 11 · Spring Boot 2.6 · TreeFramework nested-set · 제품별 동적 테이블 라우팅 · Feign(Engine-Fire) · Kafka · POI) — 상세 규약은 `arms-backend-core` 스킬 |
 | `database-expert.md` | `database-expert` | A-RMS(MySQL 8) 스키마 — Flyway 마이그레이션 · nested-set 루트 seed · `_LOG` 짝 테이블/트리거 · 제품별 동적 테이블 · 엔티티↔DDL 정합성 |
+| `middleproxy-expert.md` | `middleproxy-expert` | Middle-Proxy(A-RMS API 게이트웨이: Spring Cloud Gateway/WebFlux · Keycloak OIDC · Redis 세션·도메인 저장 · Kafka REQADD 프로듀서 · Feign) |
 
 **이 계층에 에이전트를 추가하려면** 이 표에 한 줄 추가하고 `.claude/agents/<name>.md` 를 둔다.
 정본 5개(Worker Pool 문서)는 건드리지 않는다.
