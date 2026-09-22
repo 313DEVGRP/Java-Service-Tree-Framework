@@ -1,0 +1,67 @@
+﻿FeignClient,name,호출자 파일,호출 메서드 수,호출 메서드
+AggregationService,engine-dashboard,com/arms/api/analysis/cost/service/CostServiceImpl.java,5,aggregationByAssigneeAccountId aggregationByReqLinkAndAssigneeAccountId calculateWorkdayByAccountId getAssigneeList getAssigneeListByProductVersionAndRequirement
+AggregationService,engine-dashboard,com/arms/api/analysis/resource/service/ResourceServiceImpl.java,11,findAssigneeRequirementInvolvementData findAssigneesInfo findHorizontalBarChartData findHorizontalBarChartDataBySameAccounts findPieChartData findPieChartDataExpand findTreeMapChartDataV3 findVersionAssigneeSummaryData issueStatusDataByAssignee issueStatusStackedBarChartData wordCloudData
+AggregationService,engine-dashboard,com/arms/api/analysis/scope/service/ScopeServiceImpl.java,7,getCircularPackingChartData getDataTableIssues getIssueList getNetworkChartExcelData getPdServiceVersionsAndReq getVersionsAndIssueList treeBarData
+AggregationService,engine-dashboard,com/arms/api/analysis/time/service/TimeServiceImpl.java,3,getMultiCombinationChartData getRidgeLineData getUpdatedIssueByDateRange
+AggregationService,engine-dashboard,com/arms/api/analysis/topmenu/service/TopMenuServiceImpl.java,2,issueStatusDataByAssignee topMenuTotalCountWithReqAndSubtask
+AggregationService,engine-dashboard,com/arms/api/dashboard/service/DashboardServiceImpl.java,3,aggregateWeeklyReqIssueStatus topNAssigneeReqLinks topNReqAssignee
+AggregationService,engine-dashboard,com/arms/api/report/ptr/service/PortfolioTrackRecordServiceImpl.java,1,findAssigneesInfo
+AggregationService,engine-dashboard,com/arms/api/report/weekly/service/WeeklyReportServiceImpl.java,2,getWeeklyBusinessReportData issueStatusDataByAssignee
+AggregationService,engine-dashboard,com/arms/api/requirement/calculation/service/RequirementCalculationServiceImpl.java,1,제품서비스_일반_버전_해결책유무_통계_V2
+AggregationService,engine-dashboard,com/arms/api/requirement/reqadd_state_pure/service/ReqAddStatePureImpl.java,1,제품서비스_일반_버전_해결책유무_통계_V2
+AiService,ai-client,com/arms/api/report/performance/service/PerformanceReportServiceImpl.java,3,getAIAnalysis getAIAnalysisScript getAIChatResponse
+EngineService,engine,com/arms/api/analysis/cost/service/CostServiceImpl.java,1,calculationCost
+EngineService,engine,com/arms/api/analysis/time/service/TimeServiceImpl.java,2,getHeatMapDataByUpdated getScatterData
+EngineService,engine,com/arms/api/backoffice/config/esindex/service/EsIndexConfigServiceImpl.java,2,esIndexSumList indexJobHistories
+EngineService,engine,com/arms/api/blog/service/BlogServiceImpl.java,6,addBlog deleteBlog getBlog getBlogListBySearchAfter getBlogListByViewCountDesc updateBlog
+EngineService,engine,com/arms/api/detail_dashboard/service/DetailDashboardServiceImpl.java,4,detailDashboardContribution detailDashboardQuality detailDashboardRequirementOverview detailDashboardTimeCompliance
+EngineService,engine,com/arms/api/jira/jiraserver/service/JiraServerImpl.java,8,ALM_이슈_상태_가져오기 ALM_이슈_우선순위_가져오기 ALM_이슈_유형_가져오기 ALM_이슈_해결책_가져오기 ALM_프로젝트_목록_가져오기 registerOrUpdateAlmServerInfo 클라우드_프로젝트별_이슈_상태_목록 클라우드_프로젝트별_이슈_유형_목록
+EngineService,engine,com/arms/api/jira/jiraserver_project_pure/service/JiraServerProjectPureImpl.java,1,serverInfoListByConnectIds
+EngineService,engine,com/arms/api/jira/jiraserver_pure/service/JiraServerPureImpl.java,3,verifyAccount verifyAtlassianAdminAccount 서버_연결아이디_유형정보_맵_조회
+EngineService,engine,com/arms/api/newsletter/service/NewsletterImpl.java,4,addNewsletter deleteNewsletter getNewsletter updateNewsletter
+EngineService,engine,com/arms/api/poc/service/PocServiceImpl.java,5,createPoc deletePoc getPoc getPocList updatePoc
+EngineService,engine,com/arms/api/pocreq/service/PocReqRegisterServiceImpl.java,1,fetchIssuePage
+EngineService,engine,com/arms/api/report/fulldata/service/FullDataServiceImpl.java,2,getAssigneeList retrieveFullDataIssueListV2
+EngineService,engine,com/arms/api/report/mail/service/mailreport/MailReportServiceImpl.java,2,getAssigneeAggregationList getReqIssueList
+EngineService,engine,com/arms/api/report/performance/service/PerformanceReportServiceImpl.java,2,performanceData scheduleCompliance
+EngineService,engine,com/arms/api/report/ptr/service/PortfolioTrackRecordServiceImpl.java,4,issueListByPd portfolioTrackRecord 버전별_개발_진척현황 버전별_개발_진척현황_상세
+EngineService,engine,com/arms/api/report/reqtrace/service/ReqTraceImpl.java,1,issueListByPd
+EngineService,engine,com/arms/api/requirement/calculation/service/RequirementCalculationServiceImpl.java,1,제품_요구사항_담당자
+EngineService,engine,com/arms/api/requirement/reqadd/service/ReqAddImpl.java,1,제품_요구사항_담당자
+EngineService,engine,com/arms/api/requirement/reqstatus/controller/ReqStatusController.java,7,getDeletedIssueList issueListByOverallUpdatedDate issueListByUpdated2ndTab 요구사항_묶음_조회 이슈삭제_철회 제품서비스별_담당자_연관된_요구사항_통계 제품서비스별_담당자_요구사항_통계
+EngineService,engine,com/arms/api/requirement/reqstatus/service/ReqStatusImpl.java,7,issueListByUpdated reqStatusDashboardAggregationData subtasksAndLinkedIssues 이슈_삭제하기 이슈_상태_변경하기 이슈_생성하기 이슈_수정하기
+EngineService,engine,com/arms/api/requirement/reqstatus_calendar/service/ReqStatusCalendarServiceImpl.java,1,이슈목록_가져오기_calendar
+EngineService,engine,com/arms/api/util/dynamicscheduler/service/ReqStatusSyncServiceImpl.java,2,saveRequirementIssueKeyOnlyFirst 이슈_수정하기
+EngineService,engine,com/arms/api/util/dynamicscheduler/service/SchedulerServiceImpl.java,4,saveRequirementIssueKeyOnlyFirst syncAtlassianDirectoryUsers 요구사항이슈_조회 증분이슈수집
+EngineService,engine,com/arms/api/wiki/controller/WikiController.java,6,changeRecent createWiki deleteWiki getWiki getWikiVersions updateWiki
+GlobalConfigService,global-config,com/arms/api/backoffice/system/systeminfo/controller/SystemInfoController.java,1,getSystemInfo
+InternalService,loopback,com/arms/api/analysis/cost/service/CostServiceImpl.java,1,제품별_요구사항_상황_조회
+InternalService,loopback,com/arms/api/analysis/scope/service/ScopeServiceImpl.java,1,reqAddList
+InternalService,loopback,com/arms/api/report/collaboratekpi/service/WeeklyKpiReportServiceImpl.java,1,getGroupMembers
+InternalService,loopback,com/arms/api/report/fulldata/service/FullDataServiceImpl.java,1,getPdServiceAndVersionByCid
+InternalService,loopback,com/arms/api/report/mail/service/mailreport/MailReportServiceImpl.java,1,getPdServiceEntityAndVersionList
+InternalService,loopback,com/arms/api/report/weekly/service/WeeklyReportServiceImpl.java,5,createWeeklyReport getGroupEntity getGroupMembers getPdServiceAndVersionByCid reportReqStatus
+InternalService,loopback,com/arms/api/requirement/reqadd/controller/ReqAddController.java,1,요구사항조회
+InternalService,loopback,com/arms/api/requirement/reqadd/kafka/service/ReqAddConsumerService.java,9,addNodeAndThenSkipToCreateAlmIssueFromKafka createFromKafka deleteFromKafka moveFromKafka updateAllReqAddStateFromKafka updateDataBaseFromKafka updateDateFromKafka updateFromKafka updateReqAddTitleFromKafka
+InternalService,loopback,com/arms/api/requirement/reqadd/service/ReqAddCreateService.java,1,요구사항_상태_확인후_ALM처리_및_REQSTATUS_업데이트
+InternalService,loopback,com/arms/api/requirement/reqadd/service/ReqAddImpl.java,3,REQSTATUS_CID_요구사항_이슈_조회 요구사항_상태_확인후_ALM처리_및_REQSTATUS_업데이트 요구사항_상황_수정하기
+InternalService,loopback,com/arms/api/requirement/reqadd/service/ReqAddToReqAddStatusService.java,2,요구사항_상태_정보_저장하기 요구사항_상황_수정하기
+InternalService,loopback,com/arms/api/requirement/reqstatus/service/ALMStatusValidator.java,1,REQSTATUS_CID_요구사항_이슈_조회
+InternalService,loopback,com/arms/api/requirement/reqstatus/service/ReqStatusImpl.java,2,REQSTATUS_CID_요구사항_이슈_조회 요구사항_상황_수정하기
+InternalService,loopback,com/arms/api/requirement/reqstatus_calendar/service/ReqStatusCalendarServiceImpl.java,1,getPdServiceEntityAndVersionList
+InternalService,loopback,com/arms/api/util/dynamicscheduler/service/ReqStatusSyncServiceImpl.java,3,REQSTATUS_CID_요구사항_이슈_조회 getStatusNode 요구사항_상황_수정하기
+InternalService,loopback,com/arms/api/util/dynamicscheduler/service/SchedulerServiceImpl.java,2,요구사항_상황_수정하기 제품별_요구사항_상황_조회
+MiddleProxyService,middle-proxy,com/arms/api/jira/jiraserver/service/JiraServerImpl.java,1,setAlmIssueStatusDTO
+MiddleProxyService,middle-proxy,com/arms/api/pocreq/service/PocReqRegisterServiceImpl.java,2,getPocReqRegister savePocReqRegister
+MiddleProxyService,middle-proxy,com/arms/api/requirement/reqadd/controller/ReqAddController.java,2,tryLockReqDefUpload tryLockWbsUpload
+MiddleProxyService,middle-proxy,com/arms/api/requirement/reqadd/kafka/callback/PocReqCallbackHandler.java,1,markPocReqComplete
+MiddleProxyService,middle-proxy,com/arms/api/requirement/reqadd/kafka/callback/ReqDefCallbackHandler.java,1,publishKafkaFromReqDefParentNode
+MiddleProxyService,middle-proxy,com/arms/api/requirement/reqadd/kafka/callback/WbsCallbackHandler.java,1,publishKafKaFromParentNode
+MiddleProxyService,middle-proxy,com/arms/api/requirement/reqadd/kafka/service/ReqDefFailureNotifier.java,1,publishKafkaFromReqDefParentNode
+MiddleProxyService,middle-proxy,com/arms/api/requirement/reqadd/kafka/service/WbsFailureNotifier.java,1,publishKafKaFromParentNode
+MiddleProxyService,middle-proxy,com/arms/api/requirement/reqadd/service/ReqAddCreateService.java,1,markPocReqFailed
+MiddleProxyService,middle-proxy,com/arms/api/requirement/reqadd/service/ReqAddImpl.java,11,findByServiceId findReqDefByServiceId getReqDefUploadPath getUploadPath releaseReqDefUpload releaseWbsUpload saveAllThenGetWbsRowVOS saveReqDefUpload saveReqDefUploadPath saveUploadPath updateAllReqAddState
+MiddleProxyService,middle-proxy,com/arms/api/requirement/reqstate/service/ReqStateImpl.java,1,setArmsState
+MiddleProxyService,middle-proxy,com/arms/api/requirement/reqstate_category/service/ReqStateCategoryImpl.java,1,setArmsStateCategory
+MiddleProxyService,middle-proxy,com/arms/api/util/dynamicscheduler/service/ReqStatusSyncServiceImpl.java,1,updateReqAddTitle
+TemplateInternalService,template-loopback,com/arms/api/report/export_service/service/TemplateBindService.java,1,getTemplateStream

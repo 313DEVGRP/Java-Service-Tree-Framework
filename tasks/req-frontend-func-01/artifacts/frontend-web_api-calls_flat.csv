@@ -1,0 +1,541 @@
+﻿menuname,page,menusource,area,provider,jsfile,line,httpMethod,apiurl,callPattern,note
+문서 관리,adms,네비게이션,arms,일반 호출,arms/js/adms.js,188,GET,/auth-user/api/arms/wiki/{wikiId}/{version}/getWiki.do,$.ajax,
+문서 관리,adms,네비게이션,arms,일반 호출,arms/js/adms.js,209,GET,/auth-user/api/arms/wiki/{getWikiId}/getWiki.do,$.ajax,
+문서 관리,adms,네비게이션,arms,일반 호출,arms/js/adms.js,226,PUT,/auth-user/api/arms/wiki/changeRecent.do,$.ajax,
+문서 관리,adms,네비게이션,arms,일반 호출,arms/js/adms.js,298,GET,/auth-user/api/arms/pdService/getVersionList?c_id={selected_pdService},$.ajax,
+문서 관리,adms,네비게이션,arms,일반 호출,arms/js/adms.js,334,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+문서 관리,adms,네비게이션,arms,일반 호출,arms/js/adms/editor-operation.js,66,GET,/auth-user/api/arms/wiki/{id}/getWiki.do,$.ajax,
+문서 관리,adms,네비게이션,arms,일반 호출,arms/js/adms/editor-operation.js,121,POST,/auth-user/api/arms/wiki/imageUpload.do,$.ajax,
+문서 관리,adms,네비게이션,arms,일반 호출,arms/js/adms/editor-operation.js,136,GET,UNRESOLVED:imgSrc.data,$.ajax,draw.io 이미지의 src(data/blob URL) 재요청 — REST 엔드포인트 아님
+문서 관리,adms,네비게이션,arms,상속(TreeAbstractController),arms/js/adms/requirement-popup.js,177,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/addNode.do,$.ajax,
+문서 관리,adms,네비게이션,arms,일반 호출,arms/js/adms/requirement-popup.js,329,GET,/auth-user/search-user/{term},select2(ajax),
+문서 관리,adms,네비게이션,arms,일반 호출,arms/js/adms/session-manager.js,72,POST,/auth-user/hub/api/sessions/create,$.ajax,
+문서 관리,adms,네비게이션,arms,일반 호출,arms/js/adms/session-manager.js,81,POST,/auth-user/hub/api/sessions/{_sessionId}/set-document,$.ajax,
+문서 관리,adms,네비게이션,arms,일반 호출,arms/js/adms/vesion-control.js,74,GET,/auth-user/api/arms/wiki/{getWikiId}/getWikiVersions.do,table(ajax),
+문서 관리,adms,네비게이션,arms,상속(TreeAbstractController),arms/js/adms/wiki-list.js,108,GET,/auth-user/api/arms/wiki/T_ARMS_WIKI_{selected_pdService}/getChildNode.do,jstree(json_data.ajax),
+문서 관리,adms,네비게이션,arms,상속(TreeAbstractController),arms/js/adms/wiki-list.js,121,GET,/auth-user/api/arms/wiki/T_ARMS_WIKI_{selected_pdService}/searchNode.do,jstree(search.ajax),
+문서 관리,adms,네비게이션,arms,일반 호출,arms/js/adms/wiki-list.js,186,GET,/auth-user/api/arms/wiki/{getWikiId}/getWiki.do,$.ajax,
+문서 관리,adms,네비게이션,arms,상속(TreeAbstractController),arms/js/adms/wiki-list.js,210,POST,/auth-user/api/arms/wiki/T_ARMS_WIKI_{selected_pdService}/addNode.do,$.ajax,
+문서 관리,adms,네비게이션,arms,상속(TreeAbstractController),arms/js/adms/wiki-list.js,229,DELETE,/auth-user/api/arms/wiki/T_ARMS_WIKI_{selected_pdService}/removeNode.do,$.ajax,
+문서 관리,adms,네비게이션,arms,상속(TreeAbstractController),arms/js/adms/wiki-list.js,244,POST,/auth-user/api/arms/wiki/T_ARMS_WIKI_{selected_pdService}/moveNode.do,$.ajax,
+문서 관리,adms,네비게이션,arms,상속(TreeAbstractController),arms/js/adms/wiki-list.js,259,PUT,/auth-user/api/arms/wiki/T_ARMS_WIKI_{selected_pdService}/alterNode.do,$.ajax,
+문서 관리,adms,네비게이션,arms,상속(TreeAbstractController),arms/js/adms/wiki-list.js,299,GET,/auth-user/api/arms/wiki/T_ARMS_WIKI_{selected_pdService}/getNode.do,$.ajax,
+문서 관리,adms,네비게이션,arms,일반 호출,arms/js/adms/wiki-lock.js,176,PUT,/auth-user/api/arms/wiki/updateWiki.do,$.ajax,
+문서 관리,adms,네비게이션,arms,일반 호출,arms/js/adms/wiki-lock.js,416,GET,/auth-user/api/arms/wiki/{documentId}/getWiki.do,$.ajax,
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,269,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,337,GET,/auth-user/api/arms/pdService/versions-with-date?c_id={requestedId},$.ajax,
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,409,POST,/auth-user/api/aichat/last-selection,$.ajax,
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,421,DELETE,/auth-user/api/aichat/last-selection,$.ajax,
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,428,PATCH,/auth-user/api/aichat/rooms/{roomId},$.ajax,
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,452,GET,/auth-user/ai/chat/stop-stream?sessionId={currentStreamId},fetch,
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,794,POST,/auth-user/api/aichat/rooms,$.ajax,
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,891,POST,/auth-user/ai/chat/stream,fetch via handleStreamResponse(arg0),aiChat.js:551 handleStreamResponse 경유
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,964,POST,/auth-user/api/aichat/rooms/{roomId}/messages,$.ajax,
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,985,GET,/auth-user/api/aichat/rooms,$.ajax,
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,1054,GET,/auth-user/api/aichat/rooms/{roomId}/messages,$.ajax,
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,1185,DELETE,/auth-user/api/aichat/rooms/{roomId},$.ajax,
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,1267,GET,/auth-user/api/aichat/cards/context,$.ajax,
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,1332,POST,/auth-user/ai/chat/context,$.ajax,
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,1400,GET,/auth-user/api/aichat/rooms/{roomId}/rag-docs,$.ajax,
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,1436,POST,/auth-user/api/aichat/rooms/{roomId}/rag-docs,$.ajax,
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,1643,POST,/auth-user/ai/chat/stream,fetch via handleStreamResponse(arg0),aiChat.js:551 handleStreamResponse 경유
+인공 지능 Beta,aiChat,네비게이션,arms,일반 호출,arms/js/aiChat.js,1663,PUT,/auth-user/api/aichat/rooms/{capturedRoomId}/messages/last-assistant,$.ajax,
+ARMS AI,aiSupport,네비게이션,arms,일반 호출,arms/js/aiSupport.js,327,GET,/auth-user/ai/chat/status,$.ajax,
+ARMS AI,aiSupport,네비게이션,arms,일반 호출,arms/js/aiSupport.js,356,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+ARMS AI,aiSupport,네비게이션,arms,일반 호출,arms/js/aiSupport.js,376,GET,/auth-user/api/arms/pdService/versions-with-date?c_id={pdServiceId},$.ajax,
+ARMS AI,aiSupport,네비게이션,arms,일반 호출,arms/js/aiSupport.js,780,POST,/auth-user/ai/support/stream,fetch,
+ARMS AI,aiSupport,네비게이션,arms,일반 호출,arms/js/aiSupport.js,871,GET,/auth-user/ai/support/stop-stream?sessionId={asCurrentStreamId},fetch,
+ARMS AI,aiSupport,네비게이션,arms,일반 호출,arms/js/aiSupport.js,1158,GET,/auth-user/api/arms/report/full-data/assignee-list?pdServiceId={asSelectedPdServiceId},fetchCached(url),
+공통 모듈,analysis,공통,arms,일반 호출,arms/js/analysis/api/resourceApi.js,88,GET,/auth-admin/api/arms/analysis/resource/issue-status-by-assignee,$.ajax,
+공통 모듈,analysis,공통,arms,일반 호출,arms/js/analysis/api/resourceApi.js,119,GET,/auth-admin/api/arms/analysis/resource/assignees-info,$.ajax,
+공통 모듈,analysis,공통,arms,일반 호출,arms/js/analysis/topmenu/topMenuApi.js,26,GET,/auth-user/api/arms/analysis/top-menu/version/period,ajaxPromise(url),
+비용 분석 - Cost,analysisCost,네비게이션,arms,일반 호출,arms/js/analysisCost.js,135,GET,/auth-user/api/arms/pdServicePure,$.ajax,
+비용 분석 - Cost,analysisCost,네비게이션,arms,일반 호출,arms/js/analysisCost.js,216,POST,/auth-admin/api/arms/analysis/cost/product-accumulate-cost-by-month,$.ajax,
+비용 분석 - Cost,analysisCost,네비게이션,arms,일반 호출,arms/js/analysisCost.js,401,GET,/auth-user/api/arms/pdServiceVersion/pure?c_id={selected_pdService},$.ajax,
+비용 분석 - Cost,analysisCost,네비게이션,arms,일반 호출,arms/js/analysisCost.js,451,POST,/auth-admin/api/arms/analysis/cost/version-req-assignees,$.ajax,
+비용 분석 - Cost,analysisCost,네비게이션,arms,일반 호출,arms/js/analysisCost.js,574,GET,/auth-admin/api/arms/salaries/excel-upload.do,fileupload(url),
+비용 분석 - Cost,analysisCost,네비게이션,arms,일반 호출,arms/js/analysisCost.js,636,POST,/auth-admin/api/arms/salaries/excel-download.do?excelFileName=인력별_연봉정보_템플릿.xlsx,$.ajax,
+비용 분석 - Cost,analysisCost,네비게이션,arms,일반 호출,arms/js/analysisCost.js,695,POST,/auth-admin/api/arms/analysis/cost/calculation,$.ajax,
+비용 분석 - Cost,analysisCost,네비게이션,arms,일반 호출,arms/js/analysisCost.js,1396,PUT,/auth-admin/api/arms/salaries,$.ajax,
+자원 분석 - Resource,analysisResource,네비게이션,arms,일반 호출,arms/js/analysisResource.js,238,GET,/auth-admin/api/arms/analysis/resource/issue-status-stacked-bar,$.ajax,
+자원 분석 - Resource,analysisResource,네비게이션,arms,일반 호출,arms/js/analysisResource.js,268,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+자원 분석 - Resource,analysisResource,네비게이션,arms,일반 호출,arms/js/analysisResource.js,361,GET,/auth-user/api/arms/pdService/getVersionList?c_id={selected_pdService},$.ajax,
+자원 분석 - Resource,analysisResource,네비게이션,arms,일반 호출,arms/js/analysisResource.js,412,GET,/auth-admin/api/arms/analysis/resource/word-cloud-data,$.ajax,
+자원 분석 - Resource,analysisResource,네비게이션,arms,일반 호출,arms/js/analysisResource.js,450,GET,/auth-admin/api/arms/analysis/resource/top-contributors/pie,$.ajax,
+자원 분석 - Resource,analysisResource,네비게이션,arms,일반 호출,arms/js/analysisResource.js,610,POST,/auth-admin/api/arms/analysis/resource/top-contributors/horizontal-bar-at-once,$.ajax,
+자원 분석 - Resource,analysisResource,네비게이션,arms,일반 호출,arms/js/analysisResource.js,752,POST,/auth-admin/api/arms/analysis/resource/top-contributors/horizontal-bar,$.ajax,
+자원 분석 - Resource,analysisResource,네비게이션,arms,일반 호출,arms/js/analysisResource.js,890,GET,/auth-admin/api/arms/analysis/resource/assignees-requirements-involvements-v3,$.ajax,
+범위 분석 - Scope,analysisScope,네비게이션,arms,일반 호출,arms/js/analysisScope.js,164,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+범위 분석 - Scope,analysisScope,네비게이션,arms,일반 호출,arms/js/analysisScope.js,264,GET,/auth-user/api/arms/pdService/getVersionList?c_id={selected_pdService},$.ajax,
+범위 분석 - Scope,analysisScope,네비게이션,arms,일반 호출,arms/js/analysisScope.js,332,POST,/auth-admin/api/arms/analysis/scope/T_ARMS_REQADD_{pdServiceLink}/issue-network,$.ajax,
+범위 분석 - Scope,analysisScope,네비게이션,arms,일반 호출,arms/js/analysisScope.js,663,POST,/auth-admin/api/arms/analysis/scope/getCircularPackingChartData/T_ARMS_REQADD_{pdServiceLink}/getReqAddListByFilter,$.ajax,
+범위 분석 - Scope,analysisScope,네비게이션,arms,상속(TreeAbstractController),arms/js/analysisScope.js,801,GET,/auth-user/api/arms/reqState/getNodesWithoutRoot.do,$.ajax,
+범위 분석 - Scope,analysisScope,네비게이션,arms,일반 호출,arms/js/analysisScope.js,826,POST,/auth-admin/api/arms/analysis/scope/req-per-version/T_ARMS_REQADD_{pdServiceLink}/getReqAddListByFilter,$.ajax,원문 말미 ? 제거(경로 정규화)
+범위 분석 - Scope,analysisScope,네비게이션,arms,일반 호출,arms/js/analysisScope.js,954,POST,/auth-admin/api/arms/analysis/scope/tree-bar-data,$.ajax,
+범위 분석 - Scope,analysisScope,네비게이션,arms,일반 호출,arms/js/analysisScope.js,1304,GET,/auth-admin/api/arms/analysis/scope,(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+일정 분석 - Time,analysisTime,네비게이션,arms,일반 호출,arms/js/analysisTime.js,131,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+일정 분석 - Time,analysisTime,네비게이션,arms,일반 호출,arms/js/analysisTime.js,177,GET,/auth-user/api/arms/pdService/getVersionList?c_id={selected_pdService},$.ajax,
+일정 분석 - Time,analysisTime,네비게이션,arms,일반 호출,arms/js/analysisTime.js,425,GET,/auth-user/api/arms/pdService/versions-with-date?c_id={pdserviceId},$.ajax,
+일정 분석 - Time,analysisTime,네비게이션,arms,일반 호출,arms/js/analysisTime.js,768,POST,/auth-admin/api/arms/analysis/time/scatter-data,$.ajax,
+일정 분석 - Time,analysisTime,네비게이션,arms,일반 호출,arms/js/analysisTime.js,965,POST,/auth-admin/api/arms/analysis/time/heatmap-data,$.ajax,
+일정 분석 - Time,analysisTime,네비게이션,arms,일반 호출,arms/js/analysisTime.js,1037,POST,/auth-admin/api/arms/analysis/time/updated-issue/multi-combination-data,$.ajax,
+일정 분석 - Time,analysisTime,네비게이션,arms,일반 호출,arms/js/analysisTime.js,1756,POST,/auth-admin/api/arms/analysis/time/updated-timeline,$.ajax,
+일정 분석 - Time,analysisTime,네비게이션,arms,일반 호출,arms/js/analysisTime.js,1787,POST,/auth-admin/api/arms/analysis/time/updated-ridgeline,$.ajax,
+공통 모듈,common,공통,arms,일반 호출,arms/js/common.js,130,GET,./help/full-page/{locale}/{help}.json,$.getJSON,
+공통 모듈,common,공통,arms,일반 호출,arms/js/common.js,343,GET,./help/page-section/{locale}/{help}.json,$.getJSON,
+공통 모듈,common,공통,arms,일반 호출,arms/js/common.js,550,POST,/logout,$.ajax,
+공통 모듈,common,공통,arms,일반 호출,arms/js/common.js,619,GET,UNRESOLVED:loadPlugin(url),$.ajax,"dataType:script 정적 플러그인 로더 — 인자는 reference/ 하위 js·css 경로, REST 아님"
+공통 모듈,common,공통,arms,일반 호출,arms/js/common.js,964,GET,/auth-user/me,$.ajax,
+공통 모듈,common,공통,arms,일반 호출,arms/js/common.js,1013,GET,/auth-user/search-user/{userName},$.ajax,
+공통 모듈,common,공통,arms,일반 호출,arms/js/common.js,1068,GET,UNRESOLVED:ajaxGet(url),$.ajax,getJsonForPrototype 전용 유틸 — 저장소 내 호출부 없음
+공통 모듈,common,공통,arms,일반 호출,arms/js/common.js,1958,{type},UNRESOLVED:ajax_sample(),$.ajax,문서용 $.ajax 샘플 함수 — url 값이 '요청을 보낼 URL' 설명문
+공통 모듈,common,공통,arms,일반 호출,arms/js/common.js,2580,GET,/auth-anon/yml/language-config/packs/language/{locale},$.ajax,
+공통 모듈,common,공통,arms,일반 호출,arms/js/common.js,2592,GET,/arms/locales/{locale}.json,$.ajax,
+공통 모듈,common,공통,arms,상속(TreeAbstractController),arms/js/common.js,2828,GET,/auth-user/api/arms/reqStateCategory/getNodesWithoutRoot.do,$.ajax,
+공통 모듈,common,공통,arms,일반 호출,arms/js/common.js,2848,GET,/auth-user/api/arms/reqState/getReqStateListFilter.do,$.ajax,
+공통 모듈,common,공통,arms,일반 호출,arms/js/common.js,2938,GET,/auth-user/user/{userId}/check-permission/{currentPage},$.ajax,
+공통 모듈,common,공통,arms,일반 호출,arms/js/common/api/topMenuCoreApi.js,138,GET,/auth-user/api/arms/analysis/top-menu/T_ARMS_REQADD_{ctx_pdServiceId}/getReqAddListByFilter,ajaxPromise(url),원문 말미 ? 제거(경로 정규화)
+공통 모듈,common,공통,arms,일반 호출,arms/js/common/api/topMenuCoreApi.js,163,GET,/auth-user/api/arms/analysis/top-menu/issue/req-and-subtask,ajaxPromise(url),
+공통 모듈,common,공통,arms,일반 호출,arms/js/common/api/topMenuCoreApi.js,195,GET,/auth-user/api/arms/analysis/top-menu/resource-info,ajaxPromise(url),
+공통 모듈,common,공통,arms,일반 호출,arms/js/common/chart/d3/combinationChart.js,20,GET,/auth-user/api/arms/dashboard/requirements-jira-issue-statuses,$.ajax,
+공통 모듈,common,공통,arms,일반 호출,arms/js/common/chart/d3/donutChart.js,31,GET,/auth-user/api/arms/dashboard/aggregation/flat,$.ajax,
+공통 모듈,common,공통,arms,일반 호출,arms/js/common/chart/d3/sankey.js,249,GET,/auth-user/api/arms/dashboard/version-assignee-summary,$.ajax,
+공통 모듈,common,공통,arms,일반 호출,arms/js/common/chart/d3/sankey.js,279,GET,/auth-admin/api/arms/analysis/resource/version-assignee-summary,$.ajax,
+공통 모듈,common,공통,arms,일반 호출,arms/js/common/jspreadsheet/jspreadsheetAPI.js,550,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+"Time, Scope, Resource",dashboard,네비게이션,arms,일반 호출,arms/js/dashboard.js,143,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+"Time, Scope, Resource",dashboard,네비게이션,arms,일반 호출,arms/js/dashboard.js,218,GET,/auth-user/api/arms/pdService/getVersionList?c_id={selected_pdService},$.ajax,
+"Time, Scope, Resource",dashboard,네비게이션,arms,일반 호출,arms/js/dashboard/api/dashboardApi.js,34,GET,/auth-user/api/arms/pdServiceVersion,ajaxPromise(url),
+"Time, Scope, Resource",dashboard,네비게이션,arms,일반 호출,arms/js/dashboard/api/dashboardApi.js,111,GET,/auth-user/api/arms/dashboard/aggregate-weekly-req-issue-status,ajaxPromise(url),
+"Time, Scope, Resource",dashboard,네비게이션,arms,일반 호출,arms/js/dashboard/api/dashboardApi.js,130,GET,/auth-user/api/arms/pdService/versions-with-date?c_id={pdServiceId},ajaxPromise(url),
+"Time, Scope, Resource",dashboard,네비게이션,arms,일반 호출,arms/js/dashboard/api/dashboardApi.js,150,GET,/auth-user/api/arms/dashboard/version-assignee-summary,ajaxPromise(url),
+"Time, Scope, Resource",dashboard,네비게이션,arms,일반 호출,arms/js/dashboard/api/dashboardApi.js,163,GET,/auth-user/api/arms/dashboard/assignees-requirements-involvements-v3,ajaxPromise(url),
+"Time, Scope, Resource",dashboard,네비게이션,arms,일반 호출,arms/js/dashboard/api/dashboardApi.js,181,GET,/auth-user/api/arms/dashboard/top-req-assignee,ajaxPromise(url),
+"Time, Scope, Resource",dashboard,네비게이션,arms,일반 호출,arms/js/dashboard/api/dashboardApi.js,205,GET,/auth-user/api/arms/dashboard/top-req-state-info/T_ARMS_REQADD_{pdServiceId}/getReqAddListByFilter,ajaxPromise(url),
+"Time, Scope, Resource",dashboard,네비게이션,arms,상속(TreeAbstractController),arms/js/dashboard/api/dashboardApi.js,227,GET,/auth-user/api/arms/reqState/getNodesWithoutRoot.do,ajaxPromise(url),
+Dashboard (detail),detail,content-header,arms,일반 호출,arms/js/detail.js,91,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_/getDetail.do?jiraProject={selectedJiraProject}&jiraServer={selectedJiraServer}&pdService={selectedPdService}&pdServiceVersion={selectedPdServiceVersion}&reqAdd={selectedJsTreeId},$.ajax,
+개인성과지표,detail_dashboard,네비게이션,arms,일반 호출,arms/js/detail_dashboard.js,88,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+개인성과지표,detail_dashboard,네비게이션,arms,일반 호출,arms/js/detail_dashboard.js,117,GET,/auth-user/api/arms/pdService/getVersionList?c_id={selected_pdService},$.ajax,
+개인성과지표,detail_dashboard,네비게이션,arms,일반 호출,arms/js/detail_dashboard.js,188,POST,/auth-user/api/arms/detail-dashboard/T_ARMS_REQADD_{selectedPdServiceId}/project-status,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+개인성과지표,detail_dashboard,네비게이션,arms,일반 호출,arms/js/detail_dashboard.js,188,POST,/auth-user/api/arms/detail-dashboard/T_ARMS_REQADD_{selectedPdServiceId}/quality,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+개인성과지표,detail_dashboard,네비게이션,arms,일반 호출,arms/js/detail_dashboard.js,188,POST,/auth-user/api/arms/detail-dashboard/T_ARMS_REQADD_{selectedPdServiceId}/requirement-overview,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+개인성과지표,detail_dashboard,네비게이션,arms,일반 호출,arms/js/detail_dashboard.js,188,POST,/auth-user/api/arms/detail-dashboard/T_ARMS_REQADD_{selectedPdServiceId}/time-compliance,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+개인성과지표,detail_dashboard,네비게이션,arms,일반 호출,arms/js/detail_dashboard.js,188,POST,/auth-user/api/arms/detail-dashboard/contribution,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+개인성과지표,detail_dashboard,네비게이션,arms,일반 호출,arms/js/detail_dashboard.js,426,GET,/auth-user/api/arms/report/full-data/assignee-list?pdServiceId={pdServiceId},$.ajax,
+KPI Dashboard,detail_kpi,content-header,arms,일반 호출,arms/js/detail_kpi.js,137,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+KPI Dashboard,detail_kpi,content-header,arms,일반 호출,arms/js/detail_kpi.js,162,GET,/auth-user/api/arms/pdService/getVersionList?c_id={selected_pdService},$.ajax,
+KPI Dashboard,detail_kpi,content-header,arms,일반 호출,arms/js/detail_kpi.js,238,POST,/auth-user/search/engine/kpi/dashboard/contribution,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+KPI Dashboard,detail_kpi,content-header,arms,일반 호출,arms/js/detail_kpi.js,238,POST,/auth-user/search/engine/kpi/dashboard/project-status,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+KPI Dashboard,detail_kpi,content-header,arms,일반 호출,arms/js/detail_kpi.js,238,POST,/auth-user/search/engine/kpi/dashboard/quality,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+KPI Dashboard,detail_kpi,content-header,arms,일반 호출,arms/js/detail_kpi.js,238,POST,/auth-user/search/engine/kpi/dashboard/requirement-overview,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+KPI Dashboard,detail_kpi,content-header,arms,일반 호출,arms/js/detail_kpi.js,238,POST,/auth-user/search/engine/kpi/dashboard/time-compliance,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Dashboard (detail_per_version),detail_per_version,content-header,arms,일반 호출,arms/js/detail_per_version.js,62,GET,/auth-user/api/arms/pdService/versions-with-date?c_id={selectedPdService},$.ajax,
+Dashboard (detail_per_version),detail_per_version,content-header,arms,상속(TreeAbstractController),arms/js/detail_per_version.js,149,GET,/auth-user/api/arms/pdServiceVersion/getNode.do,$.ajax,
+Dashboard (detail_qna),detail_qna,content-header,arms,일반 호출,arms/js/detail_qna.js,58,GET,/auth-user/api/arms/reqComment/getTotalCountReqComment.do,$.ajax,
+Dashboard (detail_qna),detail_qna,content-header,arms,일반 호출,arms/js/detail_qna.js,102,GET,/auth-user/api/arms/reqComment/getReqCommentPagingByPdService.do,$.ajax,
+Dashboard (detail_qna),detail_qna,content-header,arms,일반 호출,arms/js/detail_qna.js,154,POST,/auth-user/api/arms/reqComment/addReqComment.do,$.ajax,
+Dashboard (detail_qna),detail_qna,content-header,arms,상속(TreeAbstractController),arms/js/detail_qna.js,264,DELETE,/auth-user/api/arms/reqComment/removeNode.do,$.ajax,
+Dashboard (detail_qna),detail_qna,content-header,arms,상속(TreeAbstractController),arms/js/detail_qna.js,311,PUT,/auth-user/api/arms/reqComment/updateNode.do,$.ajax,
+Dashboard (detail_total_pdservice),detail_total_pdservice,content-header,arms,일반 호출,arms/js/detail_total_pdservice.js,120,GET,/auth-user/api/arms/pdServiceDetail/uploadFileToNode.do,fileupload(url),
+Dashboard (detail_total_pdservice),detail_total_pdservice,content-header,arms,상속(TreeAbstractController),arms/js/detail_total_pdservice.js,164,GET,/auth-user/api/arms/pdServicePure/getNode.do,$.ajax,
+Dashboard (detail_total_pdservice),detail_total_pdservice,content-header,arms,일반 호출,arms/js/detail_total_pdservice.js,179,GET,/auth-user/api/arms/pdServiceDetail/getNodes.do/{selectedPdService},$.ajax,
+Dashboard (detail_total_pdservice),detail_total_pdservice,content-header,arms,상속(TreeAbstractController),arms/js/detail_total_pdservice.js,222,GET,/auth-user/api/arms/pdServiceDetail/getNode.do,$.ajax,
+Dashboard (detail_total_pdservice),detail_total_pdservice,content-header,arms,일반 호출,arms/js/detail_total_pdservice.js,252,GET,/auth-user/api/arms/pdServiceDetail/getFilesByNode.do,$.ajax,
+Dashboard (detail_total_reqadd),detail_total_reqadd,content-header,arms,일반 호출,arms/js/detail_total_reqadd.js,95,GET,/auth-user/api/arms/pdService/getVersionList?c_id={selectedPdService},$.ajax,
+Dashboard (detail_total_reqadd),detail_total_reqadd,content-header,arms,상속(TreeAbstractController),arms/js/detail_total_reqadd.js,117,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selectedPdService}/getChildNode.do,jstree(json_data.ajax) via jsTreeBuild(arg1),common.js:1326 jsTreeBuild 경유
+Dashboard (detail_total_reqadd),detail_total_reqadd,content-header,arms,상속(TreeAbstractController),arms/js/detail_total_reqadd.js,117,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selectedPdService}/addNode.do,$.post via jsTreeBuild(arg2),common.js:1451 jsTreeBuild 경유
+Dashboard (detail_total_reqadd),detail_total_reqadd,content-header,arms,상속(TreeAbstractController),arms/js/detail_total_reqadd.js,117,PUT,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selectedPdService}/alterNode.do,$.ajax via jsTreeBuild(arg2),common.js:1487 jsTreeBuild 경유
+Dashboard (detail_total_reqadd),detail_total_reqadd,content-header,arms,상속(TreeAbstractController),arms/js/detail_total_reqadd.js,117,PUT,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selectedPdService}/alterNodeType.do,$.ajax via jsTreeBuild(arg2),common.js:1506 jsTreeBuild 경유
+Dashboard (detail_total_reqadd),detail_total_reqadd,content-header,arms,상속(TreeAbstractController),arms/js/detail_total_reqadd.js,117,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selectedPdService}/moveNode.do,$.ajax via jsTreeBuild(arg2),common.js:1524 jsTreeBuild 경유
+Dashboard (detail_total_reqadd),detail_total_reqadd,content-header,arms,상속(TreeAbstractController),arms/js/detail_total_reqadd.js,117,DELETE,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selectedPdService}/removeNode.do,$.ajax via jsTreeBuild(arg2),common.js:1472 jsTreeBuild 경유
+Dashboard (detail_total_reqadd),detail_total_reqadd,content-header,arms,상속(TreeAbstractController),arms/js/detail_total_reqadd.js,206,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selectedPdService}/getMonitor.do,(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+Dashboard (detail_total_reqadd),detail_total_reqadd,content-header,arms,상속(TreeAbstractController),arms/js/detail_total_reqadd.js,221,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selectedPdService}/getNode.do?c_id={selectId},$.ajax,
+Dashboard (detail_total_reqadd),detail_total_reqadd,content-header,arms,일반 호출,arms/js/detail_total_reqadd.js,247,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selectedPdService}/getChildNodeWithParent.do,(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+Dashboard (detail_total_reqadd),detail_total_reqadd,content-header,arms,일반 호출,arms/js/detail_total_reqadd.js,282,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selectedPdService}/getChildNodeWithParent.do?c_id={selectId},(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+Dashboard (detail_total_reqadd),detail_total_reqadd,content-header,arms,상속(TreeAbstractController),arms/js/detail_total_reqadd.js,320,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selectedPdService}/getNode.do?c_id={selectedJsTreeId},$.ajax,
+연결 관리,jiraConnection,네비게이션,arms,일반 호출,arms/js/jiraConnection.js,151,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+연결 관리,jiraConnection,네비게이션,arms,일반 호출,arms/js/jiraConnection.js,231,GET,/auth-user/api/arms/pdService/getVersionList?c_id={getSelectedText},$.ajax,
+연결 관리,jiraConnection,네비게이션,arms,일반 호출,arms/js/jiraConnection.js,391,GET,/auth-user/api/arms/globaltreemap/getConnectInfo/pdService/pdServiceVersion/jiraProject.do,$.ajax,
+연결 관리,jiraConnection,네비게이션,arms,일반 호출,arms/js/jiraConnection.js,446,POST,/auth-user/api/arms/globaltreemap/setConnectInfo/pdService/pdServiceVersion/jiraProject.do,$.ajax,
+연결 관리,jiraConnection,네비게이션,arms,일반 호출,arms/js/jiraConnection.js,472,POST,/auth-user/api/arms/globaltreemap/setConnectInfo/pdService/pdServiceVersion/jiraProject.do,$.ajax,
+연결 관리,jiraConnection,네비게이션,arms,일반 호출,arms/js/jiraConnection.js,507,GET,/auth-user/api/arms/jiraServerProjectPure/getALMServerProjectPureListWithSoftDelete.do,$.ajax,
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,121,GET,/auth-user/api/arms/jiraServerProjectPure/getALMServerProjectPureListWithSoftDelete.do,$.ajax,
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,224,GET,/auth-user/api/arms/jiraServerPure/getNodeExceptPW.do,$.ajax,
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,435,GET,/auth-user/api/arms/jiraServer/getJiraProjectPure.do?c_id={c_id},(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,691,POST,/auth-user/api/arms/jiraServerPure/verifyAccount.do,$.ajax,verifyPopupAccountApiEndpoint — 수정 팝업(:564)
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,691,POST,/auth-user/api/arms/jiraServerPure/verifyNewAccount.do,$.ajax,verifyPopupAccountApiEndpoint — 등록 팝업(:550) 및 :683 분기
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,776,POST,/auth-user/api/arms/jiraServerPure/verifyAccount.do,$.ajax,verifyTabAccountApiEndpoint — 수정 탭 초기값
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,776,POST,/auth-user/api/arms/jiraServerPure/verifyNewAccount.do,$.ajax,verifyTabAccountApiEndpoint — :768 분기
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,853,POST,/auth-user/api/arms/jiraServer/addJiraServerNode.do,$.ajax via jira_server_request_create_or_update(arg0),jiraServer.js:880 jira_server_request_create_or_update 경유
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,870,PUT,/auth-user/api/arms/jiraServer/updateNodeAndEngineServerInfoUpdate.do,$.ajax via jira_server_request_create_or_update(arg0),jiraServer.js:880 jira_server_request_create_or_update 경유
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,946,PUT,/auth-user/api/arms/jiraServer/updateNodeAndEngineServerInfoUpdate.do,$.ajax,
+서버 관리,jiraServer,네비게이션,arms,상속(TreeAbstractController),arms/js/jiraServer.js,994,DELETE,/auth-user/api/arms/jiraServer/removeNode.do,$.ajax,
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,1232,PUT,/auth-user/api/arms/jiraServer/{refreshTarget}/renewNode.do,$.ajax,refreshTarget = selectedTab 값(almProject·issuePriority·issueStatus·issueType) — 생성 HTML onClick(:1015) 에서 전달
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,1263,PUT,/auth-user/api/arms/jiraServer/refresh.do,$.ajax,
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,1342,GET,/auth-user/api/arms/jiraProject/getProjectIssueType.do?c_id={project_c_id},(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,1478,GET,/auth-user/api/arms/jiraServer/getJiraIssuePriority.do?c_id={selectServerId},(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,1478,GET,/auth-user/api/arms/jiraServer/getJiraIssueType.do?c_id={selectServerId},(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,1532,PUT,/auth-user/api/arms/jiraProject/{selectedTab}/makeDefault.do,$.ajax,"ajax_url — :1522,1525 분기"
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,1532,PUT,/auth-user/api/arms/jiraServer/{selectedTab}/makeDefault.do,$.ajax,ajax_url — :1529 분기
+서버 관리,jiraServer,네비게이션,arms,일반 호출,arms/js/jiraServer.js,1799,GET,/auth-user/api/arms/jiraServerProjectPure/getJiraProjectList.do?c_id={alm_server_id},(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+Dashboard (kpi),kpi,content-header,arms,일반 호출,arms/js/kpi.js,83,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+Dashboard (kpi),kpi,content-header,arms,일반 호출,arms/js/kpi.js,110,GET,/auth-user/api/arms/pdService/getVersionList?c_id={selected_pdService},$.ajax,
+Dashboard (kpi),kpi,content-header,arms,일반 호출,arms/js/kpi.js,180,POST,/auth-user/api/arms/detail-dashboard/T_ARMS_REQADD_{selectedPdServiceId}/project-status,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Dashboard (kpi),kpi,content-header,arms,일반 호출,arms/js/kpi.js,180,POST,/auth-user/api/arms/detail-dashboard/T_ARMS_REQADD_{selectedPdServiceId}/quality,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Dashboard (kpi),kpi,content-header,arms,일반 호출,arms/js/kpi.js,180,POST,/auth-user/api/arms/detail-dashboard/T_ARMS_REQADD_{selectedPdServiceId}/requirement-overview,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Dashboard (kpi),kpi,content-header,arms,일반 호출,arms/js/kpi.js,180,POST,/auth-user/api/arms/detail-dashboard/T_ARMS_REQADD_{selectedPdServiceId}/time-compliance,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Dashboard (kpi),kpi,content-header,arms,일반 호출,arms/js/kpi.js,180,POST,/auth-user/api/arms/detail-dashboard/contribution,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Dashboard (kpi),kpi,content-header,arms,일반 호출,arms/js/kpi.js,395,GET,/auth-user/api/arms/report/full-data/assignee-list?pdServiceId={pdServiceId},$.ajax,
+Support > MultiAgent,landing_agent,content-header,arms,일반 호출,arms/js/landing_agent.js,138,GET,/auth-anon/ai/chat/status,$.ajax,
+Support > MultiAgent,landing_agent,content-header,arms,일반 호출,arms/js/landing_agent.js,243,POST,/auth-anon/ai/multiagent/stream,fetch,
+Support > MultiAgent,landing_agent,content-header,arms,일반 호출,arms/js/landing_agent.js,327,GET,/auth-anon/ai/multiagent/stop-stream?sessionId={asCurrentStreamId},fetch,
+Support > MultiAgent,landing_agent,content-header,arms,일반 호출,arms/js/landing_agent.js,584,POST,/auth-anon/ai/multiagent/excel/parse?fileName={name},fetch,
+Support > MultiAgent,landing_agent,content-header,arms,일반 호출,arms/js/landing_agent.js,776,POST,/auth-anon/ai/multiagent/excel/export,fetch,
+Support System > Development Tool (landing_blog),landing_blog,content-header,arms,일반 호출,arms/js/landing_blog.js,107,GET,/auth-anon/api/arms/blog/searchBlogList.do,$.ajax,
+Support System > Development Tool (landing_blog),landing_blog,content-header,arms,일반 호출,arms/js/landing_blog.js,266,GET,/auth-anon/api/arms/blog/getPaginatedBlogList.do,$.ajax,
+Support System > Development Tool (landing_blog),landing_blog,content-header,arms,일반 호출,arms/js/landing_blog.js,362,GET,/auth-anon/api/arms/blog/latest/getBlogList.do,$.ajax,
+Support System > Development Tool (landing_blog),landing_blog,content-header,arms,일반 호출,arms/js/landing_blog.js,584,GET,/auth-anon/api/arms/blog/popular/getBlogList.do,$.ajax,
+Support System > Development Tool (landing_blog),landing_blog,content-header,arms,일반 호출,arms/js/landing_blog.js,714,GET,/auth-anon/api/arms/blog/hot/getKeywordList.do,$.ajax,
+Support System > Development Tool (landing_blog),landing_blog,content-header,arms,일반 호출,arms/js/landing_blog.js,738,GET,/auth-anon/api/arms/blog/recommended/getBlogList.do,$.ajax,
+landing_blogDetail,landing_blogDetail,페이지키,arms,일반 호출,arms/js/landing_blogDetail.js,40,GET,/auth-anon/api/arms/blog/getBlog.do,$.ajax,
+landing_blogDetail,landing_blogDetail,페이지키,arms,일반 호출,arms/js/landing_blogDetail.js,235,DELETE,/auth-anon/api/arms/blog/removeBlog.do,$.ajax,
+landing_blogDetail,landing_blogDetail,페이지키,arms,일반 호출,arms/js/landing_blogDetail.js,255,GET,/auth-user/me,$.ajax,
+landing_blogEditor,landing_blogEditor,페이지키,arms,일반 호출,arms/js/landing_blogEditor.js,49,GET,/auth-anon/api/arms/blog/getBlog.do,$.ajax,
+landing_blogEditor,landing_blogEditor,페이지키,arms,일반 호출,arms/js/landing_blogEditor.js,248,PUT|POST,/auth-anon/api/arms/blog/addBlog.do,$.ajax,
+landing_blogEditor,landing_blogEditor,페이지키,arms,일반 호출,arms/js/landing_blogEditor.js,248,PUT|POST,/auth-anon/api/arms/blog/updateBlog.do,$.ajax,
+목록,landing_board,content-header,arms,일반 호출,arms/js/landing_board.js,304,GET,/auth-anon/search/bbs/board-list/only-post-list,$.ajax,
+목록,landing_board,content-header,arms,일반 호출,arms/js/landing_board.js,347,GET,/auth-user/me,$.ajax,
+목록,landing_board,content-header,arms,일반 호출,arms/js/landing_board.js,391,GET,/auth-anon/search/bbs/board-list/only-post-list,$.ajax,
+목록,landing_board,content-header,arms,일반 호출,arms/js/landing_board.js,450,GET,/auth-anon/search/bbs/board-list/only-post-list,$.ajax,
+상세,landing_boardDetail,content-header,arms,일반 호출,arms/js/landing_boardDetail.js,453,GET,/auth-anon/search/bbs/find-path/find-id/{id},$.ajax,
+상세,landing_boardDetail,content-header,arms,일반 호출,arms/js/landing_boardDetail.js,500,POST,/auth-anon/search/bbs/verify/captcha,$.ajax,
+상세,landing_boardDetail,content-header,arms,일반 호출,arms/js/landing_boardDetail.js,511,POST,/auth-anon/search/bbs/reply-message,$.ajax,
+상세,landing_boardDetail,content-header,arms,일반 호출,arms/js/landing_boardDetail.js,588,POST,/auth-anon/search/bbs/check-password,$.ajax,
+상세,landing_boardDetail,content-header,arms,일반 호출,arms/js/landing_boardDetail.js,601,DELETE,/auth-anon/search/bbs/delete-id/{targetId},$.ajax,
+Support System > Development Tool (landing_poc),landing_poc,content-header,arms,일반 호출,arms/js/landing_poc.js,75,POST,/auth-anon/api/arms/poc/addPoc.do,$.ajax,
+Support System > Development Tool (landing_poc),landing_poc,content-header,arms,일반 호출,arms/js/landing_poc.js,168,GET,/auth-user/me,$.ajax,
+PoC Admin (landing_pocAdmin),landing_pocAdmin,content-header,arms,일반 호출,arms/js/landing_pocAdmin.js,86,GET,/auth-anon/api/arms/poc/getPocList.do,$.ajax,
+PoC Admin (landing_pocAdmin),landing_pocAdmin,content-header,arms,일반 호출,arms/js/landing_pocAdmin.js,225,GET,/auth-anon/api/arms/poc/getPocList.do,$.ajax,
+PoC Admin (landing_pocAdmin),landing_pocAdmin,content-header,arms,일반 호출,arms/js/landing_pocAdmin.js,245,GET,/auth-user/me,$.ajax,
+PoC Admin (landing_pocAdminDetail),landing_pocAdminDetail,content-header,arms,일반 호출,arms/js/landing_pocAdminDetail.js,56,GET,/auth-anon/api/arms/poc/getPoc.do/{id},$.ajax,
+PoC Admin (landing_pocAdminDetail),landing_pocAdminDetail,content-header,arms,일반 호출,arms/js/landing_pocAdminDetail.js,160,PUT,/auth-anon/api/arms/poc/updatePoc.do,$.ajax,
+PoC Admin (landing_pocAdminDetail),landing_pocAdminDetail,content-header,arms,일반 호출,arms/js/landing_pocAdminDetail.js,187,DELETE,/auth-anon/api/arms/poc/removePoc.do/{pocId},$.ajax,
+PoC Admin (landing_pocAdminDetail),landing_pocAdminDetail,content-header,arms,일반 호출,arms/js/landing_pocAdminDetail.js,200,GET,/auth-user/me,$.ajax,
+PoC Admin (landing_pocAdminDetail),landing_pocAdminDetail,content-header,arms,일반 호출,arms/js/landing_pocAdminDetail.js,236,GET,/auth-user/search-user/{term},select2(ajax),
+작성,landing_question,content-header,arms,일반 호출,arms/js/landing_question.js,53,GET,/auth-user/me,$.ajax,
+작성,landing_question,content-header,arms,일반 호출,arms/js/landing_question.js,90,POST,/auth-anon/search/bbs/post-message,$.ajax,
+작성,landing_question,content-header,arms,일반 호출,arms/js/landing_question.js,102,PUT,/auth-anon/search/bbs/update-id/{id},$.ajax,
+작성,landing_question,content-header,arms,일반 호출,arms/js/landing_question.js,114,POST,/auth-anon/search/bbs/verify/captcha,$.ajax,
+작성,landing_question,content-header,arms,일반 호출,arms/js/landing_question.js,151,GET,/auth-anon/search/bbs/find-path/find-id/{id},$.ajax,
+메일 서버,mailServer,네비게이션,arms,상속(TreeAbstractController),arms/js/mailServer.js,159,GET,/auth-user/api/arms/report/mail-sender/getNodesWithoutRoot.do,$.ajax,
+메일 서버,mailServer,네비게이션,arms,일반 호출,arms/js/mailServer.js,243,POST,/auth-user/api/arms/mail/validate,$.ajax,
+메일 서버,mailServer,네비게이션,arms,상속(TreeAbstractController),arms/js/mailServer.js,321,POST,/auth-user/api/arms/report/mail-sender/addNode.do,$.ajax,
+메일 서버,mailServer,네비게이션,arms,상속(TreeAbstractController),arms/js/mailServer.js,354,DELETE,/auth-user/api/arms/report/mail-sender/removeNode.do,$.ajax,
+메일 서버,mailServer,네비게이션,arms,상속(TreeAbstractController),arms/js/mailServer.js,414,PUT,/auth-user/api/arms/report/mail-sender/updateNode.do,$.ajax,
+메일 서버,mailServer,네비게이션,arms,일반 호출,arms/js/mailServer.js,438,GET,/auth-user/api/arms/mail/send-to-registered-users,$.ajax,
+메일 서버,mailServer,네비게이션,arms,상속(TreeAbstractController),arms/js/mailServer.js,557,POST,/auth-user/api/arms/report/mail-receiver/addNode.do,$.ajax,
+메일 서버,mailServer,네비게이션,arms,상속(TreeAbstractController),arms/js/mailServer.js,649,GET,/auth-user/api/arms/report/mail-receiver/getNodesWithoutRoot.do,(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+메일 서버,mailServer,네비게이션,arms,상속(TreeAbstractController),arms/js/mailServer.js,717,PUT,/auth-user/api/arms/report/mail-receiver/updateNode.do,$.ajax,
+메일 서버,mailServer,네비게이션,arms,상속(TreeAbstractController),arms/js/mailServer.js,745,DELETE,/auth-user/api/arms/report/mail-receiver/removeNode.do,$.ajax,
+메일 서버,mailServer,네비게이션,arms,일반 호출,arms/js/mailServer.js,767,POST,/auth-user/api/arms/mail/send-test,$.ajax,
+상태 관리,mapping,네비게이션,arms,상속(TreeAbstractController),arms/js/mapping.js,82,GET,/auth-user/api/arms/jiraServerPure/getNodesWithoutRoot.do,$.ajax,
+상태 관리,mapping,네비게이션,arms,상속(TreeAbstractController),arms/js/mapping.js,390,GET,/auth-user/api/arms/reqState/getNodesWithoutRoot.do,$.ajax,
+상태 관리,mapping,네비게이션,arms,일반 호출,arms/js/mapping.js,410,GET,/auth-user/api/arms/jiraServer/getIssueStatusList?c_id={almServerId},$.ajax,
+상태 관리,mapping,네비게이션,arms,일반 호출,arms/js/mapping.js,433,GET,/auth-user/api/arms/jiraIssueType/getIssueStatusList?c_id={issueTypeId},$.ajax,
+상태 관리,mapping,네비게이션,arms,일반 호출,arms/js/mapping.js,482,GET,/auth-user/api/arms/jiraServerProjectPure/getJiraProjectList.do?c_id={selected_alm_server_id},jstree(json_data.ajax),
+상태 관리,mapping,네비게이션,arms,상속(TreeAbstractController),arms/js/mapping.js,688,GET,/auth-user/api/arms/reqState/getNode.do?c_id={state_id},$.ajax,
+상태 관리,mapping,네비게이션,arms,일반 호출,arms/js/mapping.js,795,POST,/auth-user/api/arms/reqState/addStateNode.do,$.ajax,
+상태 관리,mapping,네비게이션,arms,상속(TreeAbstractController),arms/js/mapping.js,911,PUT,/auth-user/api/arms/reqState/updateNode.do,$.ajax,
+상태 관리,mapping,네비게이션,arms,일반 호출,arms/js/mapping.js,936,DELETE,/auth-user/api/arms/reqState/removeNodeAndChangeState.do,$.ajax,
+상태 관리,mapping,네비게이션,arms,상속(TreeAbstractController),arms/js/mapping.js,962,PUT,/auth-user/api/arms/jiraIssueStatus/updateNode.do,$.ajax,
+상태 관리,mapping,네비게이션,arms,일반 호출,arms/js/mapping.js,996,POST,/auth-user/api/arms/jiraServer/preSetIssueStatusMapping.do,$.ajax,
+제품 관리,pdService,네비게이션,arms,일반 호출,arms/js/pdService.js,395,GET,/auth-user/search-user/{term},select2(ajax),
+제품 관리,pdService,네비게이션,arms,일반 호출,arms/js/pdService.js,482,GET,/auth-user/api/arms/pdServiceDetail/uploadFileToNode.do,fileupload(url),
+제품 관리,pdService,네비게이션,arms,일반 호출,arms/js/pdService.js,548,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+제품 관리,pdService,네비게이션,arms,일반 호출,arms/js/pdService.js,593,GET,/auth-user/api/arms/pdServiceDetail/getNodes.do/{selectId},$.ajax,
+제품 관리,pdService,네비게이션,arms,상속(TreeAbstractController),arms/js/pdService.js,697,GET,/auth-user/api/arms/pdServiceDetail/getNode.do,$.ajax,
+제품 관리,pdService,네비게이션,arms,일반 호출,arms/js/pdService.js,792,GET,/auth-user/api/arms/pdServicePure/getPdServiceWithDetail.do,$.ajax,
+제품 관리,pdService,네비게이션,arms,일반 호출,arms/js/pdService.js,946,POST,/auth-user/api/arms/pdServiceDetail/addNode.do/{selectId},$.ajax,
+제품 관리,pdService,네비게이션,arms,일반 호출,arms/js/pdService.js,995,POST,/auth-user/api/arms/pdService/addPdServiceNode.do,$.ajax,
+제품 관리,pdService,네비게이션,arms,일반 호출,arms/js/pdService.js,1050,POST,/auth-user/api/arms/pdService/removeAll.do/{selectId},$.ajax,
+제품 관리,pdService,네비게이션,arms,일반 호출,arms/js/pdService.js,1085,POST,/auth-user/api/arms/pdServiceDetail/deleteNode.do/{selectedDetailId},$.ajax,
+제품 관리,pdService,네비게이션,arms,상속(TreeAbstractController),arms/js/pdService.js,1141,PUT,/auth-user/api/arms/pdServiceDetail/updateNode.do,$.ajax,
+제품 관리,pdService,네비게이션,arms,상속(TreeAbstractController),arms/js/pdService.js,1196,PUT,/auth-user/api/arms/pdServiceDetail/updateNode.do,$.ajax,
+제품 관리,pdService,네비게이션,arms,상속(TreeAbstractController),arms/js/pdService.js,1253,PUT,/auth-user/api/arms/pdService/updateNode.do,$.ajax,
+제품 관리,pdService,네비게이션,arms,일반 호출,arms/js/pdService.js,1350,GET,/auth-user/api/arms/pdServiceDetail/getFilesByNode.do,$.ajax,
+버전 관리,pdServiceVersion,네비게이션,arms,일반 호출,arms/js/pdServiceVersion.js,193,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+버전 관리,pdServiceVersion,네비게이션,arms,일반 호출,arms/js/pdServiceVersion.js,296,DELETE,/auth-user/api/arms/pdService/removeVersion.do,$.ajax,
+버전 관리,pdServiceVersion,네비게이션,arms,일반 호출,arms/js/pdServiceVersion.js,335,PUT,/auth-user/api/arms/pdService/updateVersionToNode.do?pdservice_link={selectPdServiceId},$.ajax,
+버전 관리,pdServiceVersion,네비게이션,arms,일반 호출,arms/js/pdServiceVersion.js,377,POST,/auth-user/api/arms/pdService/addVersionToNode.do,$.ajax,
+버전 관리,pdServiceVersion,네비게이션,arms,상속(TreeAbstractController),arms/js/pdServiceVersion.js,403,PUT,/auth-user/api/arms/pdServiceVersion/updateNode.do,$.ajax,
+버전 관리,pdServiceVersion,네비게이션,arms,일반 호출,arms/js/pdServiceVersion.js,490,GET,/auth-user/api/arms/pdService/versions-with-date?c_id={getSelectedText},$.ajax,
+버전 관리,pdServiceVersion,네비게이션,arms,상속(TreeAbstractController),arms/js/pdServiceVersion.js,622,GET,/auth-user/api/arms/pdServiceVersion/getNode.do,$.ajax,
+요구사항 등록,pocReqRegister,네비게이션,arms,일반 호출,arms/js/pocReqRegister.js,73,GET,/auth-user/api/arms/poc/req-register,$.ajax,
+요구사항 등록,pocReqRegister,네비게이션,arms,일반 호출,arms/js/pocReqRegister.js,200,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+요구사항 등록,pocReqRegister,네비게이션,arms,일반 호출,arms/js/pocReqRegister.js,274,GET,/auth-user/api/arms/pdService/getVersionList?c_id={pdServiceId},$.ajax,
+요구사항 등록,pocReqRegister,네비게이션,arms,일반 호출,arms/js/pocReqRegister.js,332,GET,/auth-user/api/arms/poc/req-register/alm-list,$.ajax,
+요구사항 등록,pocReqRegister,네비게이션,arms,일반 호출,arms/js/pocReqRegister.js,682,POST,/auth-user/api/arms/poc/req-register,$.ajax,
+요구사항 등록,pocReqRegister,네비게이션,arms,일반 호출,arms/js/pocReqRegister.js,852,GET,/auth-user/api/arms/poc/req-register,$.ajax,
+요구사항 등록,pocReqRegister,네비게이션,arms,일반 호출,arms/js/pocReqRegister.js,903,GET,/auth-user/api/arms/poc/req-register/issue-list,$.ajax,
+요구사항 등록,pocReqRegister,네비게이션,arms,일반 호출,arms/js/pocReqRegister.js,973,GET,/auth-user/api/arms/poc/req-register/issue-list,$.ajax,
+KPI > Personal Performance Indicators,reportKPI,content-header,arms,일반 호출,arms/js/reportKPI.js,100,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+KPI > Personal Performance Indicators,reportKPI,content-header,arms,일반 호출,arms/js/reportKPI.js,169,GET,/auth-user/api/arms/pdService/getVersionList?c_id={selectedPdServiceId},$.ajax,
+KPI > Personal Performance Indicators,reportKPI,content-header,arms,일반 호출,arms/js/reportKPI.js,293,GET,/auth-user/api/arms/report/full-data/assignee-list,$.ajax,
+KPI > Personal Performance Indicators,reportKPI,content-header,arms,일반 호출,arms/js/reportKPI.js,399,POST,/auth-user/api/arms/engine-fire/insight/schedule-compliance,$.ajax,
+KPI > Personal Performance Indicators,reportKPI,content-header,arms,일반 호출,arms/js/reportKPI.js,594,GET,/arms/js/data/kpiMockData.json,$.ajax,
+Project Track Report,reportPTR,네비게이션,arms,일반 호출,arms/js/reportPTR.js,189,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+Project Track Report,reportPTR,네비게이션,arms,일반 호출,arms/js/reportPTR.js,316,GET,/auth-user/api/arms/pdService/versions-with-date?c_id={selected_pdService},$.ajax,
+Project Track Report,reportPTR,네비게이션,arms,일반 호출,arms/js/reportPTR.js,373,POST,/auth-user/api/arms/report/portfolio-track-record/version-progress-card,$.ajax,
+Project Track Report,reportPTR,네비게이션,arms,일반 호출,arms/js/reportPTR.js,480,GET,/auth-user/api/arms/report/portfolio-track-record/T_ARMS_REQADD_{selectId}/project-progress,$.ajax,
+Project Track Report,reportPTR,네비게이션,arms,일반 호출,arms/js/reportPTR.js,617,GET,/auth-user/api/arms/reqAddStatePure/T_ARMS_REQADD_{pdServiceId}/weeklyReportReqStatus,$.ajax,
+Project Track Report,reportPTR,네비게이션,arms,일반 호출,arms/js/reportPTR.js,1072,POST,/auth-user/api/arms/report/portfolio-track-record/weekly-version-table,$.ajax,
+Project Track Report,reportPTR,네비게이션,arms,일반 호출,arms/js/reportPTR.js,1558,POST,/auth-user/api/arms/report/portfolio-track-record/version-progress-card/detail,$.ajax,
+Performance Report,reportPerformance,네비게이션,arms,일반 호출,arms/js/reportPerformance.js,131,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+Performance Report,reportPerformance,네비게이션,arms,일반 호출,arms/js/reportPerformance.js,224,GET,/auth-user/api/arms/pdService/versions-with-date?c_id={selected_pdService},$.ajax,
+Performance Report,reportPerformance,네비게이션,arms,일반 호출,arms/js/reportPerformance.js,681,POST,/auth-user/api/arms/userGroup/group,$.ajax,
+Performance Report,reportPerformance,네비게이션,arms,상속(TreeAbstractController),arms/js/reportPerformance.js,713,PUT,/auth-user/api/arms/userGroup/updateNode.do,$.ajax,
+Performance Report,reportPerformance,네비게이션,arms,일반 호출,arms/js/reportPerformance.js,740,PUT,/auth-user/api/arms/userGroup/softDelete/{currentGroupId},$.ajax,
+Performance Report,reportPerformance,네비게이션,arms,일반 호출,arms/js/reportPerformance.js,769,GET,/auth-user/api/arms/userGroup/list-by-product/{productServiceId},$.ajax,
+Performance Report,reportPerformance,네비게이션,arms,일반 호출,arms/js/reportPerformance.js,822,GET,/auth-user/api/arms/userGroup/list-by-product/{selectedPdServiceId},(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+Performance Report,reportPerformance,네비게이션,arms,일반 호출,arms/js/reportPerformance.js,922,GET,/auth-user/api/arms/report/full-data/assignee-list?pdServiceId={selectedPdServiceId},$.ajax,
+Performance Report,reportPerformance,네비게이션,arms,상속(TreeAbstractController),arms/js/reportPerformance.js,937,GET,/auth-user/api/arms/userGroup/getChildNode.do?c_id={groupId},$.ajax,
+Performance Report,reportPerformance,네비게이션,arms,일반 호출,arms/js/reportPerformance.js,1066,POST,/auth-user/api/arms/userGroup/members,$.ajax,
+Req Trace Manage,reportRTM,네비게이션,arms,일반 호출,arms/js/reportRTM.js,173,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+Req Trace Manage,reportRTM,네비게이션,arms,일반 호출,arms/js/reportRTM.js,244,GET,/auth-user/api/arms/pdService/getVersionList?c_id={selectedPdServiceId},$.ajax,
+Req Trace Manage,reportRTM,네비게이션,arms,일반 호출,arms/js/reportRTM.js,296,GET,/auth-user/api/arms/report/reqTrace/T_ARMS_REQADD_{selectedPdServiceId}/getReqTraceList.do,$.ajax,
+SWOT Report,reportSWOT,네비게이션,arms,상속(TreeAbstractController),arms/js/reportSWOT.js,269,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selected_pdService}/getNode.do?c_id={requestedId},$.ajax,
+SWOT Report,reportSWOT,네비게이션,arms,일반 호출,arms/js/reportSWOT.js,546,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{serviceId}/updateDataBase.do,$.ajax,
+SWOT Report,reportSWOT,네비게이션,arms,일반 호출,arms/js/reportSWOT/reqAddList.js,92,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+SWOT Report,reportSWOT,네비게이션,arms,일반 호출,arms/js/reportSWOT/reqAddList.js,126,GET,/auth-user/api/arms/pdService/getVersionList?c_id={selected_pdService},$.ajax,
+SWOT Report,reportSWOT,네비게이션,arms,일반 호출,arms/js/reportSWOT/reqAddList.js,234,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selected_pdService}/getSwotReqNodesWithoutRoot.do,$.ajax,
+SWOT Report,reportSWOT,네비게이션,arms,상속(TreeAbstractController),arms/js/reportSWOT/reqAddList.js,253,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selected_pdService}/getChildNode.do,jstree(json_data.ajax) via jsTreeBuild(arg1),common.js:1326 jsTreeBuild 경유
+SWOT Report,reportSWOT,네비게이션,arms,상속(TreeAbstractController),arms/js/reportSWOT/reqAddList.js,253,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/addNode.do,$.post via jsTreeBuild(arg2),common.js:1451 jsTreeBuild 경유
+SWOT Report,reportSWOT,네비게이션,arms,상속(TreeAbstractController),arms/js/reportSWOT/reqAddList.js,253,PUT,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/alterNode.do,$.ajax via jsTreeBuild(arg2),common.js:1487 jsTreeBuild 경유
+SWOT Report,reportSWOT,네비게이션,arms,상속(TreeAbstractController),arms/js/reportSWOT/reqAddList.js,253,PUT,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/alterNodeType.do,$.ajax via jsTreeBuild(arg2),common.js:1506 jsTreeBuild 경유
+SWOT Report,reportSWOT,네비게이션,arms,상속(TreeAbstractController),arms/js/reportSWOT/reqAddList.js,253,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/moveNode.do,$.ajax via jsTreeBuild(arg2),common.js:1524 jsTreeBuild 경유
+SWOT Report,reportSWOT,네비게이션,arms,상속(TreeAbstractController),arms/js/reportSWOT/reqAddList.js,253,DELETE,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/removeNode.do,$.ajax via jsTreeBuild(arg2),common.js:1472 jsTreeBuild 경유
+Report > Weekly,reportWeekly,content-header,arms,일반 호출,arms/js/reportWeekly.js,151,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+Report > Weekly,reportWeekly,content-header,arms,일반 호출,arms/js/reportWeekly.js,237,GET,/auth-user/api/arms/pdService/versions-with-date?c_id={selected_pdService},$.ajax,
+Report > Weekly,reportWeekly,content-header,arms,일반 호출,arms/js/reportWeekly.js,815,GET,/auth-user/api/arms/report/weekly/pdf?pdServiceId={pdServiceId}&versionId={versionId}&week={weekValue},$.ajax,
+Report > Weekly,reportWeekly,content-header,arms,일반 호출,arms/js/reportWeekly.js,916,GET,/auth-user/api/arms/report-template/upload,fileupload(url),
+Report > Weekly,reportWeekly,content-header,arms,일반 호출,arms/js/reportWeekly.js,964,GET,/auth-user/user-info,$.ajax,
+Report > Weekly,reportWeekly,content-header,arms,일반 호출,arms/js/reportWeekly/reportWeeklyApi.js,82,POST,/auth-user/api/arms/report/weekly/resource,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Report > Weekly,reportWeekly,content-header,arms,일반 호출,arms/js/reportWeekly/reportWeeklyApi.js,82,POST,/auth-user/api/arms/report/weekly/scope,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Report > Weekly,reportWeekly,content-header,arms,일반 호출,arms/js/reportWeekly/reportWeeklyApi.js,82,POST,/auth-user/api/arms/report/weekly/time,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Report > Weekly,reportWeekly,content-header,arms,일반 호출,arms/js/reportWeekly/reportWeeklyApi.js,114,POST,/auth-user/api/arms/report/weekly/export/pdf,$.ajax,
+Report > Weekly,reportWeekly,content-header,arms,일반 호출,arms/js/reportWeekly/reportWeeklyApi.js,181,POST,/auth-user/api/arms/report/weekly/export,$.ajax,
+Report > Weekly,reportWeekly,content-header,arms,일반 호출,arms/js/reportWeekly/reportWeeklyApi.js,243,POST,/auth-user/api/arms/report/weekly/business-report/export,$.ajax,
+Report > Weekly,reportWeekly,content-header,arms,일반 호출,arms/js/reportWeekly/reportWeeklyApi.js,313,POST,/auth-user/api/arms/report/weekly/collaborate-kpi/export,$.ajax,
+요구 관리,reqAdd,네비게이션,arms,일반 호출,arms/js/reqAdd.js,181,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+요구 관리,reqAdd,네비게이션,arms,일반 호출,arms/js/reqAdd.js,297,GET,/auth-user/api/arms/pdService/getVersionList?c_id={selected_pdService},$.ajax,
+요구 관리,reqAdd,네비게이션,arms,일반 호출,arms/js/reqAdd.js,361,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selected_pdService}/getReqAddListByFilter?c_req_pdservice_versionset_link={result_cids},$.ajax,
+요구 관리,reqAdd,네비게이션,arms,상속(TreeAbstractController),arms/js/reqAdd.js,427,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selected_pdService}/getChildNode.do,jstree(json_data.ajax) via jsTreeBuild(arg1),common.js:1326 jsTreeBuild 경유
+요구 관리,reqAdd,네비게이션,arms,상속(TreeAbstractController),arms/js/reqAdd.js,427,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/addNode.do,$.post via jsTreeBuild(arg2),common.js:1451 jsTreeBuild 경유
+요구 관리,reqAdd,네비게이션,arms,상속(TreeAbstractController),arms/js/reqAdd.js,427,PUT,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/alterNode.do,$.ajax via jsTreeBuild(arg2),common.js:1487 jsTreeBuild 경유
+요구 관리,reqAdd,네비게이션,arms,상속(TreeAbstractController),arms/js/reqAdd.js,427,PUT,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/alterNodeType.do,$.ajax via jsTreeBuild(arg2),common.js:1506 jsTreeBuild 경유
+요구 관리,reqAdd,네비게이션,arms,상속(TreeAbstractController),arms/js/reqAdd.js,427,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/moveNode.do,$.ajax via jsTreeBuild(arg2),common.js:1524 jsTreeBuild 경유
+요구 관리,reqAdd,네비게이션,arms,상속(TreeAbstractController),arms/js/reqAdd.js,427,DELETE,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/removeNode.do,$.ajax via jsTreeBuild(arg2),common.js:1472 jsTreeBuild 경유
+요구 관리,reqAdd,네비게이션,arms,상속(TreeAbstractController),arms/js/reqAdd.js,565,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selected_pdService}/getMonitor.do,(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+요구 관리,reqAdd,네비게이션,arms,상속(TreeAbstractController),arms/js/reqAdd.js,580,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selected_pdService}/getNode.do?c_id={selectId},$.ajax,
+요구 관리,reqAdd,네비게이션,arms,일반 호출,arms/js/reqAdd.js,602,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selected_pdService}/getChildNodeWithParent.do,(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+요구 관리,reqAdd,네비게이션,arms,일반 호출,arms/js/reqAdd.js,633,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selected_pdService}/getChildNodeWithParent.do?c_id={selectId},(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+요구 관리,reqAdd,네비게이션,arms,상속(TreeAbstractController),arms/js/reqAdd.js,675,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selected_pdService}/getNode.do?c_id={selectedJsTreeId},$.ajax,
+요구 관리,reqAdd,네비게이션,arms,일반 호출,arms/js/reqAdd.js,1131,GET,/auth-user/search-user/{term},select2(ajax),
+요구 관리,reqAdd,네비게이션,arms,일반 호출,arms/js/reqAdd.js,1268,GET,/auth-user/api/arms/pdService/getNodeWithVersionOrderByCidDesc?c_id={selected_pdService},$.ajax,
+요구 관리,reqAdd,네비게이션,arms,상속(TreeAbstractController),arms/js/reqAdd.js,1607,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/addNode.do,$.ajax,
+요구 관리,reqAdd,네비게이션,arms,상속(TreeAbstractController),arms/js/reqAdd.js,1756,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/updateNode.do,$.ajax,
+요구 관리,reqAdd,네비게이션,arms,상속(TreeAbstractController),arms/js/reqAdd.js,1806,DELETE,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/removeNode.do,$.ajax,
+요구 관리,reqAdd,네비게이션,arms,일반 호출,arms/js/reqAdd.js,1945,POST,/auth-user/api/arms/reqAdd/getRequirementAssignee,$.ajax,
+요구 관리,reqAdd,네비게이션,arms,일반 호출,arms/js/reqAdd.js,1969,GET,/auth-user/api/arms/pdService/getVersionList?c_id={id},$.ajax,
+요구 관리,reqAdd,네비게이션,arms,상속(TreeAbstractController),arms/js/reqAdd.js,1987,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{id}/getMonitor.do,$.ajax,
+요구 관리,reqAdd,네비게이션,arms,상속(TreeAbstractController),arms/js/reqAdd.js,2003,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{id}/updateNode.do,$.ajax,
+요구 관리,reqAdd,네비게이션,arms,일반 호출,arms/js/reqAdd.js,2022,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{id}/updateDataBase.do,$.ajax,
+요구 관리 - Excel Upload,reqAddExcelUpload,네비게이션,arms,일반 호출,arms/js/reqAddExcelUpload.js,205,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+요구 관리 - Excel Upload,reqAddExcelUpload,네비게이션,arms,일반 호출,arms/js/reqAddExcelUpload.js,236,POST,/auth-user/api/arms/reqAdd/excel-upload/server-data/pd-service-id/{pdServiceIdForRequest},$.ajax,
+요구 관리 - Excel Upload,reqAddExcelUpload,네비게이션,arms,일반 호출,arms/js/reqAddExcelUpload.js,310,GET,/auth-user/api/arms/reqAdd/excel-upload/server-data/pd-service-id/{pdServiceId},$.ajax,
+요구 관리 - Excel Upload,reqAddExcelUpload,네비게이션,arms,일반 호출,arms/js/reqAddExcelUpload.js,579,HEAD,/auth-user/api/arms/reqAdd/excel-upload/server-data/pd-service-id/{selectPdServiceId}/download,$.ajax,
+요구 관리 - Excel Upload,reqAddExcelUpload,네비게이션,arms,일반 호출,arms/js/reqAddExcelUpload.js,672,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+요구 관리 - Excel Upload,reqAddExcelUpload,네비게이션,arms,일반 호출,arms/js/reqAddExcelUpload.js,704,POST,/auth-user/api/arms/reqAdd/excel-upload/req-def/pd-service-id/{pdServiceIdForRequest},$.ajax,
+요구 관리 - Excel Upload,reqAddExcelUpload,네비게이션,arms,일반 호출,arms/js/reqAddExcelUpload.js,764,GET,/auth-user/api/arms/reqAdd/excel-upload/req-def/pd-service-id/{pdServiceId},$.ajax,
+요구 관리 - Excel Upload,reqAddExcelUpload,네비게이션,arms,일반 호출,arms/js/reqAddExcelUpload.js,1036,HEAD,/auth-user/api/arms/reqAdd/excel-upload/req-def/pd-service-id/{reqDefSelectPdServiceId}/download,$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,일반 호출,arms/js/reqGantt.js,226,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,일반 호출,arms/js/reqGantt.js,305,GET,/auth-user/api/arms/pdService/getVersionList?c_id={selected_pdService},$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,일반 호출,arms/js/reqGantt.js,408,GET,/auth-user/api/arms/reqAddStatePure/T_ARMS_REQADD_{selectId}/monthlyProgressRate,$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,일반 호출,arms/js/reqGantt.js,1011,GET,/auth-user/api/arms/reqAddStatePure/T_ARMS_REQADD_{selectId}/weeklyProgressRate,$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,일반 호출,arms/js/reqGantt.js,1102,GET,/auth-user/api/arms/reqAddStatePure/T_ARMS_REQADD_{selectId}/monthlyWorkload,$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,일반 호출,arms/js/reqGantt.js,1191,GET,/auth-user/api/arms/reqAddStatePure/T_ARMS_REQADD_{selectId}/weeklyWorkload,$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,일반 호출,arms/js/reqGantt.js,1289,GET,/auth-user/api/arms/reqAddStatePure/T_ARMS_REQADD_{selectId}/workloadByAssignee,$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,일반 호출,arms/js/reqGantt.js,1337,GET,/auth-user/api/arms/reqAddStatePure/T_ARMS_REQADD_{selectId}/assigneeTrace,$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,일반 호출,arms/js/reqGantt.js,1506,GET,/auth-user/api/arms/reqAddStatePure/T_ARMS_REQADD_{selectId}/progressDataByAssignee,$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,상속(TreeAbstractController),arms/js/reqGantt.js,1548,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selected_pdService}/getNode.do?c_id={selectedId},$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,일반 호출,arms/js/reqGantt.js,1574,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selected_pdService}/getChildNodeWithParent.do,(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+간트 차트 - Gantt,reqGantt,네비게이션,arms,일반 호출,arms/js/reqGantt.js,1617,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selected_pdService}/getChildNodeWithParent.do?c_id={selectedId},(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+간트 차트 - Gantt,reqGantt,네비게이션,arms,상속(TreeAbstractController),arms/js/reqGantt.js,1659,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selected_pdService}/getNode.do?c_id={selectedId},$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,일반 호출,arms/js/reqGantt.js,1965,GET,/auth-user/search-user/{term},select2(ajax),
+간트 차트 - Gantt,reqGantt,네비게이션,arms,상속(TreeAbstractController),arms/js/reqGantt.js,2230,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/addNode.do,$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,상속(TreeAbstractController),arms/js/reqGantt.js,2378,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/updateNode.do,$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,일반 호출,arms/js/reqGantt.js,2415,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selected_pdService}/getHistory.do,$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,상속(TreeAbstractController),arms/js/reqGantt.js,2785,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/moveNode.do,$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,일반 호출,arms/js/reqGantt.js,2807,GET,/auth-user/api/arms/reqAddStatePure/T_ARMS_REQADD_{selectId}/reqProgress.do,$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,일반 호출,arms/js/reqGantt.js,2824,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selected_pdService}/updateDate.do,$.ajax,
+간트 차트 - Gantt,reqGantt,네비게이션,arms,일반 호출,arms/js/reqGantt.js,3187,GET,/auth-user/api/arms/report/portfolio-track-record/T_ARMS_REQADD_{selectId}/project-progress,$.ajax,
+칸반 보드 - Kanban,reqKanban,네비게이션,arms,일반 호출,arms/js/reqKanban.js,126,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+칸반 보드 - Kanban,reqKanban,네비게이션,arms,일반 호출,arms/js/reqKanban.js,212,GET,/auth-user/api/arms/pdService/getVersionList?c_id={selectedPdServiceId},$.ajax,
+칸반 보드 - Kanban,reqKanban,네비게이션,arms,일반 호출,arms/js/reqKanban.js,253,GET,/auth-user/api/arms/reqAdd/T_ARMS_REQADD_{selectedPdServiceId}/getReqAddListByFilter?c_req_pdservice_versionset_link={selectedVersionId}&c_type=default,$.ajax,
+칸반 보드 - Kanban,reqKanban,네비게이션,arms,일반 호출,arms/js/reqKanban.js,359,POST,/auth-user/api/arms/reqAdd/sync/T_ARMS_REQADD_{selectedPdServiceId}/updateDataBase.do,$.ajax,
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus.js,167,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus.js,295,GET,/auth-user/api/arms/report/full-data/excel-data-down-v2,$.ajax,
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus.js,340,GET,/auth-user/api/arms/reqStatus/T_ARMS_REQSTATUS_{pdServiceId}/req-status-dashboard,$.ajax,
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus.js,459,GET,/auth-user/api/arms/reqStatus/T_ARMS_REQSTATUS_{pdservice_id}/getStatistics.do?version={pdservice_version_id},$.ajax,
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus.js,520,GET,/auth-user/api/arms/pdService/getVersionList?c_id={selected_pdService},$.ajax,
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus.js,592,GET,/auth-user/api/arms/reqStatus/T_ARMS_REQSTATUS_{pdServiceId}/issue-list-by-updated,$.ajax,
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus.js,612,GET,/auth-user/api/arms/reqStatus/issueListByOverallUpdatedDate,$.ajax,
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus.js,1869,GET,/auth-user/api/arms/reqStatus/T_ARMS_REQSTATUS_{selectedPdServiceId}/reqIssues-created-together.do?pdServiceVersions={pdServiceVersions}&cReqLink={cReqLink},(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus.js,1869,GET,/auth-user/api/arms/reqStatus/T_ARMS_REQSTATUS_{selected_pdService}/deletedIssueList?pdServiceVersionLinks={selectedVersionId},(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus.js,2072,GET,/auth-user/api/arms/reqStatus/T_ARMS_REQSTATUS_{selectedPdServiceId}/reqIssues-created-together.do?pdServiceVersions={pdServiceVersions}&cReqLink={cReqLink},(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus.js,2072,GET,/auth-user/api/arms/reqStatus/T_ARMS_REQSTATUS_{selected_pdService}/deletedIssueList?pdServiceVersionLinks={selectedVersionId},(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus.js,2116,PUT,/auth-user/api/arms/reqStatus/deleteWithdrawal.do,$.ajax,
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus.js,2141,GET,/auth-user/api/arms/jiraServerPure/serverTypeMap.do,$.ajax,
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus.js,2764,POST,/auth-user/api/arms/reqStatus/subtasks-and-linked-issues,$.ajax,
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus/batchManualControlApi.js,42,GET,/auth-admin/yml/schedule/cache-status-mapping-data,$.ajax,base_url+batch_url_list[5]
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus/batchManualControlApi.js,42,GET,/auth-admin/yml/schedule/increment/sequentially_issue_es_store,$.ajax,base_url+batch_url_list[2]; batch_num==3 이면 /withDateRange?startDate={date_timepicker_start}&endDate={date_timepicker_end} 가 덧붙음
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus/batchManualControlApi.js,42,GET,/auth-admin/yml/schedule/issue_es_load,$.ajax,base_url+batch_url_list[3]
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus/batchManualControlApi.js,42,GET,/auth-admin/yml/schedule/retry-failed-req-status-creation-to-elasticsearch,$.ajax,base_url+batch_url_list[4]
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus/batchManualControlApi.js,42,GET,/auth-admin/yml/schedule/sequentially_issue_es_store,$.ajax,base_url+batch_url_list[1]
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus/batchManualControlApi.js,42,GET,/auth-admin/yml/schedule/server_info_backup,$.ajax,base_url+batch_url_list[0]
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus/batchManualControlApi.js,42,GET,/auth-admin/yml/schedule/sync-atlassian-directory-users,$.ajax,base_url+batch_url_list[7]
+현황 관리 - List,reqStatus,네비게이션,arms,일반 호출,arms/js/reqStatus/batchManualControlApi.js,42,GET,/auth-admin/yml/schedule/update-arms-state-category,$.ajax,base_url+batch_url_list[6]
+현황 관리 - Calendar,reqStatusCalendar,네비게이션,arms,일반 호출,arms/js/reqStatusCalendar.js,148,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,$.ajax,
+현황 관리 - Calendar,reqStatusCalendar,네비게이션,arms,일반 호출,arms/js/reqStatusCalendar.js,189,GET,/auth-user/api/arms/pdService/versions-with-date?c_id={selected_pdService},$.ajax,
+현황 관리 - Calendar,reqStatusCalendar,네비게이션,arms,일반 호출,arms/js/reqStatusCalendar.js,363,GET,/auth-user/api/arms/jiraProjectPure/getJiraProjects.do,$.ajax,
+현황 관리 - Calendar,reqStatusCalendar,네비게이션,arms,일반 호출,arms/js/reqStatusCalendar.js,404,GET,/auth-user/api/arms/report/full-data/assignee-list,$.ajax,
+현황 관리 - Calendar,reqStatusCalendar,네비게이션,arms,일반 호출,arms/js/reqStatusCalendar.js,447,GET,/auth-user/api/arms/reqStatus/calendar,$.ajax,
+SearchEngine,searchEngine,content-header,arms,일반 호출,arms/js/searchEngine.js,188,POST,/auth-user/search/engine/search/almIssue,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+SearchEngine,searchEngine,content-header,arms,일반 호출,arms/js/searchEngine.js,188,POST,/auth-user/search/engine/search/log,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+SearchEngine,searchEngine,content-header,arms,일반 호출,arms/js/searchEngine.js,188,POST,/auth-user/search/engine/search/wiki,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+SearchEngine,searchEngine,content-header,arms,일반 호출,arms/js/searchEngine.js,188,POST,/auth-user/search/engine/search/{searchSection},$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+SearchEngine,searchEngine,content-header,arms,일반 호출,arms/js/searchEngine.js,236,POST,/auth-user/search/engine/search/wiki/aggr-top5,$.ajax,
+SearchEngine,searchEngine,content-header,arms,일반 호출,arms/js/searchEngine.js,339,POST,/auth-user/search/engine/search/almIssue/project-aggr-top5,$.ajax,
+SearchEngine,searchEngine,content-header,arms,일반 호출,arms/js/searchEngine.js,401,POST,/auth-user/search/engine/search/log/aggr-top5,$.ajax,
+공통 모듈,util,공통,arms,일반 호출,arms/js/util/authorize.js,2,GET,/auth-user/me,$.ajax,
+Access Control,accessControl,네비게이션,backoffice,일반 호출,backoffice/js/accessControl.js,121,GET,/auth-admin/realms/master/access-control/groups,Event(ajax),$target.getUrl — $targets[2] (group)
+Access Control,accessControl,네비게이션,backoffice,일반 호출,backoffice/js/accessControl.js,121,GET,/auth-admin/realms/master/access-control/users,Event(ajax),$target.getUrl — $targets[1] (user)
+Access Control,accessControl,네비게이션,backoffice,일반 호출,backoffice/js/accessControl.js,121,GET,/auth-admin/realms/master/roles,Event(ajax),$target.getUrl — $targets[0] (role)
+Access Control,accessControl,네비게이션,backoffice,일반 호출,backoffice/js/accessControl.js,167,PUT,/auth-admin/realms/master/groups/{id},$.ajax,$target.updateUrl+data[$target.key] — $targets[2] (key=id)
+Access Control,accessControl,네비게이션,backoffice,일반 호출,backoffice/js/accessControl.js,167,PUT,/auth-admin/realms/master/role/{name},$.ajax,$target.updateUrl+data[$target.key] — $targets[0] (key=name)
+Access Control,accessControl,네비게이션,backoffice,일반 호출,backoffice/js/accessControl.js,167,PUT,/auth-admin/realms/master/user/{id},$.ajax,$target.updateUrl+data[$target.key] — $targets[1] (key=id)
+Audit Logging,auditLogging,네비게이션,backoffice,일반 호출,backoffice/js/auditLogging.js,193,POST,/auth-user/search/engine/search/almIssue,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Audit Logging,auditLogging,네비게이션,backoffice,일반 호출,backoffice/js/auditLogging.js,193,POST,/auth-user/search/engine/search/log,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Audit Logging,auditLogging,네비게이션,backoffice,일반 호출,backoffice/js/auditLogging.js,193,POST,/auth-user/search/engine/search/{searchSection},$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Audit Logging,auditLogging,네비게이션,backoffice,일반 호출,backoffice/js/auditLogging.js,235,POST,/auth-user/search/engine/search/log/aggr-top5,$.ajax,
+Es Index Config,esIndexConfig,네비게이션,backoffice,일반 호출,backoffice/js/esIndexConfig.js,120,POST,/auth-admin/yml/schedule/es-index/alm-issue/merge,$.ajax,
+Es Index Config,esIndexConfig,네비게이션,backoffice,일반 호출,backoffice/js/esIndexConfig.js,135,POST,/auth-admin/yml/schedule/es-index/fluentd/merge,$.ajax,
+Es Index Config,esIndexConfig,네비게이션,backoffice,일반 호출,backoffice/js/esIndexConfig.js,235,GET,/auth-user/api/arms/backoffice/es-index/sum-list,(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+Es Index Config,esIndexConfig,네비게이션,backoffice,일반 호출,backoffice/js/esIndexConfig.js,324,GET,/auth-user/api/arms/backoffice/es-index/index-status/histories,(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+Es Index Config,esIndexConfig,네비게이션,backoffice,일반 호출,backoffice/js/esIndexConfig.js,412,GET,/auth-user/api/arms/backoffice/es-index/index-status/histories,(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+Es Monitoring,esMonitoring,네비게이션,backoffice,일반 호출,backoffice/js/esMonitoring.js,188,GET,/auth-user/search/engine/admin/monitoring/is-healthy,$.ajax,
+Es Monitoring,esMonitoring,네비게이션,backoffice,일반 호출,backoffice/js/esMonitoring.js,305,GET,/auth-user/search/engine/admin/monitoring/health,$.ajax,
+Es Monitoring,esMonitoring,네비게이션,backoffice,일반 호출,backoffice/js/esMonitoring.js,429,GET,/auth-user/search/engine/admin/monitoring/nodes,$.ajax,
+Es Monitoring,esMonitoring,네비게이션,backoffice,일반 호출,backoffice/js/esMonitoring.js,525,GET,/auth-user/search/engine/admin/monitoring/thread-pool,$.ajax,
+Es Monitoring,esMonitoring,네비게이션,backoffice,일반 호출,backoffice/js/esMonitoring.js,642,GET,/auth-user/search/engine/admin/monitoring/indexing,$.ajax,
+Es Monitoring,esMonitoring,네비게이션,backoffice,일반 호출,backoffice/js/esMonitoring.js,736,GET,/auth-user/search/engine/admin/monitoring/summary,$.ajax,
+Kafka Admin,kafkaAdmin,네비게이션,backoffice,일반 호출,backoffice/js/kafkaAdmin.js,222,GET,/auth-user/api/kafka/REQADD-DLT/list,$.ajax,
+Kafka Admin,kafkaAdmin,네비게이션,backoffice,상속(TreeAbstractController),backoffice/js/kafkaAdmin.js,259,POST,/auth-user/api/arms/reqAdd/sync/{key}/addNode.do,$.ajax,
+Language Config,languageConfig,네비게이션,backoffice,일반 호출,backoffice/js/languageConfig.js,289,GET,/auth-admin/yml/language-config/packs/files,$.get,
+Language Config,languageConfig,네비게이션,backoffice,일반 호출,backoffice/js/languageConfig.js,368,GET,/auth-admin/yml/language-config/packs/all-contents,$.get,
+Language Config,languageConfig,네비게이션,backoffice,일반 호출,backoffice/js/languageConfig.js,381,GET,/auth-anon/yml/language-config/packs/language/{languageCode},$.get,
+Language Config,languageConfig,네비게이션,backoffice,일반 호출,backoffice/js/languageConfig.js,405,GET,/auth-anon/yml/language-config/packs/language/ko,$.get,파라미터 → 같은 파일 호출부 인자 대입
+Language Config,languageConfig,네비게이션,backoffice,일반 호출,backoffice/js/languageConfig.js,827,PUT,/auth-admin/yml/language-config/packs/language/{langCode},$.ajax,
+Language Config,languageConfig,네비게이션,backoffice,일반 호출,backoffice/js/languageConfig.js,851,PUT,/auth-admin/yml/language-config/packs/language/ko,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Language Config,languageConfig,네비게이션,backoffice,일반 호출,backoffice/js/languageConfig.js,851,PUT,/auth-admin/yml/language-config/packs/language/{languageCode},$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Language Config,languageConfig,네비게이션,backoffice,일반 호출,backoffice/js/languageConfig.js,872,PUT,/auth-admin/yml/language-config/packs/language/{languageCode},$.ajax,
+Language Config,languageConfig,네비게이션,backoffice,일반 호출,backoffice/js/languageConfig.js,889,DELETE,/auth-admin/yml/language-config/packs/language/{languageCode},$.ajax,
+Language Config,languageConfig,네비게이션,backoffice,일반 호출,backoffice/js/languageConfig.js,905,GET,/auth-admin/yml/language-config/packs/all-contents/refresh,$.get,
+Language Config,languageConfig,네비게이션,backoffice,일반 호출,backoffice/js/languageConfig.js,916,GET,/auth-admin/yml/language-config/packs/all-contents/refresh,$.get,
+Language Config,languageConfig,네비게이션,backoffice,일반 호출,backoffice/js/languageConfig.js,970,GET,/auth-admin/yml/language-config/packs/language/{languageCode}/keys/exists,$.ajax,
+Mail Report Config,mailReportConfig,content-header,backoffice,상속(TreeAbstractController),backoffice/js/mailReportConfig.js,159,GET,/auth-user/api/arms/report/mail-sender/getNodesWithoutRoot.do,$.ajax,
+Mail Report Config,mailReportConfig,content-header,backoffice,일반 호출,backoffice/js/mailReportConfig.js,243,POST,/auth-user/api/arms/mail/validate,$.ajax,
+Mail Report Config,mailReportConfig,content-header,backoffice,상속(TreeAbstractController),backoffice/js/mailReportConfig.js,321,POST,/auth-user/api/arms/report/mail-sender/addNode.do,$.ajax,
+Mail Report Config,mailReportConfig,content-header,backoffice,상속(TreeAbstractController),backoffice/js/mailReportConfig.js,354,DELETE,/auth-user/api/arms/report/mail-sender/removeNode.do,$.ajax,
+Mail Report Config,mailReportConfig,content-header,backoffice,상속(TreeAbstractController),backoffice/js/mailReportConfig.js,414,PUT,/auth-user/api/arms/report/mail-sender/updateNode.do,$.ajax,
+Mail Report Config,mailReportConfig,content-header,backoffice,상속(TreeAbstractController),backoffice/js/mailReportConfig.js,537,POST,/auth-user/api/arms/report/mail-receiver/addNode.do,$.ajax,
+Mail Report Config,mailReportConfig,content-header,backoffice,상속(TreeAbstractController),backoffice/js/mailReportConfig.js,629,GET,/auth-user/api/arms/report/mail-receiver/getNodesWithoutRoot.do,(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+Mail Report Config,mailReportConfig,content-header,backoffice,상속(TreeAbstractController),backoffice/js/mailReportConfig.js,697,PUT,/auth-user/api/arms/report/mail-receiver/updateNode.do,$.ajax,
+Mail Report Config,mailReportConfig,content-header,backoffice,상속(TreeAbstractController),backoffice/js/mailReportConfig.js,725,DELETE,/auth-user/api/arms/report/mail-receiver/removeNode.do,$.ajax,
+Mail Report Config,mailReportConfig,content-header,backoffice,일반 호출,backoffice/js/mailReportConfig.js,747,POST,/auth-user/api/arms/mail/send-test,$.ajax,
+Schedule Config,scheduleConfig,네비게이션,backoffice,일반 호출,backoffice/js/scheduleConfig.js,311,POST,/auth-user/search/engine/search/schedule-history-log,$.ajax,
+Schedule Config,scheduleConfig,네비게이션,backoffice,일반 호출,backoffice/js/scheduleConfig.js,333,GET,/auth-admin/yml/schedule/getCurrentScheduleList,$.ajax,
+Schedule Config,scheduleConfig,네비게이션,backoffice,일반 호출,backoffice/js/scheduleConfig.js,512,POST,/auth-admin/yml/saveScheduleList?fileName={fileName},$.ajax,
+Schedule Config,scheduleConfig,네비게이션,backoffice,일반 호출,backoffice/js/scheduleConfig/host.js,11,GET,html/generalconfig/content-container.html,$.get,
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,421,GET,/auth-admin/realms,$.ajax,원문 말미 / 제거(경로 정규화)
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,434,GET,/auth-admin/realms/master/groups,$.ajax,
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,562,GET,/auth-admin/realms/master/groups/{groupId},$.ajax,
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,578,GET,/auth-admin/realms/master/groups/{groupId},$.ajax,
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,597,PUT,/auth-admin/realms/master/groups/{groupId},$.ajax,
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,619,DELETE,/auth-admin/realms/master/groups/{groupId},$.ajax,
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,643,POST,/auth-admin/realms/{realm}/groups,$.ajax,
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,662,POST,/auth-admin/realms/{realm}/groups/{parentGoupId}/children,$.ajax,
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,681,GET,/auth-admin/realms/master/groups/{groupId}/role-mappings/realm/composite,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,681,GET,/auth-admin/realms/{realm}/groups/{groupId}/role-mappings/realm/composite,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,695,GET,/auth-admin/realms/master/groups/{groupId}/role-mappings/realm/available,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,695,GET,/auth-admin/realms/{realm}/groups/{groupId}/role-mappings/realm/available,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,709,GET,/auth-admin/realms/master/groups/{groupId}/role-mappings/realm,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,709,GET,/auth-admin/realms/{realm}/groups/{groupId}/role-mappings/realm,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,724,POST,/auth-admin/realms/{realm}/groups/{groupId}/role-mappings/realm,$.ajax,
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,741,DELETE,/auth-admin/realms/{realm}/groups/{groupId}/role-mappings/realm,$.ajax,
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,759,GET,/auth-admin/realms/master/groups/{groupId}/members,$.ajax,파라미터 → 같은 파일 호출부 인자 대입
+Group,securityGroup,네비게이션,backoffice,일반 호출,backoffice/js/securityGroup.js,979,PUT,/auth-admin/realms/master/groups/{id},$.ajax,
+Role,securityRole,네비게이션,backoffice,일반 호출,backoffice/js/securityRole.js,58,GET,/auth-admin/realms/master/role/{name}/users,$.ajax,
+Role,securityRole,네비게이션,backoffice,일반 호출,backoffice/js/securityRole.js,96,POST,/auth-admin/realms/master/role,$.ajax,선택 role 없음 → 신규 생성
+Role,securityRole,네비게이션,backoffice,일반 호출,backoffice/js/securityRole.js,96,PUT,/auth-admin/realms/master/role/{name},$.ajax,"selectedData 있으면 url += '/'+selectedData.name, type='PUT'"
+Role,securityRole,네비게이션,backoffice,일반 호출,backoffice/js/securityRole.js,115,DELETE,/auth-admin/realms/master/role/{name},$.ajax,
+Role,securityRole,네비게이션,backoffice,일반 호출,backoffice/js/securityRole.js,188,GET,/auth-admin/realms/master/roles,table(ajax),
+User,securityUser,네비게이션,backoffice,일반 호출,backoffice/js/securityUser.js,87,GET,/auth-admin/realms/master/user/{id}/role-mappings/realm,$.ajax,
+User,securityUser,네비게이션,backoffice,일반 호출,backoffice/js/securityUser.js,100,GET,/auth-admin/realms/master/user/{id}/groups,$.ajax,
+User,securityUser,네비게이션,backoffice,일반 호출,backoffice/js/securityUser.js,145,GET,/auth-admin/realms/master/roles,$.ajax,
+User,securityUser,네비게이션,backoffice,일반 호출,backoffice/js/securityUser.js,159,POST,/auth-admin/realms/master/user/{id}/role-mappings/realm,$.ajax,
+User,securityUser,네비게이션,backoffice,일반 호출,backoffice/js/securityUser.js,172,DELETE,/auth-admin/realms/master/user/{id}/role-mappings/realm,$.ajax,
+User,securityUser,네비게이션,backoffice,일반 호출,backoffice/js/securityUser.js,183,GET,/auth-admin/realms/master/groups,$.ajax,
+User,securityUser,네비게이션,backoffice,일반 호출,backoffice/js/securityUser.js,207,PUT,/auth-admin/realms/master/user/{id}/groups/{id},$.ajax,
+User,securityUser,네비게이션,backoffice,일반 호출,backoffice/js/securityUser.js,216,DELETE,/auth-admin/realms/master/user/{id}/groups/{id},$.ajax,
+User,securityUser,네비게이션,backoffice,일반 호출,backoffice/js/securityUser.js,231,GET,/auth-admin/realms/master/user/{id}/role-mappings/realm,$.ajax,
+User,securityUser,네비게이션,backoffice,일반 호출,backoffice/js/securityUser.js,264,DELETE,/auth-admin/realms/master/user/{id},$.ajax,
+User,securityUser,네비게이션,backoffice,일반 호출,backoffice/js/securityUser.js,315,POST,/auth-admin/realms/master/user,$.ajax,선택 user 없음 → 신규 생성
+User,securityUser,네비게이션,backoffice,일반 호출,backoffice/js/securityUser.js,315,PUT,/auth-admin/realms/master/user/{id},$.ajax,"selectedData 있으면 url += '/'+selectedData.id, type='put'"
+User,securityUser,네비게이션,backoffice,일반 호출,backoffice/js/securityUser.js,436,GET,/auth-admin/realms/master/users,table(ajax),
+SMTP Config,smtp,네비게이션,backoffice,일반 호출,backoffice/js/smtp.js,48,GET,/auth-admin/token,$.ajax,
+SMTP Config,smtp,네비게이션,backoffice,상속(TreeAbstractController),backoffice/js/smtp.js,79,GET,/auth-user/api/arms/report/mail-sender/getNodesWithoutRoot.do,$.ajax,
+SMTP Config,smtp,네비게이션,backoffice,일반 호출,backoffice/js/smtp.js,99,GET,/auth-admin/realms/master,$.ajax,
+SMTP Config,smtp,네비게이션,backoffice,일반 호출,backoffice/js/smtp.js,133,POST,/auth-admin/realms/master,$.ajax,
+SMTP Config,smtp,네비게이션,backoffice,일반 호출,backoffice/js/smtp.js,204,POST,/auth-admin/realms/smtp/master,$.ajax,
+System Info,systemInfo,네비게이션,backoffice,일반 호출,backoffice/js/systemInfo.js,270,GET,/auth-admin/api/arms/backoffice/system-info/getSystemInfo/org-link,$.ajax,원문 말미 / 제거(경로 정규화)
+System Info,systemInfo,네비게이션,backoffice,일반 호출,backoffice/js/systemInfo.js,595,GET,/auth-user/search-user/{term},select2(ajax),
+System Info,systemInfo,네비게이션,backoffice,일반 호출,backoffice/js/systemInfo.js,678,GET,/auth-user/api/arms/pdService/uploadFileToNode.do,fileupload(url),
+System Info,systemInfo,네비게이션,backoffice,일반 호출,backoffice/js/systemInfo.js,744,GET,/auth-user/api/arms/pdServicePure/getPdServiceMonitor.do,(ajax) via dataTable_extendBuild->dataTable_build(arg1),common.js:1799 dataTable_extendBuild->dataTable_build 경유
+System Info,systemInfo,네비게이션,backoffice,일반 호출,backoffice/js/systemInfo.js,797,GET,/auth-user/api/arms/fileRepository/getFilesByNode.do,$.ajax,
+System Info,systemInfo,네비게이션,backoffice,상속(TreeAbstractController),backoffice/js/systemInfo.js,828,GET,/auth-user/api/arms/pdServicePure/getNode.do,$.ajax,
+System Info,systemInfo,네비게이션,backoffice,일반 호출,backoffice/js/systemInfo.js,1028,POST,/auth-user/api/arms/pdService/addPdServiceNode.do,$.ajax,
+System Info,systemInfo,네비게이션,backoffice,상속(TreeAbstractController),backoffice/js/systemInfo.js,1070,DELETE,/auth-user/api/arms/pdService/removeNode.do,$.ajax,
+System Info,systemInfo,네비게이션,backoffice,상속(TreeAbstractController),backoffice/js/systemInfo.js,1119,PUT,/auth-user/api/arms/pdService/updateNode.do,$.ajax,
+System Info,systemInfo,네비게이션,backoffice,상속(TreeAbstractController),backoffice/js/systemInfo.js,1176,PUT,/auth-user/api/arms/pdService/updateNode.do,$.ajax,
+System Info,systemInfo,네비게이션,backoffice,일반 호출,backoffice/js/systemInfo.js,1208,GET,/auth-user/api/arms/fileRepository/getFilesByNode.do,$.ajax,
+Timeoff,timeoff,네비게이션,backoffice,상속(TreeAbstractController),backoffice/js/timeoff.js,67,GET,/auth-user/api/arms/backoffice/holiday/getNodesWithoutRoot.do,$.ajax,
+Timeoff,timeoff,네비게이션,backoffice,일반 호출,backoffice/js/timeoff.js,355,POST,/auth-user/api/arms/backoffice/holiday/addHoliday.do,$.ajax,
+Timeoff,timeoff,네비게이션,backoffice,일반 호출,backoffice/js/timeoff.js,372,PUT,/auth-user/api/arms/backoffice/holiday/updateHoliday.do,$.ajax,
+Timeoff,timeoff,네비게이션,backoffice,일반 호출,backoffice/js/timeoff.js,389,DELETE,/auth-user/api/arms/backoffice/holiday/removeHoliday.do,$.ajax,
+Timeoff,timeoff,네비게이션,backoffice,일반 호출,backoffice/js/timeoff.js,418,POST,/auth-user/api/arms/backoffice/holiday/syncPublicHoliday.do,$.ajax,
+Vector Indexing,vectorIndexing,네비게이션,backoffice,일반 호출,backoffice/js/vectorIndexing.js,140,GET,/auth-user/ai/admin/filesystem/directories,$.get,
+Vector Indexing,vectorIndexing,네비게이션,backoffice,일반 호출,backoffice/js/vectorIndexing.js,235,POST,/auth-user/ai/admin/filesystem/directory?path={newPath},$.ajax,
+Vector Indexing,vectorIndexing,네비게이션,backoffice,일반 호출,backoffice/js/vectorIndexing.js,256,DELETE,/auth-user/ai/admin/filesystem/directory?path={path},$.ajax,
+Vector Indexing,vectorIndexing,네비게이션,backoffice,일반 호출,backoffice/js/vectorIndexing.js,265,DELETE,/auth-user/ai/admin/filesystem/files,$.ajax,
+Vector Indexing,vectorIndexing,네비게이션,backoffice,일반 호출,backoffice/js/vectorIndexing.js,401,GET,/auth-user/ai/admin/vector/classify,$.ajax,getVectorApiUrl(path) — 그 외 파일
+Vector Indexing,vectorIndexing,네비게이션,backoffice,일반 호출,backoffice/js/vectorIndexing.js,401,GET,/auth-user/ai/admin/vector/ndjson/classify,$.ajax,getVectorApiUrl(path) — ndjson 파일
+Vector Indexing,vectorIndexing,네비게이션,backoffice,일반 호출,backoffice/js/vectorIndexing.js,628,POST,/auth-user/ai/admin/vector,$.ajax,grouped key = getVectorApiUrl(item.path) — 그 외 파일
+Vector Indexing,vectorIndexing,네비게이션,backoffice,일반 호출,backoffice/js/vectorIndexing.js,628,POST,/auth-user/ai/admin/vector/ndjson,$.ajax,grouped key = getVectorApiUrl(item.path) — ndjson 파일
+Vector Indexing,vectorIndexing,네비게이션,backoffice,일반 호출,backoffice/js/vectorIndexing.js,655,GET,/auth-user/ai/admin/filesystem/file,$.ajax,
+Vector Indexing,vectorIndexing,네비게이션,backoffice,일반 호출,backoffice/js/vectorIndexing.js,704,GET,/auth-user/ai/admin/filesystem/directories,$.ajax,
+Vector Indexing,vectorIndexing,네비게이션,backoffice,일반 호출,backoffice/js/vectorIndexing.js,749,GET,/auth-user/ai/admin/filesystem/directories,$.ajax,
+Vector Indexing,vectorIndexing,네비게이션,backoffice,일반 호출,backoffice/js/vectorIndexing.js,800,GET,/auth-user/ai/admin/filesystem/directories,$.ajax,
+Vector Indexing,vectorIndexing,네비게이션,backoffice,일반 호출,backoffice/js/vectorIndexing.js,860,GET,/auth-user/ai/admin/filesystem/directories,$.get,
+Vector Indexing,vectorIndexing,네비게이션,backoffice,일반 호출,backoffice/js/vectorIndexing.js,904,GET,/auth-user/ai/admin/filesystem/directories,$.ajax,
+Vector Indexing,vectorIndexing,네비게이션,backoffice,일반 호출,backoffice/js/vectorIndexing.js,993,GET,/auth-user/ai/admin/filesystem/directories,$.ajax,
+Vector Indexing,vectorIndexing,네비게이션,backoffice,일반 호출,backoffice/js/vectorIndexing.js,1033,GET,/auth-user/ai/admin/filesystem/upload,fileupload(url),

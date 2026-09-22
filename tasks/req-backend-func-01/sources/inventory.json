@@ -1,0 +1,894 @@
+{
+ "perController": {
+  "ErrorControllerAdvice": {
+   "base": "",
+   "own": 0,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/egovframework/javaservice/treeframework/errors/response/ErrorControllerAdvice.java"
+  },
+  "PocController": {
+   "base": "/anonymous/arms/poc",
+   "own": 5,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/poc/controller/PocController.java"
+  },
+  "UserGroupController": {
+   "base": "/arms/userGroup",
+   "own": 7,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/usergroup/controller/UserGroupController.java"
+  },
+  "SalaryController": {
+   "base": "/admin/arms/salaries",
+   "own": 4,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/analysis/cost/controller/SalaryController.java"
+  },
+  "CostController": {
+   "base": "/admin/arms/analysis/cost",
+   "own": 10,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/analysis/cost/controller/CostController.java"
+  },
+  "SalaryLogController": {
+   "base": "/arms/salaryLog",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/analysis/cost/controller/SalaryLogController.java"
+  },
+  "ScopeController": {
+   "base": "/admin/arms/analysis/scope",
+   "own": 10,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/analysis/scope/controller/ScopeController.java"
+  },
+  "TopMenuController": {
+   "base": "/arms/analysis",
+   "own": 5,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/analysis/topmenu/controller/TopMenuController.java"
+  },
+  "TimeController": {
+   "base": "/admin/arms/analysis/time",
+   "own": 5,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/analysis/time/controller/TimeController.java"
+  },
+  "ResourceController": {
+   "base": "/admin/arms/analysis/resource",
+   "own": 12,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/analysis/resource/controller/ResourceController.java"
+  },
+  "GlobalContentsTreeMapController": {
+   "base": "/arms/global-contents-treemap",
+   "own": 0,
+   "inherited": 0,
+   "parent": "ContentsTreeMapAbstractController",
+   "file": "com/arms/api/globaltreemap/controller/GlobalContentsTreeMapController.java"
+  },
+  "GlobalTreeMapController": {
+   "base": "/arms/globaltreemap",
+   "own": 2,
+   "inherited": 9,
+   "parent": "TreeMapAbstractController",
+   "file": "com/arms/api/globaltreemap/controller/GlobalTreeMapController.java"
+  },
+  "FileRepositoryController": {
+   "base": "/arms/fileRepository",
+   "own": 3,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/util/filerepository/controller/FileRepositoryController.java"
+  },
+  "SampleMybatisContoller": {
+   "base": "/arms/sample/mybatis",
+   "own": 1,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/util/samplemybastis/controller/SampleMybatisContoller.java"
+  },
+  "FileRepositoryLogController": {
+   "base": "/arms/fileRepositoryLog",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/util/filerepositorylog/controller/FileRepositoryLogController.java"
+  },
+  "SchedulerController": {
+   "base": "/arms/scheduler",
+   "own": 7,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/util/dynamicscheduler/controller/SchedulerController.java"
+  },
+  "ReqStatusSyncController": {
+   "base": "/arms/reqStatusSync",
+   "own": 1,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/util/dynamicscheduler/controller/ReqStatusSyncController.java"
+  },
+  "DynamicDBMakerController": {
+   "base": "/arms/dynamicDBMaker",
+   "own": 1,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/util/dynamicdbmaker/controller/DynamicDBMakerController.java"
+  },
+  "AlarmController": {
+   "base": "/arms/alarm",
+   "own": 6,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/dwralarm/controller/AlarmController.java"
+  },
+  "WikiController": {
+   "base": "/arms/wiki",
+   "own": 18,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/wiki/controller/WikiController.java"
+  },
+  "PdServiceVersionLogController": {
+   "base": "/arms/pdServiceVersionLog",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/product_service/pdserviceversionlog/controller/PdServiceVersionLogController.java"
+  },
+  "PdServicePureController": {
+   "base": "/arms/pdServicePure",
+   "own": 5,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/product_service/pdservice_pure/controller/PdServicePureController.java"
+  },
+  "PdServiceDetailController": {
+   "base": "/arms/pdServiceDetail",
+   "own": 6,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/product_service/pdservice_detail/controller/PdServiceDetailController.java"
+  },
+  "PdServiceVersionController": {
+   "base": "/arms/pdServiceVersion",
+   "own": 2,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/product_service/pdserviceversion/controller/PdServiceVersionController.java"
+  },
+  "PdServiceController": {
+   "base": "/arms/pdService",
+   "own": 12,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/product_service/pdservice/controller/PdServiceController.java"
+  },
+  "PdServiceLogController": {
+   "base": "/arms/pdServiceLog",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/product_service/pdservicelog/controller/PdServiceLogController.java"
+  },
+  "DetailDashboardController": {
+   "base": "/arms/detail-dashboard",
+   "own": 5,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/detail_dashboard/controller/DetailDashboardController.java"
+  },
+  "PocReqRegisterController": {
+   "base": "/arms/poc/req-register",
+   "own": 4,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/pocreq/controller/PocReqRegisterController.java"
+  },
+  "HolidayController": {
+   "base": "/arms/backoffice/holiday",
+   "own": 4,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/backoffice/information/timeoff/controller/HolidayController.java"
+  },
+  "EsIndexConfigController": {
+   "base": "/arms/backoffice/es-index",
+   "own": 2,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/backoffice/config/esindex/controller/EsIndexConfigController.java"
+  },
+  "SystemInfoController": {
+   "base": "/admin/arms/backoffice/system-info",
+   "own": 1,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/backoffice/system/systeminfo/controller/SystemInfoController.java"
+  },
+  "BlogController": {
+   "base": "/anonymous/arms/blog",
+   "own": 10,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/blog/controller/BlogController.java"
+  },
+  "DashboardController": {
+   "base": "/arms/dashboard",
+   "own": 6,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/dashboard/controller/DashboardController.java"
+  },
+  "ReqAddStatePureController": {
+   "base": "/arms/reqAddStatePure",
+   "own": 11,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqadd_state_pure/controller/ReqAddStatePureController.java"
+  },
+  "ReqReviewCommentLogController": {
+   "base": "/arms/reqReviewCommentLog",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqreviewcommentlog/controller/ReqReviewCommentLogController.java"
+  },
+  "ReqCommentController": {
+   "base": "/arms/reqComment",
+   "own": 6,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqcomment/controller/ReqCommentController.java"
+  },
+  "ReqStatusCalendarController": {
+   "base": "/arms/reqStatus/calendar",
+   "own": 1,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/requirement/reqstatus_calendar/controller/ReqStatusCalendarController.java"
+  },
+  "ReqStateCategoryLogController": {
+   "base": "/arms/reqStateCategoryLog",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqstate_category_log/controller/ReqStateCategoryLogController.java"
+  },
+  "ReqAddLogController": {
+   "base": "/arms/reqAddLog",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqaddlog/controller/ReqAddLogController.java"
+  },
+  "ReqAddController": {
+   "base": "/arms/reqAdd",
+   "own": 33,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqadd/controller/ReqAddController.java"
+  },
+  "KafkaMonitorController": {
+   "base": "/kafka",
+   "own": 6,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/requirement/reqadd/kafka/controller/KafkaMonitorController.java"
+  },
+  "ReqAddPureController": {
+   "base": "/arms/reqAddPure",
+   "own": 12,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqadd_pure/controller/ReqAddPureController.java"
+  },
+  "ReqPriorityController": {
+   "base": "/arms/reqPriority",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqpriority/controller/ReqPriorityController.java"
+  },
+  "ReqUrgencyController": {
+   "base": "/arms/reqUrgency",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/requrgency/controller/ReqUrgencyController.java"
+  },
+  "ReqCommentLogController": {
+   "base": "/arms/reqCommentLog",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqcommentlog/controller/ReqCommentLogController.java"
+  },
+  "ReqStatusLogController": {
+   "base": "/arms/reqStatusLog",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqstatuslog/controller/ReqStatusLogController.java"
+  },
+  "ReqReviewController": {
+   "base": "/arms/reqReview",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqreview/controller/ReqReviewController.java"
+  },
+  "ReqDifficultyController": {
+   "base": "/arms/reqDifficulty",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqdifficulty/controller/ReqDifficultyController.java"
+  },
+  "ReqStateController": {
+   "base": "/arms/reqState",
+   "own": 6,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqstate/controller/ReqStateController.java"
+  },
+  "ReqStatusController": {
+   "base": "/arms/reqStatus",
+   "own": 18,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqstatus/controller/ReqStatusController.java"
+  },
+  "ReqReviewCommentController": {
+   "base": "/arms/reqReviewComment",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqreviewcomment/controller/ReqReviewCommentController.java"
+  },
+  "ReqStateCategoryController": {
+   "base": "/arms/reqStateCategory",
+   "own": 2,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqstate_category/controller/ReqStateCategoryController.java"
+  },
+  "ReqImportanceController": {
+   "base": "/arms/reqImportance",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqimportance/controller/ReqImportanceController.java"
+  },
+  "ReqReviewLogController": {
+   "base": "/arms/reqReviewLog",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/requirement/reqreviewlog/controller/ReqReviewLogController.java"
+  },
+  "JiraIssueStatusCategoryMapController": {
+   "base": "/arms/jiraIssueStatusCategoryMap",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraissuestatuscategorymap/controller/JiraIssueStatusCategoryMapController.java"
+  },
+  "JiraIssuePriorityLogController": {
+   "base": "/arms/jiraIssuePriorityLog",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraissueprioritylog/controller/JiraIssuePriorityLogController.java"
+  },
+  "JiraIssueStatusController": {
+   "base": "/arms/jiraIssueStatus",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraissuestatus/controller/JiraIssueStatusController.java"
+  },
+  "JiraIssueTypeController": {
+   "base": "/arms/jiraIssueType",
+   "own": 1,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraissuetype/controller/JiraIssueTypeController.java"
+  },
+  "JiraProjectPureController": {
+   "base": "/arms/jiraProjectPure",
+   "own": 1,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraproject_pure/controller/JiraProjectPureController.java"
+  },
+  "JiraServerLogController": {
+   "base": "/arms/jiraServerLog",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraserverlog/controller/JiraServerLogController.java"
+  },
+  "JiraIssueResolutionController": {
+   "base": "/arms/jiraIssueResolution",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraissueresolution/controller/JiraIssueResolutionController.java"
+  },
+  "JiraIssuePriorityController": {
+   "base": "/arms/jiraIssuePriority",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraissuepriority/controller/JiraIssuePriorityController.java"
+  },
+  "JiraServerController": {
+   "base": "/arms/jiraServer",
+   "own": 13,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraserver/controller/JiraServerController.java"
+  },
+  "JiraServerPureController": {
+   "base": "/arms/jiraServerPure",
+   "own": 7,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraserver_pure/controller/JiraServerPureController.java"
+  },
+  "JiraIssueResolutionLogController": {
+   "base": "/arms/jiraIssueResolutionLog",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraissueresolutionlog/controller/JiraIssueResolutionLogController.java"
+  },
+  "JiraServerProjectPureController": {
+   "base": "/arms/jiraServerProjectPure",
+   "own": 3,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraserver_project_pure/controller/JiraServerProjectPureController.java"
+  },
+  "JiraIssueStatusLogController": {
+   "base": "/arms/jiraIssueStatusLog",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraissuestatuslog/controller/JiraIssueStatusLogController.java"
+  },
+  "JiraIssueTypeLogController": {
+   "base": "/arms/jiraIssueTypeLog",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraissuetypelog/controller/JiraIssueTypeLogController.java"
+  },
+  "JiraProjectIssueTypePureController": {
+   "base": "/arms/jiraProjectIssueTypePure",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraproject_issuetype_pure/controller/JiraProjectIssueTypePureController.java"
+  },
+  "JiraProjectController": {
+   "base": "/arms/jiraProject",
+   "own": 2,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraproject/controller/JiraProjectController.java"
+  },
+  "JiraProjectLogController": {
+   "base": "/arms/jiraProjectLog",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/jira/jiraprojectlog/controller/JiraProjectLogController.java"
+  },
+  "TemplateController": {
+   "base": "/arms/export/templates",
+   "own": 11,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/report/export_service/controller/TemplateController.java"
+  },
+  "TemplateTestController": {
+   "base": "/arms/export/templates/test",
+   "own": 13,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/report/export_service/controller/TemplateTestController.java"
+  },
+  "ReportExportController": {
+   "base": "/arms/export/reports",
+   "own": 6,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/report/export_service/controller/ReportExportController.java"
+  },
+  "TemplateFileController": {
+   "base": "/arms/report-template",
+   "own": 3,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/report/export_service/controller/TemplateFileController.java"
+  },
+  "ReportExceptionHandler": {
+   "base": "",
+   "own": 0,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/report/export_service/exception/ReportExceptionHandler.java"
+  },
+  "MailController": {
+   "base": "/arms/mail",
+   "own": 6,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/report/mail/controller/MailController.java"
+  },
+  "MailReportController": {
+   "base": "/arms/mail/report",
+   "own": 3,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/report/mail/controller/MailReportController.java"
+  },
+  "GenerateChartImageController": {
+   "base": "/html/mail",
+   "own": 2,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/report/mail/controller/GenerateChartImageController.java"
+  },
+  "SenderLogController": {
+   "base": "/arms/report/mail-sender-log",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/report/mail/controller/sender/SenderLogController.java"
+  },
+  "SenderController": {
+   "base": "/arms/report/mail-sender",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/report/mail/controller/sender/SenderController.java"
+  },
+  "ReceiverLogController": {
+   "base": "/arms/report/mail-receiver-log",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/report/mail/controller/receiver/ReceiverLogController.java"
+  },
+  "ReceiverController": {
+   "base": "/arms/report/mail-receiver",
+   "own": 0,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/report/mail/controller/receiver/ReceiverController.java"
+  },
+  "WeeklyKpiReportController": {
+   "base": "/arms/report",
+   "own": 2,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/report/collaboratekpi/controller/WeeklyKpiReportController.java"
+  },
+  "FullDataController": {
+   "base": "/arms/report/full-data",
+   "own": 3,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/report/fulldata/controller/FullDataController.java"
+  },
+  "PortfolioTrackRecordController": {
+   "base": "/arms/report/portfolio-track-record",
+   "own": 4,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/report/ptr/controller/PortfolioTrackRecordController.java"
+  },
+  "PerformanceReportController": {
+   "base": "/arms/report",
+   "own": 10,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/report/performance/controller/PerformanceReportController.java"
+  },
+  "WeeklyReportController": {
+   "base": "/arms/report",
+   "own": 10,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/report/weekly/controller/WeeklyReportController.java"
+  },
+  "ReqTraceController": {
+   "base": "/arms/report/reqTrace",
+   "own": 1,
+   "inherited": 0,
+   "parent": "",
+   "file": "com/arms/api/report/reqtrace/controller/ReqTraceController.java"
+  },
+  "AdminPatchController": {
+   "base": "/arms/patchnote",
+   "own": 2,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/patchnote/controller/AdminPatchController.java"
+  },
+  "PatchnoteController": {
+   "base": "/anonymous/arms/patchnote",
+   "own": 1,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/patchnote/controller/PatchnoteController.java"
+  },
+  "NewsletterController": {
+   "base": "/anonymous/cover/newsletter",
+   "own": 7,
+   "inherited": 14,
+   "parent": "TreeAbstractController",
+   "file": "com/arms/api/newsletter/controller/NewsletterController.java"
+  }
+ },
+ "feign": {
+  "TemplateInternalService": {
+   "file": "com/arms/api/util/communicate/internal/TemplateInternalService.java",
+   "name": "template-loopback",
+   "url": "http://127.0.0.1:31313",
+   "methodNames": [
+    "getTemplateStream",
+    "resolveTemplate"
+   ],
+   "methodCount": 2
+  },
+  "InternalService": {
+   "file": "com/arms/api/util/communicate/internal/InternalService.java",
+   "name": "loopback",
+   "url": "http://127.0.0.1:31313",
+   "methodNames": [
+    "REQSTATUS_CID_요구사항_이슈_조회",
+    "addNodeAndThenSkipToCreateAlmIssueFromKafka",
+    "createFromKafka",
+    "createSimpleReport",
+    "createWeeklyReport",
+    "deleteFromKafka",
+    "getGroupEntity",
+    "getGroupMembers",
+    "getNodeWithVersionOrderByCidDesc",
+    "getPdServiceAndVersionByCid",
+    "getPdServiceEntityAndVersionList",
+    "getReqAddByReqDefId",
+    "getReqNodesWithoutRoot",
+    "getStatusNode",
+    "moveFromKafka",
+    "reportReqStatus",
+    "reqAddList",
+    "updateAllReqAddStateFromKafka",
+    "updateDataBaseFromKafka",
+    "updateDateFromKafka",
+    "updateFromKafka",
+    "updateReqAddTitleFromKafka",
+    "요구사항_상태_정보_저장하기",
+    "요구사항_상태_확인후_ALM처리_및_REQSTATUS_업데이트",
+    "요구사항_상황_삭제하기",
+    "요구사항_상황_수정하기",
+    "요구사항조회",
+    "제품별_요구사항_상황_조회"
+   ],
+   "methodCount": 28
+  },
+  "EngineService": {
+   "file": "com/arms/api/util/communicate/external/EngineService.java",
+   "name": "engine",
+   "url": "${arms.engine.url}",
+   "methodNames": [
+    "ALM_이슈_상태_가져오기",
+    "ALM_이슈_우선순위_가져오기",
+    "ALM_이슈_유형_가져오기",
+    "ALM_이슈_해결책_가져오기",
+    "ALM_프로젝트_목록_가져오기",
+    "addBlog",
+    "addNewsletter",
+    "calculationCost",
+    "changeRecent",
+    "createPoc",
+    "createWiki",
+    "deleteBlog",
+    "deleteIfDoesNotExistDoc",
+    "deleteNewsletter",
+    "deletePoc",
+    "deleteWiki",
+    "detailDashboardContribution",
+    "detailDashboardProjectStatus",
+    "detailDashboardQuality",
+    "detailDashboardRequirementOverview",
+    "detailDashboardTimeCompliance",
+    "esIndexSumList",
+    "fetchIssuePage",
+    "getAssigneeAggregationList",
+    "getAssigneeList",
+    "getBlog",
+    "getBlogListBySearchAfter",
+    "getBlogListByViewCountDesc",
+    "getDeletedIssueList",
+    "getHeatMapDataByUpdated",
+    "getNewsletter",
+    "getPoc",
+    "getPocList",
+    "getReqIssueList",
+    "getScatterData",
+    "getUsersInfo",
+    "getWiki",
+    "getWikiVersions",
+    "indexJobHistories",
+    "issueListByOverallUpdatedDate",
+    "issueListByPd",
+    "issueListByUpdated",
+    "issueListByUpdated2ndTab",
+    "performanceData",
+    "portfolioTrackRecord",
+    "registerOrUpdateAlmServerInfo",
+    "reqStatusDashboardAggregationData",
+    "retrieveFullDataIssueListV2",
+    "saveRequirementIssueKeyOnlyFirst",
+    "scheduleCompliance",
+    "serverInfoListByConnectIds",
+    "subtasksAndLinkedIssues",
+    "syncAtlassianDirectoryUsers",
+    "updateBlog",
+    "updateNewsletter",
+    "updatePoc",
+    "updateWiki",
+    "verifyAccount",
+    "verifyAtlassianAdminAccount",
+    "버전별_개발_진척현황",
+    "버전별_개발_진척현황_상세",
+    "서버_연결아이디_유형정보_맵_조회",
+    "요구사항_묶음_조회",
+    "요구사항이슈_조회",
+    "이슈_삭제하기",
+    "이슈_상태_변경하기",
+    "이슈_생성하기",
+    "이슈_수정하기",
+    "이슈목록_가져오기_calendar",
+    "이슈삭제_철회",
+    "이슈수집",
+    "제품_요구사항_담당자",
+    "제품서비스별_담당자_연관된_요구사항_통계",
+    "제품서비스별_담당자_요구사항_통계",
+    "증분이슈수집",
+    "지라_연결된이슈_서브테스크_가져오기",
+    "클라우드_프로젝트별_이슈_상태_목록",
+    "클라우드_프로젝트별_이슈_유형_목록"
+   ],
+   "methodCount": 79
+  },
+  "GotenbergClientService": {
+   "file": "com/arms/api/util/communicate/external/GotenbergClientService.java",
+   "name": "gotenberg",
+   "url": "${gotenberg.url:http://www.313.co.kr:3131}",
+   "methodNames": [
+    "convertToPdf",
+    "healthCheck"
+   ],
+   "methodCount": 2
+  },
+  "AggregationService": {
+   "file": "com/arms/api/util/communicate/external/AggregationService.java",
+   "name": "engine-dashboard",
+   "url": "${arms.engine.url}",
+   "methodNames": [
+    "aggregateWeeklyReqIssueStatus",
+    "aggregationByAssigneeAccountId",
+    "aggregationByReqLinkAndAssigneeAccountId",
+    "assigneeIssueAggs",
+    "calculateWorkdayByAccountId",
+    "findAssigneeRequirementInvolvementData",
+    "findAssigneesInfo",
+    "findHorizontalBarChartData",
+    "findHorizontalBarChartDataBySameAccounts",
+    "findPieChartData",
+    "findPieChartDataExpand",
+    "findTreeMapChartDataV3",
+    "findVersionAssigneeSummaryData",
+    "getAssigneeList",
+    "getAssigneeListByProductVersionAndRequirement",
+    "getCircularPackingChartData",
+    "getDataTableIssues",
+    "getIssueList",
+    "getMultiCombinationChartData",
+    "getNetworkChartExcelData",
+    "getPdServiceVersionsAndReq",
+    "getRidgeLineData",
+    "getUpdatedIssueByDateRange",
+    "getVersionsAndIssueList",
+    "getWeeklyBusinessReportData",
+    "issueStatusDataByAssignee",
+    "issueStatusStackedBarChartData",
+    "topMenuTotalCountWithReqAndSubtask",
+    "topNAssigneeReqLinks",
+    "topNReqAssignee",
+    "treeBarData",
+    "wordCloudData",
+    "제품서비스_일반_버전_해결책유무_통계_V2"
+   ],
+   "methodCount": 33
+  },
+  "MiddleProxyService": {
+   "file": "com/arms/api/util/communicate/external/MiddleProxyService.java",
+   "name": "middle-proxy",
+   "url": "${arms.middle-proxy.url}",
+   "methodNames": [
+    "findByServiceId",
+    "findReqDefByServiceId",
+    "getPocReqRegister",
+    "getReqDefUploadPath",
+    "getUploadPath",
+    "markPocReqComplete",
+    "markPocReqFailed",
+    "publishKafKaFromParentNode",
+    "publishKafkaFromReqDefParentNode",
+    "releaseReqDefUpload",
+    "releaseWbsUpload",
+    "saveAllThenGetWbsRowVOS",
+    "savePocReqRegister",
+    "saveReqDefUpload",
+    "saveReqDefUploadPath",
+    "saveUploadPath",
+    "setAlmIssueStatusDTO",
+    "setArmsState",
+    "setArmsStateCategory",
+    "tryLockReqDefUpload",
+    "tryLockWbsUpload",
+    "updateAllReqAddState",
+    "updateReqAddTitle"
+   ],
+   "methodCount": 23
+  },
+  "AiService": {
+   "file": "com/arms/api/util/communicate/external/AiService.java",
+   "name": "ai-client",
+   "url": "${arms.ai.url}",
+   "methodNames": [
+    "getAIAnalysis",
+    "getAIAnalysisScript",
+    "getAIChatResponse"
+   ],
+   "methodCount": 3
+  },
+  "GlobalConfigService": {
+   "file": "com/arms/api/util/communicate/external/GlobalConfigService.java",
+   "name": "global-config",
+   "url": "${arms.global-config.url}",
+   "methodNames": [
+    "getSystemInfo"
+   ],
+   "methodCount": 1
+  }
+ },
+ "feignCallerCount": {
+  "EngineService": 24,
+  "InternalService": 16,
+  "AggregationService": 10,
+  "MiddleProxyService": 13,
+  "GlobalConfigService": 1,
+  "TemplateInternalService": 1,
+  "AiService": 1
+ },
+ "totalEndpointInstances": 1181
+}
