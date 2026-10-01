@@ -7,7 +7,7 @@ status: pending
 # 가능한 값:
 #   pending          작업 정의 완료, 시작 전
 #   in_progress      orchestrator 작업 진행 중
-#   waiting_<role>   특정 worker 응답 대기 (예: waiting_codex-main)
+#   waiting_<role>   특정 worker 응답 대기 (예: waiting_claude-reviewer)
 #   reviewing        worker 결과 검증 중 (사용자 확인 단계)
 #   done             완료
 created: <YYYY-MM-DD>
@@ -45,11 +45,7 @@ planned_workers: []
 # 예시 (필요한 것만 주석 해제):
 # - role: claude-main
 #   purpose:
-# - role: codex-main
-#   purpose:
-# - role: codex-critic
-#   purpose:
-# - role: gemini
+# - role: claude-reviewer
 #   purpose:
 ```
 

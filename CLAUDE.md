@@ -4,16 +4,15 @@
 
 ```
 Orchestrator (Claude Code session, internal reasoning)
-└── Worker Pool (모두 외부 호출 — 승인 필요)
-    ├── claude-main    [strategist] 기획 · 설계 · 아키텍처 · 전략 · 디자인 방향 · 문체 글쓰기 · 디버깅 원인 분석
-    ├── codex-main     [engineer·computer-use] 대규모 구현 · 코드 분석 · 테스트 · diff · 로컬 검증 · 브라우저 자동화 · 이미지 생성
-    ├── codex-critic   [reviewer] 산출물 리뷰·비평 (Codex의 주된 역할)
-    └── gemini         [multimodal] 멀티모달 · 긴 문서 · 제3자 시각의 검토
+│   └── [engineer·computer-use·multimodal] 전담 워커 없음 → Orchestrator 직접 수행 (구현 · 테스트 · 브라우저 · 이미지/긴 문서)
+└── Worker Pool (모두 별도 모델 호출 — 승인 필요)
+    ├── claude-main      [strategist] 기획 · 설계 · 아키텍처 · 전략 · 디자인 방향 · 문체 글쓰기 · 디버깅 원인 분석
+    └── claude-reviewer  [reviewer] 산출물 리뷰·비평 (Sonnet 5 · 읽기 전용)
 ```
 
 능력 슬롯 → 워커 배정의 정본은 `_shared/capability-profile.md`(가변층 — 신모델 출시 시 프로필만 갱신).
 
-**중요**: Orchestrator의 내부 추론은 worker가 아님. claude-main worker 호출은 별도 모델 호출이므로 승인·쿼터 대상.
+**중요**: Orchestrator의 내부 추론·직접 작업은 worker가 아님. claude-main · claude-reviewer 호출은 별도 모델 호출이므로 승인·쿼터 대상.
 
 ## 운영 원칙 (Operating Principles)
 
@@ -88,12 +87,12 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 1. `tasks/<task-name>/task.md` 작성 (status: pending) — **형식은 `_templates/task.md` 그대로**(`## 메타` yaml 펜스 + `## Goal`, frontmatter `---` 금지 — mat 모니터가 이 형식을 파싱). 단, 새 폴더가 기존 작업의 후속·핸드오프·하위 단계면 생성 전 `_shared/orchestrator-rules.md` §3 "새 작업 폴더 생성 게이트"를 먼저 적용
 2. `_shared/routing.md` 참조 → 최소 worker set 결정
 3. **target_repo 확인** (외부 산출물 작업인 경우):
-   - codex-main이 planned_workers에 포함되거나 코드·문서·이미지를 만드는 작업이면 사용자에게 `target_repo` 경로를 묻는다
+   - 코드·문서·이미지를 만드는 작업이면 사용자에게 `target_repo` 경로를 묻는다
    - 사용자가 "없음"이라고 답하거나 분석·리뷰·요약·기획만 하는 작업이면 묻지 않고 `tasks/<task>/artifacts/`에 diff·patch로 산출
    - 사용자가 자연어 요청에 이미 경로를 포함했으면 다시 묻지 않음
 4. 모든 worker(claude-main 포함) 사용 시 `task.md`의 `workers_approved`에 명시적 기록 필요
 5. 각 worker의 brief를 **정확히 `tasks/<task>/workers/<role>/brief.md`** 에 작성 (≤ 1200자 한글 / 240단어 영문). 워커별 폴더로 분리할 것 — `<role>_brief.md`처럼 납작하게 만들지 말 것
-6. worker 실행 → 원문을 **`tasks/<task>/workers/<role>/result.md`** 에 저장 (같은 워커별 폴더). **실행 전 게이트 필수**: 디스패처(`call_worker.sh`) 경유 호출은 자동. native/mcp 직접 호출(claude-main·codex MCP)은 `bash _shared/adapters/gate.sh <brief>` 를 먼저 실행해 `GATE_OK` 를 받은 뒤 호출하고, 그 줄을 `log.md` `[WORKER_CALL]` 에 함께 남긴다. 외부 쓰기(write_scope 패턴) MCP 호출은 호출 전 `bash _shared/adapters/scope_check.sh --snapshot <target_repo> > tasks/<task>/artifacts/.scope-before` → 호출 후 성공·실패 무관하게 `bash _shared/adapters/scope_check.sh <target_repo> <write_scope> tasks/<task>/artifacts/.scope-before <task>` 로 검사한 뒤 결과를 채택한다
+6. worker 실행 → 원문을 **`tasks/<task>/workers/<role>/result.md`** 에 저장 (같은 워커별 폴더). **실행 전 게이트 필수**: 디스패처(`call_worker.sh`) 경유 호출은 자동. native 직접 호출(claude-main·claude-reviewer)은 `bash _shared/adapters/gate.sh <brief>` 를 먼저 실행해 `GATE_OK` 를 받은 뒤 호출하고, 그 줄을 `log.md` `[WORKER_CALL]` 에 함께 남긴다. claude-reviewer 는 읽기 전용 계약이므로 `target_repo` 가 git repo면 호출 전후로 아래 스냅샷 검사를 `write_scope=none` 으로 돌려 변경 0건을 확인한다. 외부 쓰기(write_scope 패턴) 호출은 호출 전 `bash _shared/adapters/scope_check.sh --snapshot <target_repo> > tasks/<task>/artifacts/.scope-before` → 호출 후 성공·실패 무관하게 `bash _shared/adapters/scope_check.sh <target_repo> <write_scope> tasks/<task>/artifacts/.scope-before <task>` 로 검사한 뒤 결과를 채택한다
 7. `result.md`의 Verification Checklist 실행
 8. 검증 결과를 `log.md`에 append (`[VERIFICATION]` 태그). 작업이 끝나면 `task.md`의 `status`를 `done`으로 갱신
 9. 완료 후 교훈 추가 (분류): **시스템 운영 자체**에 대한 일반 교훈 → `_shared/learnings.md`(추적·공개). **특정 외부 프로젝트 한정**(mat·hwpx 등) → `_local/learnings.md`(git 추적 안 함, 없으면 생성). `_local/learnings.md`는 명시 요청 없이는 로드하지 않는다.
@@ -116,7 +115,7 @@ wc -w tasks/<task>/context.md   # 영문 단어수
 ```
 
 **context.md 초과 시**: 핵심만 남기고 나머지는 `log.md`에 append 후 초기화.  
-**brief 작성 원칙**: 파일 내용을 inline 금지. 경로만 전달. 대용량 자료 동봉이 필요한 호출(예: gemini 소스 검토)은 `sources/` packet 파일 + 디스패처 payload 인자(`call_worker.sh <role> <brief> <packet>`)로 — brief 한도·inline 금지 규칙은 그대로 유지된다.
+**brief 작성 원칙**: 파일 내용을 inline 금지. 경로만 전달. 대용량 자료 동봉이 필요한 호출(cli/api 백엔드)은 `sources/` packet 파일 + 디스패처 payload 인자(`call_worker.sh <role> <brief> <packet>`)로 — brief 한도·inline 금지 규칙은 그대로 유지된다.
 
 ## Approval Gate
 
@@ -146,17 +145,17 @@ wc -w tasks/<task>/context.md   # 영문 단어수
 | Worker | 기본 쓰기 권한 | 외부 repo 쓰기 |
 |--------|------------|--------------|
 | claude-main | ❌ Orchestrator 경유 | ❌ |
-| codex-main | ✅ `tasks/<task>/` 내부 산출물·diff | ⚠️ 조건부 (아래 참조) |
-| codex-critic | ❌ Orchestrator 경유 | ❌ |
-| gemini | ❌ MCP 응답을 Orchestrator가 기록 | ❌ |
+| claude-reviewer | ❌ Orchestrator 경유 (읽기 전용 · 쓰기 도구 없음) | ❌ |
+
+현재 풀에 파일을 직접 쓰는 worker는 없다. 구현·외부 repo 수정은 Orchestrator가 직접 수행하며, 그 경우 작업 `task.md` Constraints 에 `write_scope` 를 적고 결정을 `log.md` `[DECISION]` 에 남긴다. 아래 값 정의·4조건은 직접 쓰기 worker를 다시 추가할 때의 계약이다(`gate.sh` G5 집행 유지).
 
 ### `write_scope` 값 정의
 
-- `none` — 쓰기 금지 (codex-critic 등 read-only 기본값)
-- `tasks-only` — `tasks/<task>/` 내부만 쓰기 (codex-main 기본 동작. 외부 repo는 안 건드림)
+- `none` — 쓰기 금지 (claude-main · claude-reviewer 기본값)
+- `tasks-only` — `tasks/<task>/` 내부만 쓰기 (직접 쓰기 worker의 기본 동작. 외부 repo는 안 건드림)
 - `"src/**, tests/**"` 같은 경로 패턴 — 외부 repo의 해당 경로만. 아래 4조건 모두 충족 시에만 유효
 
-### codex-main 외부 repo 쓰기 조건 (모두 충족 필수)
+### worker 외부 repo 쓰기 조건 (모두 충족 필수)
 
 1. `brief.md`에 `target_repo: <절대 경로>` 명시
 2. `brief.md`에 `write_scope: <허용 경로 패턴>` 명시 (예: `src/**`, `tests/**`)

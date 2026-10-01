@@ -10,9 +10,11 @@
 | 파일 | name | 슬롯 |
 |------|------|------|
 | `claude-main.md` | `claude-main` | strategist |
+| `claude-reviewer.md` | `claude-reviewer` | reviewer |
 
-> codex-main · codex-critic · gemini 는 `.claude/agents/` 파일이 아니라 MCP/CLI 로 호출된다
-> (호출 스펙 정본: `_shared/backends.json`). Worker Pool 전체 목록은 `CLAUDE.md` Architecture 참조.
+> Worker Pool 은 위 2개가 전부다(2026-10-01 codex-main · codex-critic · gemini 삭제, design-basis D15).
+> 둘 다 Task tool(native)로 호출되며 호출 스펙 정본은 `_shared/backends.json`, 전체 구성은 `CLAUDE.md` Architecture 참조.
+> engineer · computer-use · multimodal 슬롯은 전담 워커 없이 Orchestrator 가 직접 수행한다.
 
 **이 계층에 워커를 추가하려면** `_shared/capability-profile.md` §갱신 절차를 따른다 —
 새 능력 슬롯 판정 + 정본 5개(capability-profile · routing · CLAUDE.md · README · backends.json) 동기화.

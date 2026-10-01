@@ -12,7 +12,7 @@ tasks/<task-name>/
 ├── sources/             # 선택. 원본 자료 (긴 문서, 참고 spec 등)
 │   └── *.md, *.pdf, *.txt
 ├── workers/             # worker 호출 시 동적 생성
-│   └── <role>/          # claude-main | codex-main | codex-critic | gemini
+│   └── <role>/          # claude-main | claude-reviewer
 │       ├── brief.md     # _templates/worker-brief.md 복사. ≤ 1200자 한글 / 240단어 영문
 │       └── result.md    # _templates/worker-result.md 복사
 └── artifacts/           # 선택. worker 산출물 원본 (생성된 코드, 다이어그램 등)
@@ -36,7 +36,7 @@ cp "$ROOT/_templates/context.md" "$ROOT/tasks/$TASK/context.md"
 
 ### Step 1.5: target_repo 확인 (외부 산출물 작업인 경우)
 
-codex-main이 planned_workers에 포함되거나 코드·문서·이미지를 만드는 작업이면, task.md 채우기 전에 사용자에게 짧게 묻는다:
+코드·문서·이미지를 만드는 작업이면, task.md 채우기 전에 사용자에게 짧게 묻는다:
 
 > "이 작업의 산출물이 들어갈 외부 폴더(target_repo)가 있나요?
 > (예: ~/projects/my-app. 없으면 tasks/<task>/artifacts/에 diff로 남깁니다)"
@@ -44,7 +44,7 @@ codex-main이 planned_workers에 포함되거나 코드·문서·이미지를 �
 답을 task.md의 메모 또는 후속 brief.md의 `target_repo` 필드에 기록한다.
 
 **예외 (묻지 않음)**:
-- 분석·리뷰·요약·기획만 하는 작업 (gemini 단독 또는 claude-main 단독 문서 작성)
+- 분석·리뷰·요약·기획만 하는 작업 (claude-main 단독 문서 작성 또는 claude-reviewer 단독 리뷰)
 - 사용자가 자연어 요청에 이미 target_repo 경로를 포함한 경우
 
 ### Step 2: task.md 채우기
@@ -71,16 +71,16 @@ mkdir -p "$ROOT/tasks/$TASK/sources"
 
 #### 5-1. brief 먼저 생성·작성
 ```bash
-ROLE=claude-main  # 또는 codex-main, codex-critic, gemini
+ROLE=claude-main  # 또는 claude-reviewer
 mkdir -p "$ROOT/tasks/$TASK/workers/$ROLE"
 cp "$ROOT/_templates/worker-brief.md" "$ROOT/tasks/$TASK/workers/$ROLE/brief.md"
 # brief.md 작성 (≤ 1200자/240단어)
 ```
 
-**codex-main / codex-critic 호출 시 brief 상단에 다음 필드 필수**:
+**claude-reviewer 호출 시 brief 상단에 다음 필드 필수** (claude-main 도 대상 repo가 있으면 기재):
 ```yaml
 target_repo: /absolute/path/to/repo    # 작업 대상 절대 경로 (없으면 N/A)
-write_scope: none                      # none | tasks-only | "src/**" 같은 패턴
+write_scope: none                      # none | tasks-only | "src/**" 같은 패턴 — 현재 풀은 항상 none
 ```
 
 #### 5-2. brief 크기 측정
@@ -97,19 +97,13 @@ wc -w "$ROOT/tasks/$TASK/workers/$ROLE/brief.md"   # 영문 단어수 ≤ 240
   - `prompt`: brief.md 내용 그대로
   - `model`: agent frontmatter `model: opus` 자동 적용
   - 응답 텍스트를 Orchestrator가 받아 `result.md`에 기록
-- **gemini**: `_shared/backends.json`의 `gemini`(백엔드 = Antigravity `agy` CLI, 기본 `gemini-3.1-pro-high`). 디스패처 `bash _shared/adapters/call_worker.sh gemini <brief-file>` → JSON envelope. Orchestrator가 envelope의 stdout을 `result.md`에 기록. (옛 `mcp__gemini-pro__*` 브리지 폐기)
-- **codex-main / codex-critic**: `mcp__codex__codex` MCP 도구 호출
-  - `prompt`: brief.md 내용 그대로
-  - `cwd`:
-    - codex-main 기본: `<설치한-폴더>/tasks/<task>/` (작업 폴더 안에서 산출물 작성)
-    - codex-main 외부 쓰기 4조건 충족 시: brief.md의 `target_repo` 값
-    - codex-critic: brief.md의 `target_repo` 값 (비평 대상 repo 컨텍스트)
-  - `sandbox`:
-    - codex-main: `workspace-write` 고정 (cwd 내부만 쓰기 가능. 외부 repo 쓰기는 cwd를 `target_repo`로 변경한 경우에만 해당 패턴 내 쓰기)
-    - codex-critic: `read-only` 고정
-  - `approval-policy`: `on-failure` 권장
-- **codex-main 외부 repo 쓰기 조건**: `target_repo` + `write_scope` 명시 + `task.md`의 `workers_approved`에 외부 쓰기 승인 기록 + `log.md`에 `[APPROVAL]` 별도 기록 (4개 모두 충족 시에만 cwd를 `target_repo`로 변경)
-- 위 조건 미충족 시 cwd는 작업 폴더로 두고, codex-main이 `tasks/<task>/artifacts/`에 diff·patch 형태로 산출. 사용자가 직접 적용
+- **claude-reviewer**: Claude Code 내장 **Task tool (sub-agent)** 호출
+  - `subagent_type`: `claude-reviewer` (`.claude/agents/claude-reviewer.md`에 정의)
+  - `prompt`: brief.md 내용 그대로 ("비평 모드" 명시)
+  - `model`: agent frontmatter `model: claude-sonnet-5` 자동 적용
+  - 읽기 전용: `target_repo`가 git repo면 호출 전 `bash _shared/adapters/scope_check.sh --snapshot <target_repo> > tasks/<task>/artifacts/.scope-before`, 호출 후 `bash _shared/adapters/scope_check.sh <target_repo> none tasks/<task>/artifacts/.scope-before <task>` 로 변경 0건 확인
+  - 응답 텍스트를 Orchestrator가 받아 `result.md`에 기록
+- engineer · computer-use · multimodal 작업(구현·테스트·브라우저·이미지/긴 문서)은 worker를 부르지 않고 **Orchestrator가 직접** 수행한다. 외부 repo를 직접 고치면 `task.md` Constraints 에 write_scope 를 적고 `log.md` `[DECISION]` 에 남긴다. 대상 경로가 없으면 `tasks/<task>/artifacts/`에 diff·patch 로 산출
 
 #### 5-4. result.md 생성
 **worker 응답을 받은 후** 생성 (사전 빈 파일 생성 금지):
@@ -117,7 +111,7 @@ wc -w "$ROOT/tasks/$TASK/workers/$ROLE/brief.md"   # 영문 단어수 ≤ 240
 cp "$ROOT/_templates/worker-result.md" "$ROOT/tasks/$TASK/workers/$ROLE/result.md"
 # worker 응답 채워 넣기
 ```
-codex-main이 직접 쓴 경우는 형식만 worker-result.md 템플릿에 맞게 정리.
+워커 응답 원문을 그대로 보존하고 형식만 worker-result.md 템플릿에 맞게 정리.
 
 ### Step 6: Artifacts (선택)
 

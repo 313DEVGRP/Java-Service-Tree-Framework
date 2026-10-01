@@ -14,95 +14,16 @@
       "approval_class": "worker",
       "result_capture": "orchestrator"
     },
-    "codex-main": {
-      "model": "codex-default",
-      "call_type": "mcp",
-      "mcp": {
-        "tool": "mcp__codex__codex",
-        "args_template": {
-          "prompt": "@brief_content",
-          "sandbox": "workspace-write",
-          "approval-policy": "never"
-        }
+    "claude-reviewer": {
+      "model": "claude-sonnet-5",
+      "call_type": "native",
+      "native": {
+        "subagent_type": "claude-reviewer",
+        "prompt_source": "brief",
+        "model_alias": "claude-sonnet-5"
       },
-      "brief_mode": "content",
       "approval_class": "worker",
-      "result_capture": "tool-return",
-      "timeout": 300,
-      "fallbacks": [
-        {
-          "model": "codex-default",
-          "call_type": "cli",
-          "brief_mode": "stdin",
-          "timeout": 300,
-          "approval_class": "worker",
-          "result_capture": "envelope",
-          "cwd_policy": "target",
-          "cli": {
-            "command": "codex",
-            "args_template": [
-              "exec",
-              "--sandbox",
-              "workspace-write",
-              "-"
-            ]
-          }
-        }
-      ]
-    },
-    "codex-critic": {
-      "model": "codex-default",
-      "call_type": "mcp",
-      "mcp": {
-        "tool": "mcp__codex__codex",
-        "args_template": {
-          "prompt": "@brief_content",
-          "sandbox": "read-only",
-          "approval-policy": "never"
-        }
-      },
-      "brief_mode": "content",
-      "approval_class": "worker",
-      "result_capture": "tool-return",
-      "timeout": 300,
-      "fallbacks": [
-        {
-          "model": "codex-default",
-          "call_type": "cli",
-          "brief_mode": "stdin",
-          "timeout": 300,
-          "approval_class": "worker",
-          "result_capture": "envelope",
-          "cwd_policy": "target",
-          "cli": {
-            "command": "codex",
-            "args_template": [
-              "exec",
-              "--sandbox",
-              "read-only",
-              "-"
-            ]
-          }
-        }
-      ]
-    },
-    "gemini": {
-      "model": "gemini-3.1-pro-high",
-      "call_type": "cli",
-      "brief_mode": "content",
-      "cli": {
-        "command": "agy",
-        "args_template": [
-          "--prompt",
-          "@brief_content"
-        ]
-      },
-      "cwd_policy": "isolated_tmp",
-      "approval_class": "worker",
-      "result_capture": "envelope",
-      "timeout": 300,
-      "fallbacks": [],
-      "fallback_note": "api 폴백 슬롯(adapters/gemini_api.sh)은 미구현(무조건 exit 4)이라 비활성 — 등록 시 거짓 안전신호(design-basis 결정 참조). REST 구현 후 재등록."
+      "result_capture": "orchestrator"
     }
   }
 }

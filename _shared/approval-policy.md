@@ -2,7 +2,7 @@
 
 ## 원칙
 
-**모든 worker 호출은 작업별로 명시적 승인 필요** (claude-main 포함 전체 pool 적용).  
+**모든 worker 호출은 작업별로 명시적 승인 필요** (claude-main · claude-reviewer 전체 pool 적용).  
 `task.md`의 `workers_approved` 리스트에 없으면 호출 금지.
 
 **예외**: Orchestrator의 내부 추론은 worker 호출이 아니므로 승인 불필요. 다만 별도 claude-main worker를 호출해 산출물을 `result.md`로 받는 것은 승인 대상.
@@ -28,13 +28,11 @@
 
 | Worker | 예상 비용 | 쿼터 부담 |
 |--------|---------|----------|
-| claude-main | 중간 | Claude API/구독 쿼터 차감 |
-| codex-main | 중간 | Codex 호출 쿼터 |
-| codex-critic | 낮음-중간 | Codex 호출 쿼터 |
-| gemini flash | 낮음 | Gemini 쿼터 |
-| gemini pro | 중간-높음 | Gemini 쿼터 |
+| claude-main | 중간 | Claude API/구독 쿼터 차감 (Opus) |
+| claude-reviewer | 낮음-중간 | Claude API/구독 쿼터 차감 (Sonnet 5) |
 
 claude-main이 "내부 추론"과 같은 모델이라도 별도 호출이므로 쿼터·비용 발생.
+전담 워커가 없는 슬롯(engineer · computer-use · multimodal)의 Orchestrator 직접 작업은 worker 호출이 아니므로 승인 대상이 아니다.
 
 ## 승인 기록 형식 (task.md에 기록)
 
@@ -44,20 +42,16 @@ workers_approved:
     approved_at: <YYYY-MM-DD>      # 승인 당시 날짜로 교체
     purpose: 설계·아키텍처 초안 (strategist)
     approved_by: user
-  - worker: codex-main
-    approved_at: <YYYY-MM-DD>
-    purpose: 설계 기반 대규모 구현·테스트 (engineer)
-    approved_by: user
-  - worker: codex-critic
+  - worker: claude-reviewer
     approved_at: <YYYY-MM-DD>
     purpose: 산출물 리뷰·비평 (reviewer)
     approved_by: user
 ```
 
-외부 repo 쓰기 승인은 항목에 `target_repo`·`write_scope`를 **brief와 같은 값으로** 함께 기록한다 (`gate.sh` G5가 정확 일치를 검사 — 값이 바뀌면 재승인):
+외부 repo 쓰기 승인은 항목에 `target_repo`·`write_scope`를 **brief와 같은 값으로** 함께 기록한다 (`gate.sh` G5가 정확 일치를 검사 — 값이 바뀌면 재승인). 현재 풀에는 직접 쓰기 worker가 없으므로, 아래는 그런 worker를 다시 추가할 때의 형식이다:
 
 ```yaml
-  - worker: codex-main
+  - worker: <직접 쓰기 worker>
     approved_at: <YYYY-MM-DD>
     purpose: 구현 (engineer) — 외부 repo 쓰기
     approved_by: user
@@ -65,6 +59,6 @@ workers_approved:
     write_scope: "src/**, tests/**"
 ```
 
-`log.md`의 `[APPROVAL]` 줄에도 같은 worker와 `write_scope` 값을 함께 적는다 (예: `[APPROVAL] codex-main 외부 쓰기 승인 write_scope="src/**, tests/**"`).
+`log.md`의 `[APPROVAL]` 줄에도 같은 worker와 `write_scope` 값을 함께 적는다 (예: `[APPROVAL] <worker> 외부 쓰기 승인 write_scope="src/**, tests/**"`).
 
 날짜 명령어: `date +%Y-%m-%d`

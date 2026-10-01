@@ -2,7 +2,8 @@
 # call_worker.sh — backends.json 디스패처 (cli/api 전용).
 # native/mcp는 오케스트레이터가 직접 호출(디스패처 비경유).
 # 사용: call_worker.sh <role> <brief-file> [payload-file]
-#   payload-file(선택): brief 한도(1200자)와 별도인 동봉 자료(예: sources/gemini-packet.md).
+#   payload-file(선택): brief 한도(1200자)와 별도인 동봉 자료(예: sources/packet.md).
+# 현재 backends.json 에는 cli/api 워커가 없다(D15 — 풀 = native 2종). 백엔드 중립 집행층으로 존치.
 #   디스패처가 brief 뒤에 결합해 전달 — brief 본문 inline 금지 규칙과 충돌 없이 대용량 자료 전달.
 #   미리보기: call_worker.sh --merged-preview <brief-file> <payload-file>  (백엔드 호출 없이 결합 결과 출력)
 # 사전 게이트: gate.sh(승인·[APPROVAL]·brief 위치/한도·외부쓰기 조건·D5) 통과 못 하면 exit 9.

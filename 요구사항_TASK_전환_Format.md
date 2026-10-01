@@ -59,8 +59,8 @@ Verification 검증은 오케스트레이터가 수행한다. 사용자는 판�
 `DEV: 이민규 / SE: 홍성훈`은 사람 이름이라 AI에 의미가 없다. 직무 구성을 워커 조합으로 치환한다.
 
 - DEV 단독 → `생산=claude-main`
-- DEV + SE → `생산=claude-main, 리뷰=codex-critic` (운영 관점 검토가 필요하다는 신호)
-- 이미지·대용량 문서 포함 → 리뷰를 `gemini`로
+- DEV + SE → `생산=claude-main, 리뷰=claude-reviewer` (운영 관점 검토가 필요하다는 신호)
+- 이미지·대용량 문서 포함 → 워커 추가 없이 Orchestrator가 직접 읽는다 (multimodal 전담 워커 없음)
 
 ### 생략 컬럼
 
@@ -88,7 +88,7 @@ Verification 검증은 오케스트레이터가 수행한다. 사용자는 판�
 성격:        분석·요약
 target_repo: {HyperMig Discovery 절대경로}
 write_scope: tasks-only
-워커:        생산=claude-main, 리뷰=codex-critic
+워커:        생산=claude-main, 리뷰=claude-reviewer
 산출물:      설계 문서로 artifacts/에
 제약:        대상 클러스터 쓰기 작업 금지, read-only 최소 권한·rate limit 전제,
              인증정보 at-rest 암호화·전송 TLS, 클러스터 단위 장애 격리 유지
@@ -105,7 +105,7 @@ write_scope: tasks-only
 성격:        코드 구현
 target_repo: {HyperMig Discovery 절대경로}
 write_scope: none(diff-first)
-워커:        생산=claude-main, 리뷰=codex-critic
+워커:        생산=claude-main, 리뷰=claude-reviewer
 산출물:      diff로 artifacts/에
 제약:        기존 Docker 수집기 인터페이스 수정금지, 직접 커밋 금지
 ```

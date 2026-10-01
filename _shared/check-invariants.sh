@@ -26,6 +26,7 @@ CTXT="$ROOT/_templates/context.md"
 WBR="$ROOT/_templates/worker-brief.md"
 WRS="$ROOT/_templates/worker-result.md"
 TFD="$ROOT/_templates/task-folder.md"
+AGD="$ROOT/.claude/agents"
 
 core_checks() {
   # INV1 write_scope 값 집합 분포 (정의처 CLAUDE.md = 3값 모두, 나머지 = tasks-only 존재)
@@ -33,9 +34,9 @@ core_checks() {
      && grep -q 'tasks-only' "$RTG" && grep -q 'tasks-only' "$WBR" && grep -q 'tasks-only' "$TFD"; then
     ok "INV1 write_scope 값 집합 분포"; else ng "INV1 write_scope 값 집합 분포"; fi
 
-  # INV2 codex-critic 전용 강제 표현 부재
+  # INV2 claude-reviewer 전용 강제 표현 부재
   if grep -qE 'result.md. 존재 필수|claude-main 결과 필요 → 항상 후행' "$RTG"; then
-    ng "INV2 codex-critic 전용 강제 표현 부재"; else ok "INV2 codex-critic 전용 강제 표현 부재"; fi
+    ng "INV2 claude-reviewer 전용 강제 표현 부재"; else ok "INV2 claude-reviewer 전용 강제 표현 부재"; fi
 
   # INV3 log 태그 6종 정의 라인
   if grep -q 'DECISION | WORKER_CALL | VERIFICATION | ERROR | APPROVAL | COMPLETE' "$LOGT"; then
@@ -58,13 +59,19 @@ core_checks() {
   if grep -qiE 'worktree|백그라운드|background session' "$ORC"; then
     ok "INV8 worktree/백그라운드 금지 규칙"; else ng "INV8 worktree/백그라운드 금지 규칙"; fi
 
-  # INV9 gemini 백엔드 정본 (agy + pro-high)
-  if grep -q '"command": "agy"' "$BKD" && grep -q 'gemini-3.1-pro-high' "$BKD"; then
-    ok "INV9 gemini 백엔드 agy·pro-high"; else ng "INV9 gemini 백엔드 agy·pro-high"; fi
+  # INV9 워커 풀 정합 (D15): backends 키 = claude-main·claude-reviewer, native·subagent_type=키, agent 정의 존재
+  local k inv9=1
+  jq -e '(.workers | keys) == ["claude-main","claude-reviewer"]
+         and (.workers | to_entries | all(.value.call_type == "native" and .value.native.subagent_type == .key))' \
+     "$BKD" >/dev/null 2>&1 || inv9=0
+  for k in claude-main claude-reviewer; do
+    grep -qE "^name: $k[[:space:]]*$" "$AGD/$k.md" 2>/dev/null || inv9=0
+  done
+  if [ "$inv9" = 1 ]; then ok "INV9 워커 풀 정합 (claude-main·claude-reviewer)"; else ng "INV9 워커 풀 정합 (claude-main·claude-reviewer)"; fi
 
-  # INV10 폐기 브리지 활성 호출 부재
-  if grep -q 'mcp__gemini__gemini_' "$RTG" "$TFD" "$INSTR"; then
-    ng "INV10 폐기 브리지 활성호출 부재"; else ok "INV10 폐기 브리지 활성호출 부재"; fi
+  # INV10 폐기 워커 활성 호출 경로 부재 (삭제·폐기 안내 줄은 허용)
+  if grep -hE 'mcp__codex__codex|call_worker\.sh gemini|mcp__gemini' "$RTG" "$TFD" "$WBR" "$INSTR" 2>/dev/null | grep -qvE '삭제|폐기'; then
+    ng "INV10 폐기 워커 활성호출 부재"; else ok "INV10 폐기 워커 활성호출 부재"; fi
 
   # INV11a 재진입 프로토콜 이중 존재
   if grep -q '재진입 프로토콜' "$ORC" && grep -q '재진입 프로토콜' "$INSTR"; then
@@ -90,16 +97,18 @@ core_checks() {
   if sed -n '/^## Worker 행동 규약/,/^## Execution/p' "$WBR" | grep -qiE '질문|ask'; then
     ng "INV12c 규약 블록 내 질문 지시 부재"; else ok "INV12c 규약 블록 내 질문 지시 부재"; fi
 
-  # INV13 backends 실행계약 정합 (jq)
+  # INV13 reviewer 실행계약 정합 (D15): 쓰기 도구 없는 tools 화이트리스트 + model == backends
   if command -v jq >/dev/null 2>&1; then
-    if jq -e '.workers["codex-main"].mcp.args_template.sandbox == "workspace-write"' "$BKD" >/dev/null 2>&1 \
-       && jq -e '[.workers["codex-main"].fallbacks[]?.cli.args_template // [] | select(index("--sandbox")) | .[index("--sandbox")+1]] | all(. == "workspace-write")' "$BKD" >/dev/null 2>&1 \
-       && jq -e '.workers["codex-critic"].mcp.args_template.sandbox == "read-only"' "$BKD" >/dev/null 2>&1 \
-       && jq -e '[.workers["codex-critic"].fallbacks[]?.cli.args_template // [] | select(index("--sandbox")) | .[index("--sandbox")+1]] | all(. == "read-only")' "$BKD" >/dev/null 2>&1 \
-       && jq -e '(.workers.gemini.fallbacks // []) | length == 0' "$BKD" >/dev/null 2>&1; then
-      ok "INV13 backends 실행계약 정합"; else ng "INV13 backends 실행계약 정합"; fi
+    local fm r_tools r_model b_model
+    fm="$(awk 'NR==1 && /^---/{f=1; next} f && /^---/{exit} f' "$AGD/claude-reviewer.md" 2>/dev/null | tr -d '\r')"
+    r_tools="$(printf '%s\n' "$fm" | sed -n 's/^tools:[[:space:]]*//p')"
+    r_model="$(printf '%s\n' "$fm" | sed -n 's/^model:[[:space:]]*//p')"
+    b_model="$(jq -r '.workers["claude-reviewer"].model // empty' "$BKD" 2>/dev/null | tr -d '\r')"
+    if [ -n "$r_tools" ] && ! printf '%s' "$r_tools" | grep -qE 'Write|Edit|\*' \
+       && [ -n "$r_model" ] && [ "$r_model" = "$b_model" ]; then
+      ok "INV13 reviewer 읽기전용·모델 정합"; else ng "INV13 reviewer 읽기전용·모델 정합"; fi
   else
-    ng "INV13 backends 실행계약 정합 (jq 없음 — 디스패처 필수 의존이므로 설치 필요)"
+    ng "INV13 reviewer 읽기전용·모델 정합 (jq 없음 — 디스패처 필수 의존이므로 설치 필요)"
   fi
 
   # INV14 집행층 존재·배선 (D14)
@@ -146,12 +155,12 @@ maintainer_checks() {
 
 self_test() {
   command -v python3 >/dev/null 2>&1 || { echo "self-test는 python3 필요"; exit 5; }
-  local SRC_FILES="CLAUDE.md _shared/routing.md _shared/approval-policy.md _shared/design-basis.md _shared/orchestrator-rules.md _shared/backends.json _shared/reentry-check.sh _shared/adapters/call_worker.sh _shared/adapters/gate.sh _shared/adapters/scope_check.sh _templates/log.md _templates/context.md _templates/worker-brief.md _templates/worker-result.md _templates/task-folder.md"
+  local SRC_FILES="CLAUDE.md _shared/routing.md _shared/approval-policy.md _shared/design-basis.md _shared/orchestrator-rules.md _shared/backends.json _shared/reentry-check.sh _shared/adapters/call_worker.sh _shared/adapters/gate.sh _shared/adapters/scope_check.sh _templates/log.md _templates/context.md _templates/worker-brief.md _templates/worker-result.md _templates/task-folder.md .claude/agents/claude-main.md .claude/agents/claude-reviewer.md"
   local TFAIL=0
 
   make_copy() {  # make_copy <destdir>
     local d="$1" f
-    mkdir -p "$d/_shared/adapters" "$d/_templates"
+    mkdir -p "$d/_shared/adapters" "$d/_templates" "$d/.claude/agents"
     for f in $SRC_FILES; do cp -p "$ROOT/$f" "$d/$f"; done
   }
   replace_in() {  # replace_in <file> <old> <new> — 패턴 부재는 no-op(사본이 무결로 남아 fixture 단계가 잡음)
@@ -187,14 +196,16 @@ PYEOF
   replace_in "$WORK/_shared/orchestrator-rules.md" 'Worktree' 'Wtree'
   replace_in "$WORK/_shared/orchestrator-rules.md" '백그라운드' '비대화'
   replace_in "$WORK/_shared/orchestrator-rules.md" 'Background Session' 'BG Sess'; run_case "INV8"
-  WORK="$(mktemp -d)"; make_copy "$WORK"; replace_in "$WORK/_shared/backends.json" '"command": "agy"' '"command": "zzz"'; run_case "INV9"
-  WORK="$(mktemp -d)"; make_copy "$WORK"; echo 'mcp__gemini__gemini_ask 호출' >> "$WORK/_shared/routing.md"; run_case "INV10"
+  WORK="$(mktemp -d)"; make_copy "$WORK"; replace_in "$WORK/_shared/backends.json" '"claude-reviewer": {' '"codex-main": {"call_type": "mcp"}, "claude-reviewer": {'; run_case "INV9a"
+  WORK="$(mktemp -d)"; make_copy "$WORK"; rm "$WORK/.claude/agents/claude-reviewer.md"; run_case "INV9b"
+  WORK="$(mktemp -d)"; make_copy "$WORK"; echo 'codex-critic 은 mcp__codex__codex 로 호출' >> "$WORK/_shared/routing.md"; run_case "INV10"
   WORK="$(mktemp -d)"; make_copy "$WORK"; replace_in "$WORK/CLAUDE.md" '재진입 프로토콜' '재진입 절차'; run_case "INV11a"
   WORK="$(mktemp -d)"; make_copy "$WORK"; replace_in "$WORK/_shared/routing.md" 'Expert Pool' 'Xpert Pool'; run_case "INV11b"
   WORK="$(mktemp -d)"; make_copy "$WORK"; echo '| Supervisor (채택) | 상시 | 조정자 추가 |' >> "$WORK/_shared/routing.md"; run_case "INV11c"
   WORK="$(mktemp -d)"; make_copy "$WORK"; replace_in "$WORK/CLAUDE.md" '운영 원칙 (Operating Principles)' '운영 지침'; run_case "INV12"
   WORK="$(mktemp -d)"; make_copy "$WORK"; replace_in "$WORK/_templates/worker-brief.md" '가정은 명시하고' '가정은 질문하고'; run_case "INV12c"
-  WORK="$(mktemp -d)"; make_copy "$WORK"; replace_in "$WORK/_shared/backends.json" '"workspace-write"' '"read-only"'; run_case "INV13"
+  WORK="$(mktemp -d)"; make_copy "$WORK"; replace_in "$WORK/.claude/agents/claude-reviewer.md" 'tools: Read, Grep' 'tools: Read, Write, Grep'; run_case "INV13a"
+  WORK="$(mktemp -d)"; make_copy "$WORK"; replace_in "$WORK/.claude/agents/claude-reviewer.md" 'model: claude-sonnet-5' 'model: sonnet'; run_case "INV13b"
   # INV14a: 주석·헤더의 'gate.sh' 문자열은 남기고 실제 호출 줄만 제거 (문자열 존재 검사로는 못 잡는 파손)
   WORK="$(mktemp -d)"; make_copy "$WORK"; replace_in "$WORK/_shared/adapters/call_worker.sh" 'bash "$SCRIPT_DIR/gate.sh" --json "$BRIEF"' 'true'; run_case "INV14a"
   WORK="$(mktemp -d)"; make_copy "$WORK"; rm "$WORK/_shared/adapters/scope_check.sh"; run_case "INV14b"

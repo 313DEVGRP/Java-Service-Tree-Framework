@@ -105,3 +105,8 @@
 **교훈 3**: 자율 진행 작업에서는 **검증을 사람 눈이 아니라 재실행 가능한 스크립트로 만들어 두는 편이 남는다**. 이번엔 브라우저·백엔드 없이 돌아가는 정적 검증 15항목(`artifacts/verify_page.js`)을 만들었고, 그 중 1항목이 죽은 CSS 클래스 훅 2개를 실제로 잡아냈다. 검증 스크립트는 산출물과 함께 `artifacts/` 에 남겨 재실행 경로를 보존한다.
 **근거**: `which codex agy` 둘 다 not found, MCP 목록에 `codex (CONNECTION_CLOSED)`. 정적 검증 최초 실행 14/15 → 수정 후 15/15.
 **worker**: orchestrator 단독(worker 호출 0건)
+
+## [2026-10-01] [selftest-python3-stub]
+**교훈**: Windows 에서 `check-invariants.sh --self-test` 가 "깨뜨렸는데 통과함" 을 대량으로 내면 러너 결함보다 **`python3` 가 Microsoft Store 스텁**(실행 시 "Python" 만 출력하고 실패)인지 먼저 본다. `replace_in` fixture 가 아무것도 깨지 못해 사본이 무결로 남는다(echo·rm fixture 만 PASS 하는 패턴이 신호). 실제 Python 을 `python3` 로 잡고 `PYTHONUTF8=1`(cp949 기본 인코딩 회피)을 줘야 판정이 유효하다. 또 Bash heredoc 으로 Python 편집 스크립트를 넘기면 `\t` 이스케이프·`\` 줄연속이 변형될 수 있어, 백슬래시가 있는 셸 코드 편집은 Write 도구로 만든 raw-string 스크립트로 한다.
+**근거**: 워커 풀 재구성(D15) 검증 시 self-test 14건 FAIL → python3 shim(+UTF-8) 후 21/21 PASS. heredoc 편집 1회 불일치·1회 탭 변형 발생.
+**worker**: orchestrator 단독(worker 호출 0건)

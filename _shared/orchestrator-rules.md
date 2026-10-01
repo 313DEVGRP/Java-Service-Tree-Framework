@@ -27,7 +27,7 @@ MultiAgent Orchestrator는 인터랙티브 Claude Code 세션에서만 실행한
 3. 자가 점검 러너를 실행한다: `bash _shared/check-invariants.sh` (불변식 정의는 `_shared/system-invariants.md` 표).
 4. 통과 시에만 커밋. 깨지면 고치거나, 의도된 변경이면 `design-basis.md`의 결정(D*)과 `system-invariants.md`를 함께 갱신한 뒤 커밋.
 
-**전면 재감사 조건**: 새 외부 개념·레퍼런스 도입, worker pool 구성·역할 변경, 불변식으로 표현 불가한 구조 변경일 때만 새 `tasks/<task>/`로 codex-critic/gemini 포함 재점검. 그 외 일반 수정은 위 4단계로 충분 — 매번 바닥부터 분석하지 않는다.
+**전면 재감사 조건**: 새 외부 개념·레퍼런스 도입, worker pool 구성·역할 변경, 불변식으로 표현 불가한 구조 변경일 때만 새 `tasks/<task>/`로 claude-reviewer 포함 재점검. 그 외 일반 수정은 위 4단계로 충분 — 매번 바닥부터 분석하지 않는다.
 
 ---
 

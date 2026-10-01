@@ -3,6 +3,24 @@
 이 파일은 MultiAgent orchestration 시스템의 주요 변경을 기록한다.
 형식은 [Keep a Changelog](https://keepachangelog.com/), 버전은 [Semantic Versioning](https://semver.org/lang/ko/)을 따른다.
 
+## [2.0.0] - 2026-10-01
+
+### Removed
+- **Worker `codex-main` · `codex-critic` · `gemini` 삭제 (D15)** — backends.json 항목, routing.md 역할 상세·모델 정책,
+  CLAUDE.md 워커 풀·쓰기 정책 표, 템플릿 role 목록에서 제거. codex MCP 서버 등록(`.mcp.json`·
+  `.claude/settings.local.json` `enabledMcpjsonServers`) 제거. gemini 전용 미구현 스텁 `adapters/gemini_api.sh` 삭제.
+
+### Added
+- **Worker `claude-reviewer` (reviewer 슬롯)** — `.claude/agents/claude-reviewer.md`, Task tool(native),
+  `model: claude-sonnet-5`(사용자 지정 핀), 읽기 전용 도구(`Read, Grep, Glob, Bash`). 호출 전후
+  `scope_check.sh`(`write_scope=none`)로 변경 0건 확인(CLAUDE.md Lifecycle 6).
+
+### Changed
+- capability-profile: engineer · computer-use · multimodal = 전담 워커 없음 → Orchestrator 직접.
+- 불변식 재정의: INV2(대상 claude-reviewer) · INV9(워커 풀 정합) · INV10(폐기 워커 활성 호출 부재) ·
+  INV13(reviewer 읽기 전용·모델 정합) + self-test fixture 교체(INV9a/b · INV10 · INV13a/b).
+- `/agent-check` 가용성 실측을 backends.json 기반(native·cli/api·MCP 일반화)으로 변경.
+
 ## [1.5.0] - 2026-09-06
 
 ### Added

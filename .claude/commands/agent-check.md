@@ -65,17 +65,17 @@ grep -E '^\| `' .claude/agents/README.md
 목록에 있는 것과 **지금 호출되는 것은 다르다.** 반드시 실측해서 함께 보고한다.
 
 ```bash
-which codex agy 2>&1 | tail -2
+jq -r '.workers | to_entries[] | "\(.key)\t\(.value.call_type)\t\(.value.native.subagent_type // "-")"' _shared/backends.json
+ls .claude/agents/
 ```
 
-- **codex MCP**: 세션에 `mcp__codex__*` 도구가 로드돼 있는지로 판정한다. 세션 시작 시 연결 실패가 보고됐으면
-  그 사실을 쓴다. **연결 실패를 "미설정"·"기능 없음" 으로 단정하지 말 것** — 서버 문제일 수 있으니
-  "연결 실패라 사용자가 재시도·복구해야 한다" 로 보고한다.
-- **CLI 폴백**: `codex` 가 PATH 에 없으면 MCP 실패 시 폴백도 불가하다(`routing.md` codex-main §MCP 실패 시 폴백).
-- **gemini**: `agy` 가 PATH 에 없으면 호출 경로가 없다. `backends.json` 의 `gemini.fallbacks` 가 빈 배열이면
-  폴백도 없다(D11 — 미구현 슬롯 비활성). **쿼터를 쓰는 스모크 호출은 기본으로 하지 않는다.**
-  사용자가 명시적으로 요청할 때만 `routing.md` 가 권하는 경량 스모크 1회를 제안한다.
-- **claude-main·도메인 서브에이전트**: Task tool 경유라 세션 내에서 항상 호출 가능하다.
+- **native 워커(claude-main·claude-reviewer)·도메인 서브에이전트**: Task tool 경유라 세션 내에서 호출 가능하다.
+  단, `.claude/agents/<name>.md` 를 **세션 도중 새로 만들었으면** 세션의 에이전트 목록(Agent tool 의 subagent_type)에
+  아직 없을 수 있다 — 목록에 없으면 "파일은 있으나 이 세션 미등록, 재시작 필요"로 보고한다(호출 불가로 단정하지 말 것).
+- **cli/api 워커**: `backends.json` 에 `call_type` 이 `cli`·`api` 인 워커가 있을 때만 해당 명령의 PATH 존재를 `which` 로 본다.
+  현재는 없다(D15). **쿼터를 쓰는 스모크 호출은 사용자 요청 없이 하지 않는다.**
+- **MCP 서버**: `.mcp.json` 에 등록된 서버가 있으면 세션에 `mcp__<server>__*` 도구가 로드됐는지로 판정한다.
+  연결 실패를 "미설정"·"기능 없음" 으로 단정하지 말 것 — "연결 실패라 사용자가 재시도·복구해야 한다" 로 보고한다.
 
 ### 1.4 호스트 기본 제공 에이전트
 
@@ -131,7 +131,7 @@ which codex agy 2>&1 | tail -2
 
 - 목록·배정을 이 파일이나 기억에서 답하기 (항상 정본 파일을 읽는다)
 - 파일 수정·생성, 드리프트 자동 교정
-- 쿼터를 소모하는 워커 호출(gemini 스모크 포함)을 사용자 요청 없이 실행
+- 쿼터를 소모하는 워커 호출(스모크 포함)을 사용자 요청 없이 실행
 - MCP 연결 실패를 "해당 기능 없음"·"미설정" 으로 단정
 - `model:` 핀이 없는 에이전트에 특정 모델을 단정해서 적기
 - 도메인 서브에이전트를 능력 슬롯에 배정된 것처럼 적기 (`.claude/agents/README.md` 의 계층 규정을 따른다)

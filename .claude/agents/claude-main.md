@@ -35,7 +35,7 @@ tools: '*'
 
 - **파일을 직접 쓰지 않음**. 결과 텍스트를 반환하고 Orchestrator가 result.md에 저장한다
 - brief.md의 `Do NOT` 항목 엄격 준수
-- 외부 repo 직접 수정 금지 (codex-main의 역할)
+- 외부 repo 직접 수정 금지 (Orchestrator 소관 — 코드는 텍스트·diff로 반환)
 - 응답 분량: brief에 명시된 한도 내에서 핵심만
 
 ## 참고

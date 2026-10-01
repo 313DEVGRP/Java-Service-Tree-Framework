@@ -9,12 +9,12 @@
 - 외과수술식 수정: 기존 스타일 유지, 무관 코드 비접촉
 - 사용자 대화 채널 없음: 가정은 명시하고, 불확실·불일치는 result의 Issues/Caveats에 표면화
 
-## Execution Context (codex-main / codex-critic 필수)
+## Execution Context (claude-reviewer 필수 · claude-main 은 대상 repo가 있을 때)
 
 ```yaml
 target_repo: /absolute/path/to/repo    # 작업 대상 절대 경로 (없으면 N/A)
 write_scope: none             # none | tasks-only | "src/**, tests/**" 등 패턴
-                              # 외부 repo 쓰기는 task.md workers_approved에 별도 승인 필요
+                              # 현재 풀(claude-main · claude-reviewer)은 항상 none. 외부 repo 쓰기는 task.md workers_approved에 별도 승인 필요
 ```
 
 ## Objective
@@ -28,10 +28,8 @@ write_scope: none             # none | tasks-only | "src/**, tests/**" 등 패�
 task:    tasks/<task-name>/task.md
 context: tasks/<task-name>/context.md
 sources: tasks/<task-name>/sources/<file>
-# gemini 이미지/PDF 검수: 분석 대상의 절대경로를 본문에 직접 적는다(아래 예).
-# image: /absolute/path/to/thumb.png   ← agy가 본문 경로를 열어 본다. --add-dir 쓰지 말 것.
-# gemini 소스·다중파일 검토: 스니펫을 brief에 넣지 말고 sources/gemini-packet.md에 담아
-# 디스패처 3번째 인자로 동봉한다: call_worker.sh gemini <brief> <packet> (routing.md gemini 절)
+# 리뷰 대상(claude-reviewer): 대상 산출물·diff 경로를 여기에 적는다.
+# review: tasks/<task-name>/artifacts/<file>.patch
 ```
 
 ## Constraints

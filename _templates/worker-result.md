@@ -3,7 +3,7 @@
 <!-- 이 파일은 worker 응답을 받은 후 생성. brief 작성과 동시에 미리 생성하지 말 것. -->
 
 ```yaml
-worker: claude-main | codex-main | codex-critic | gemini
+worker: claude-main | claude-reviewer
 task: [작업명]
 status: draft | complete | failed
 completed_at: <YYYY-MM-DD HH:MM>   # date +"%Y-%m-%d %H:%M"
