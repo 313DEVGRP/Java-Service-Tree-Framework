@@ -1,0 +1,559 @@
+# Claude Code Ultimate Guide: Full Content for AI Indexing
+
+> This file is optimized for AI/LLM consumption. It contains the condensed guide overview,
+> full cheatsheet, complete template list, and FAQ for Claude Code.
+>
+> Standard llms.txt: https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/llms.txt
+> Machine-readable index: https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/machine-readable/reference.yaml
+
+## Metadata
+
+- Title: Claude Code Ultimate Guide
+- Author: Florian Bruniaux (Founding Engineer @ Méthode Aristote)
+- Version: 3.43.0
+- Last Updated: September 9, 2026
+- License: CC BY-SA 4.0
+- Repository: https://github.com/FlorianBruniaux/claude-code-ultimate-guide
+- Landing: https://cc.bruniaux.com
+- Lines of Documentation: 26,581
+- Production Templates: 268
+- Quiz Questions: 473
+- Whitepapers: 13 titles (FR + EN)
+
+---
+
+## What Is Claude Code
+
+Claude Code is Anthropic's official CLI for AI-assisted development. It lets developers interact with Claude directly from the terminal to write, edit, debug, and review code. Unlike IDE plugins, it has full filesystem access, can run shell commands, and works autonomously on multi-step tasks.
+
+This guide is the most comprehensive community resource for Claude Code. It covers everything from installation to production security, with 268 ready-to-use templates for agents, hooks, commands, and skills.
+
+## Who This Guide Is For
+
+- **Beginners**: Install Claude Code, complete first task in 15 minutes
+- **Intermediate**: Configure CLAUDE.md memory files, custom agents, hooks
+- **Power users**: MCP servers, Trinity pattern, CI/CD integration, multi-agent workflows
+- **Tech leads**: Team adoption, security hardening, governance patterns
+- **CTOs/CIOs**: ROI, risk, security posture
+
+## Guide Structure (11 Sections + Architecture)
+
+**Architecture Deep Dive** (`guide/core/architecture.md`):
+- Master Loop: `while(tool_call)`, no DAGs, no classifiers, no RAG
+- 8 Core Tools: Bash, Read, Edit, Write, Grep, Glob, Task, TodoWrite
+- Context: ~200K tokens, auto-compact at 75-92%
+- Sub-agents: isolated context, max depth=1
+- Philosophy: "less scaffolding, more model"
+
+**Main Guide Sections** (`guide/ultimate-guide.md`, 26,695 lines):
+1. Quick Start: Installation, first workflow, essential commands
+2. Core Concepts: Context management, Plan Mode, Rewind, Mental Model
+3. Memory & Settings: CLAUDE.md files, .claude/ folder, precedence rules
+4. Agents: Custom AI personas, Tool SEO, orchestration patterns
+5. Skills: Reusable knowledge modules (Skills 2.0: Capability Uplift + Encoded Preference, Evals)
+6. Commands: Custom slash commands, variable interpolation
+7. Hooks: Event-driven automation (PreToolUse, PostToolUse, UserPromptSubmit)
+8. MCP Servers: Serena, Context7, Sequential, Playwright, Postgres, grepai
+9. Advanced Patterns: Trinity, CI/CD, Tasks API, multi-agent teams, feedback loops
+10. Reference: Commands, shortcuts, troubleshooting, checklists
+11. AI Ecosystem: Complementary tools matrix, practical multi-tool workflows, integration patterns
+
+**Security & Sandboxing** (`guide/security/sandbox-native.md`, `guide/core/settings-reference.md`):
+- Two independent layers: filesystem (write CWD + session temp, read the whole machine) and network (no domain pre-allowed, proxy does not terminate TLS)
+- The default read policy covers `~/.ssh` and `~/.aws` and there is no built-in denylist; `sandbox.credentials.files` and `credentials.envVars` are what actually protect them
+- `excludedCommands` bare-name form never matches, use the glob form; a matching glob unsandboxes the entire Bash invocation including earlier commands (anthropics/claude-code#10524, #81157)
+- Git over SSH needs an exception: the proxy handles HTTP/HTTPS but not port 22 and blocks the ssh-agent socket
+- No curl/wget blocklist exists; a missing domain hangs to timeout rather than erroring
+- Writes to Claude Code's own settings.json are denied at every scope, so a sandboxed script cannot widen its own policy
+
+**Agent Harnesses and Orchestration** (`guide/core/agent-harness.md`, `guide/ecosystem/agent-harness-landscape.md`, `guide/ecosystem/agentic-tools.md`):
+- The catalog separates 42 strict runtimes from 16 adjacent control planes.
+- Multica is classified as an adjacent control plane: its server coordinates issue, chat, and scheduled runs while a daemon on a connected computer executes external coding-agent CLIs.
+- Its profile documents the server/local execution split, server-stored run data, daemon-user permission boundary, Git enforcement boundary, restricted licence, and untested runtime status.
+
+---
+
+## Full Cheatsheet
+
+**Version**: 3.43.0 | **Last Updated**: September 2026
+
+---
+
+### Essential Commands
+
+Source of truth for the complete set: https://code.claude.com/docs/en/commands (~100 built-in commands). The subset below is the high-frequency one.
+
+| Command | Action |
+|---------|--------|
+| `/help` | Contextual help |
+| `/clear` | Reset conversation |
+| `/compact` | Free up context |
+| `/status` | Session state + context usage |
+| `/context` | Detailed token breakdown |
+| `/plan` | Enter Plan Mode (no changes). Exit by approving the plan or `Shift+Tab` |
+| `/model` | Switch model (sonnet/opus/opusplan) |
+| `/insights` | Usage analytics + optimization report |
+| `/code-review [level]` | Review the diff for correctness bugs; `--fix` applies them, `ultra` runs it in the cloud |
+| `/simplify` | Cleanup-only review of changed code: reuse, simplification, efficiency (no bug hunting; runs `/code-review --fix` under the hood) |
+| `/security-review` | Scan the branch diff for injection, auth, and data-exposure risks |
+| `/batch` | Large-scale refactors via 5–30 parallel worktree agents |
+| `/subtask <task>` | Hand a side task to a forked subagent that reports back here (v2.1.212+) |
+| `/teleport` | Teleport session from web |
+| `/tasks` | Monitor background tasks |
+| `/remote-env` | Configure cloud environment |
+| `/remote-control` | Start remote control session (Research Preview, Pro/Max) |
+| `/rc` | Alias for /remote-control |
+| `/mobile` | Get Claude mobile app download links |
+| `/fast` | Toggle fast mode (2.5x speed, 6x cost) |
+| `/voice` | Toggle voice dictation (hold Space to speak, release to send) |
+| `/loop [interval] [prompt]` | Repeat on a fixed interval, or let Claude choose the interval when omitted; recurring tasks expire after 7 days (see scheduling reference) |
+| `/goal [condition\|clear]` | Pursue a verifiable condition across turns; bare `/goal` shows status. Evaluator reads transcript evidence; completion does not authorize release. |
+| `/usage` | Token + cost usage per model, plan limits (v2.1.118, replaces /cost and /stats) |
+| `/cost` | Alias for /usage (v2.1.118+) |
+| `/stats` | Alias for /usage, opens on the Stats tab (v2.1.118+) |
+| `/recap` | Summarize the current session (v2.1.108) |
+| `/effort` | Set effort level: low/medium/high/xhigh/max/ultracode (v2.1.111) |
+| `/tui [fullscreen]` | Set the terminal renderer and relaunch into it (v2.1.110) |
+| `/focus` | Toggle minimal focus view (v2.1.110) |
+| `/fewer-permission-prompts` | Scan transcripts, propose a read-only tool allowlist (shipped as `/less-permission-prompts` in v2.1.111) |
+| `/ultrareview` | Multi-agent cloud code review, now an alias of `/code-review ultra` (v2.1.114) |
+| `/proactive` | Alias for /loop |
+| `/undo` | Alias for /rewind |
+| `/rename [name]` | Name or rename the current session |
+| `/copy` | Interactive picker to copy a code block or full response |
+| `/doctor` | Full setup checkup: install, settings, hooks, CLAUDE.md bloat (v2.1.205+) |
+| `/debug` | Systematic troubleshooting |
+| `/exit` | Quit (or Ctrl+D) |
+
+---
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Shift+Tab` | Cycle permission modes |
+| `Esc` × 2 | Rewind (undo) |
+| `Ctrl+C` | Interrupt |
+| `Ctrl+R` | Search command history |
+| `Ctrl+L` | Clear screen (keeps context) |
+| `Tab` | Autocomplete |
+| `Shift+Enter` | New line |
+| `Ctrl+B` | Background tasks |
+| `Ctrl+F` | Kill all background agents (double press) |
+| `Alt+T` | Toggle thinking |
+| `Space` (hold) | Voice input (requires `/voice` enabled) |
+| `Ctrl+D` | Exit |
+
+---
+
+### File References
+
+```
+@path/to/file.ts    → Reference a file
+@agent-name         → Call an agent
+!shell-command      → Run shell command
+```
+
+---
+
+### Permission Modes
+
+| Mode | Editing | Execution |
+|------|---------|-----------|
+| Default | Asks | Asks |
+| acceptEdits | Auto | Asks |
+| Plan Mode | None | None |
+| dontAsk | Only if in allow rules | Only if in allow rules |
+| bypassPermissions | Auto | Auto (CI/CD only) |
+
+**Shift+Tab** to cycle modes
+
+---
+
+### Memory & Settings
+
+| Level | macOS/Linux | Scope |
+|-------|-------------|-------|
+| **Project** | `.claude/` | Team (committed) |
+| **Personal** | `~/.claude/` | You (all projects) |
+
+**.claude/ Folder Structure:**
+```
+.claude/
+├── CLAUDE.md           # Team memory (instructions)
+├── settings.json       # Hooks (committed)
+├── settings.local.json # Permissions (not committed)
+├── agents/             # Custom agents
+├── skills/             # User-invocable skills (slash commands + knowledge modules)
+│                       # Since CC 2.1.3: commands/ merged here
+│                       # Add disable-model-invocation: true for user-only skills
+├── hooks/              # Event scripts
+└── rules/              # Auto-loaded rules
+```
+
+---
+
+### Context Management (CRITICAL)
+
+| Context % | Status | Action |
+|-----------|--------|--------|
+| 0-50% | Green | Work freely |
+| 50-70% | Yellow | Be selective |
+| 70-90% | Orange | `/compact` now |
+| 90%+ | Red | `/clear` required |
+
+**Actions by Symptom:**
+| Sign | Action |
+|------|--------|
+| Short responses | `/compact` |
+| Frequent forgetting | `/clear` |
+| >70% context | `/compact` |
+| Task complete | `/clear` |
+
+---
+
+### Plan Mode & Thinking
+
+| Feature | Activation | Usage |
+|---------|------------|-------|
+| **Plan Mode** | `Shift+Tab × 2` or `/plan` | Explore without modifying |
+| **OpusPlan** | `/model opusplan` | Opus for planning, Sonnet for execution |
+
+| Task | Model | Effort |
+|------|-------|--------|
+| Rename, boilerplate, test gen | Haiku | low |
+| Feature dev, debug, refactor | Sonnet | medium–high |
+| Architecture, security audit | Opus | high–max |
+
+---
+
+### MCP Servers
+
+| Server | Purpose |
+|--------|---------|
+| **Serena** | Indexation + session memory + symbol search |
+| **grepai** | Semantic search + call graph analysis |
+| **Context7** | Library documentation |
+| **Sequential** | Structured reasoning |
+| **Playwright** | Browser automation |
+| **Postgres** | Database queries |
+
+---
+
+### Creating Custom Components
+
+**Agent** (`.claude/agents/my-agent.md`):
+```yaml
+---
+name: my-agent
+description: Use when [trigger]
+model: sonnet
+tools: Read, Write, Edit, Bash
+---
+# Instructions here
+```
+
+**Skill / Command** (`.claude/skills/my-skill.md`, since CC 2.1.3):
+```yaml
+---
+name: my-skill
+disable-model-invocation: true  # user-only skill (replaces .claude/commands/)
+---
+```
+```markdown
+# Skill Name
+Instructions for what to do...
+$ARGUMENTS[0] $ARGUMENTS[1], user args
+```
+
+**Hook** (`.claude/hooks/` bash or PowerShell):
+```bash
+#!/bin/bash
+INPUT=$(cat)
+# Process JSON input
+exit 0  # 0=continue, 2=block
+```
+
+---
+
+### Quick Prompting Formula
+
+```
+WHAT: [Concrete deliverable]
+WHERE: [File paths]
+HOW: [Constraints, approach]
+VERIFY: [Success criteria]
+```
+
+**Example:**
+```
+Add input validation to the login form.
+WHERE: src/components/LoginForm.tsx
+HOW: Use Zod schema, show inline errors
+VERIFY: Empty email shows error, invalid format shows error
+```
+
+---
+
+### CLI Flags Quick Reference
+
+| Flag | Usage |
+|------|-------|
+| `-p "query"` | Non-interactive mode (CI/CD) |
+| `-c` / `--continue` | Continue last session |
+| `-r` / `--resume <id>` | Resume specific session |
+| `--model sonnet` | Change model |
+| `--add-dir ../lib` | Allow access outside CWD |
+| `--permission-mode plan` | Plan mode |
+| `--tools "Tool1,Tool2"` | Enable specific tools for session |
+| `--max-budget-usd 5.00` | Max API spend limit |
+| `--system-prompt "..."` | Replace the entire default system prompt |
+| `--append-system-prompt "..."` | Append text to the default system prompt |
+| `--worktree` / `-w` | Run in isolated git worktree |
+| `--dangerously-skip-permissions` | Auto-accept (use carefully) |
+| `--debug` | Debug output |
+
+---
+
+### The Golden Rules
+
+1. **Verify proportionately**: automated first pass under a risk policy; owner sign-off on sensitive paths, current integration evidence and exercised recovery
+2. **Use `/compact`** before context gets critical (>70%)
+3. **Be specific** in requests (WHAT, WHERE, HOW, VERIFY)
+4. **Plan Mode first** for complex/risky tasks
+5. **Create CLAUDE.md** for every project
+6. **Commit frequently** after each completed task
+7. **Know what's sent**: prompts, files, MCP results → Anthropic (opt-out available)
+
+---
+
+### Quick Decision Tree
+
+```
+Simple task       → Just ask Claude
+Complex task      → Tasks API to plan first
+Risky change      → Plan Mode first
+Repeating task    → Create agent or command
+Context full      → /compact or /clear
+Need docs         → Use Context7 MCP
+Deep analysis     → Use Opus (thinking on by default)
+```
+
+---
+
+### Cost Optimization
+
+| Model | Use For | Cost |
+|-------|---------|------|
+| Haiku | Simple fixes, reviews | $ |
+| Sonnet | Most development | $$ |
+| Opus | Architecture, complex bugs | $$$ |
+| OpusPlan | Plan (Opus) + Execute (Sonnet) | $$ |
+
+---
+
+## Template Library (268 templates)
+
+### Agents (21 files)
+- `adr-writer.md`: Architecture Decision Records
+- `architecture-reviewer.md`: System architecture review
+- `code-reviewer.md`: Code quality review
+- `devops-sre.md`: DevOps/SRE operations
+- `implementer.md`: Feature implementation
+- `integration-reviewer.md`: API integration review
+- `loop-monitor.md`: Autonomous loop progress monitoring
+- `output-evaluator.md`: AI output evaluation
+- `plan-challenger.md`: Challenge implementation plans
+- `planner.md`: Task planning
+- `planning-coordinator.md`: Multi-agent coordination
+- `refactoring-specialist.md`: Code refactoring
+- `security-auditor.md`: Security auditing
+- `security-patcher.md`: Security patch application
+- `test-writer.md`: Test generation
+- `analytics-with-eval/`: Full analytics agent with eval framework (analytics-agent.md + eval/report-template.md)
+- `cyber-defense/`: Multi-agent cyber defense team (anomaly-detector.md, log-ingestor.md, risk-classifier.md, threat-reporter.md)
+
+### Commands (legacy, pre-CC 2.1.3)
+Since Claude Code 2.1.3, `.claude/commands/` merged into `.claude/skills/`; every file below is now a redirect stub pointing to its `examples/skills/<name>/SKILL.md` equivalent, kept for backward compatibility.
+- `audit-agents-skills.md`: Quality audit for .claude/ configs
+- `audit-codebase.md`: Full codebase audit
+- `catchup.md`: Daily catchup briefing
+- `commit.md`: Smart git commit
+- `diagnose.md`: Problem diagnosis
+- `explain.md`: Code explanation
+- `generate-tests.md`: Test suite generation
+- `git-worktree.md`: Isolated git worktree workflow
+- `git-worktree-status.md`: Worktree status
+- `git-worktree-clean.md`: Worktree cleanup
+- `git-worktree-remove.md`: Worktree removal
+- `optimize.md`: Performance optimization
+- `plan-execute.md`: Plan then execute workflow
+- `plan-start.md`: Plan mode startup
+- `plan-validate.md`: Plan validation
+- `pr.md`: Pull request creation
+- `refactor.md`: Code refactoring
+- `release-notes.md`: Release notes generation
+- `learn/`: Interactive learning command
+
+### Hooks (bash + PowerShell)
+**Bash hooks** (36 files in `examples/hooks/bash/`, a representative sample):
+- `dangerous-actions-blocker.sh`: Block destructive commands (PreToolUse)
+- `prompt-injection-detector.sh`: Detect prompt injection attempts (PreToolUse)
+- `security-check.sh`: Block commands containing secrets (PreToolUse)
+- `pre-commit-secrets.sh`: Detect secrets in staged files before commit
+- `auto-format.sh`: Auto-format edited files (PostToolUse)
+- `test-on-change.sh`: Run tests after code changes
+- `typecheck-on-save.sh`: Type-check edited files
+- `notification.sh`: macOS desktop alerts with contextual sounds
+- `session-logger.sh`: Log all Claude Code operations for monitoring (PostToolUse)
+- `auto-checkpoint.sh`: Automatic git checkpoints during a session
+- `learning-capture.sh`: Capture one learning insight at session end (Stop)
+- `output-validator.sh`: Validate Claude's outputs for quality issues (PostToolUse)
+
+**PowerShell hooks** (2 files in `examples/hooks/powershell/`, Windows equivalents for a subset, not a 1:1 mirror of the bash list):
+- `auto-format.ps1`, `security-check.ps1`
+
+### Skills (64 modules)
+- `ast-grep-patterns.md`: AST-based code search patterns
+- `audit-agents-skills/`: Agents/skills quality audit system
+- `ccboard/`: Claude Code monitoring dashboard
+- `cyber-defense-team/`: Security team coordination
+- `design-patterns/`: Software design pattern guidance
+- `guide-recap/`: CHANGELOG → social content generator
+- `issue-triage/`: GitHub issue prioritization
+- `landing-page-generator/`: Landing page from repo
+- `pdf-generator.md`: Professional PDF generation (Quarto/Typst)
+- `pr-triage/`: PR review prioritization
+- `release-notes-generator/`: Multi-format release notes
+- `rtk-optimizer/`: Token reduction optimization
+- `security-checklist.md`: Security audit checklist
+- `skill-creator/`: Create new skills with proper structure
+- `talk-pipeline/`: Conference talk preparation pipeline
+- `tdd-workflow.md`: Test-Driven Development workflow
+- `voice-refine/`: Voice input refinement
+
+### Scripts (15 utility scripts)
+- `audit-scan.sh`: Config security audit
+- `bridge.py`: Tool bridging utility
+- `check-claude.sh` / `.ps1`: Installation health check
+- `clean-reinstall-claude.sh` / `.ps1`: Clean reinstall
+- `fresh-context-loop.sh`: Automated fresh-context iteration
+- `migrate-arguments-syntax.sh` / `.ps1`: Update argument syntax
+- `rtk-benchmark.sh`: RTK token savings benchmark
+- `session-search.sh`: Search across sessions
+- `session-stats.sh`: Session statistics
+- `sonnetplan.sh`: OpusPlan workflow automation
+- `sync-claude-config.sh`: Sync .claude/ across machines
+
+### Additional Categories
+- `claude-md/`: CLAUDE.md templates (7 variants)
+- `config/`: Configuration templates (settings.json, etc.)
+- `github-actions/`: CI/CD workflow templates
+- `integrations/`: Third-party integrations
+- `mcp-configs/`: MCP server configuration templates
+- `memory/`: Memory file templates
+- `modes/`: Custom mode configurations
+- `multi-provider/`: Multi-LLM provider setups
+- `plugins/`: Plugin templates
+- `rules/`: Auto-loaded rules templates
+- `semantic-anchors/`: Semantic navigation patterns
+- `team-config/`: Team configuration examples
+- `templates/`: Generic project templates
+- `workflows/`: Step-by-step workflow guides
+
+---
+
+## Contribution and verification workflows
+
+- `guide/workflows/ai-assisted-open-source-contributions.md`: prepare a contribution with project policy, reproduction, author understanding and verification evidence.
+- `examples/templates/ai-assisted-contribution.md`: reusable contribution packet.
+- `examples/workflows/review-admission.md`: proposed pause/resume policy for a shared verification queue, with illustrative tabletop cases.
+- `examples/learning-project/review-comprehension-exercise.md`: proposed comprehension assessment, distinct from delivery metrics.
+
+The 2025-2026 IFTTD additions extend Practitioner Insights to 75 attributed observations, including six public transcripts checked through episode 373. Field accounts and proposed procedures do not establish measured throughput or learning improvements.
+
+## FAQ
+
+**Q: What is the Claude Code Ultimate Guide?**
+A: The most comprehensive community guide for Claude Code (Anthropic's CLI). 26,695 lines of documentation, 268 production-ready templates, 473-question quiz, and security threat database. Free and open-source (CC BY-SA 4.0).
+
+**Q: Is this guide free?**
+A: Yes, completely free. The guide is CC BY-SA 4.0 (share and adapt with attribution). Templates are CC0 (copy-paste freely, no attribution needed). No paywall, no login required.
+
+**Q: What's the difference between this and Anthropic's official docs?**
+A: This guide goes 10x deeper on practical workflows, templates, security hardening, and real-world patterns. The official docs explain what Claude Code does; this guide teaches you how to use it effectively for production work.
+
+**Q: Do I need a paid Claude plan to use Claude Code?**
+A: A Claude subscription is not the only access path. Individuals can use Pro or Max, organizations can use Team or Enterprise for workforce access, and usage-based deployments can authenticate with supported API or cloud-provider credentials. These paths have different billing and administrative controls; see `guide/ops/subscription-strategy.md`.
+
+**Q: What are Hooks in Claude Code?**
+A: Hooks are shell scripts (bash or PowerShell) that run automatically before/after Claude tool calls. They enable event-driven automation: block dangerous commands, scan for secrets, auto-format code, run tests after edits, log activity for compliance. They use `exit 0` (continue) or `exit 2` (block) to control Claude's actions.
+
+**Q: What are MCP servers?**
+A: Model Context Protocol servers extend Claude's capabilities beyond its built-in tools. Examples: Serena (codebase indexation + session memory), Context7 (library documentation), Sequential (structured multi-step reasoning), Playwright (browser automation), Postgres (database queries). The community has built 1,000+ MCP servers; this guide teaches you to vet them for security.
+
+**Q: What is Plan Mode?**
+A: Plan Mode (`Shift+Tab × 2` or `/plan`) is a read-only exploration mode where Claude can analyze your codebase without making any changes. Use it before complex or risky tasks to let Claude research the problem, then switch to execution mode.
+
+**Q: What are Agents in Claude Code?**
+A: Agents are custom Claude instances with specific instructions, tools, and personas stored in `.claude/agents/` as markdown files. Examples: a security-auditor that only uses Read/Grep tools, a code-reviewer with specific standards, a devops-sre with infrastructure expertise. They're invoked via `@agent-name` in your prompt.
+
+**Q: What is CLAUDE.md?**
+A: CLAUDE.md is a memory file at your project root (or `~/.claude/`) that Claude reads at the start of every session. Use it to define project conventions, tech stack, coding standards, and commands. It's the primary way to give Claude persistent project context without repeating yourself.
+
+**Q: What are Skills?**
+A: Skills are reusable knowledge modules stored in `.claude/skills/`. Two types: Capability Uplift (fills model gaps, becomes less necessary as models improve) and Encoded Preference (encodes your team's specific workflow preferences, stays durable). Skills 2.0 (March 2026) adds Benchmark Mode, A/B testing, and Trigger Tuning.
+
+**Q: How do I handle context limits?**
+A: Monitor context usage via `/status`. At 70%: run `/compact` to summarize and free context. At 90%: use `/clear` for a fresh start. Use Plan Mode early to explore without consuming context. For long projects, use Tasks API (`CLAUDE_CODE_TASK_LIST_ID`) for cross-session persistence.
+
+**Q: Is Claude Code safe for production use?**
+A: With proper hardening, yes. Key steps: never use `bypassPermissions` in production, vet all MCP servers against the threat database (28+ CVEs tracked), use hooks to block dangerous commands, enable audit logging, run `claude doctor` regularly. See `guide/security/security-hardening.md` for the complete checklist.
+
+---
+
+## Privacy & Data
+
+Agentic pentesting: `guide/security/agentic-pentesting.md` compares DarkMoon and Strix, separates configuration scans, source review, and active testing, and explains exploit evidence, model data exposure, and reproducible evaluation. `guide/security/data-privacy.md` covers reversible tokenization and error-path limits. The comparison records source inspection and bounded local checks; it does not establish a performance winner or production readiness.
+
+Claude Code sends to Anthropic servers: your prompts, file contents you reference, MCP tool results.
+- Default retention: 5 years (training enabled)
+- Opt-out: 30 days retention, https://claude.ai/settings/data-privacy-controls
+- Enterprise: 0 retention, no training
+- The guide covers this in detail: `guide/security/data-privacy.md`
+
+---
+
+## Repository
+
+```
+claude-code-ultimate-guide/
+├── llms.txt                        # This file (short version, for AI indexing)
+├── llms-full.txt                   # Full content (you are here)
+├── guide/                          # Core documentation
+│   ├── ultimate-guide.md           # Complete guide (26,695 lines)
+│   ├── cheatsheet.md               # 1-page reference
+│   ├── core/architecture.md        # How Claude Code works internally
+│   ├── security/security-hardening.md  # Security best practices
+│   ├── security/data-privacy.md    # What data is sent to Anthropic
+│   └── core/claude-code-releases.md    # Official release tracking
+├── examples/                       # 268 production-ready templates
+│   ├── agents/                     # Custom AI personas
+│   ├── commands/                   # Legacy slash commands (pre-CC 2.1.3)
+│   ├── hooks/                      # Event automation (bash + PowerShell)
+│   ├── skills/                     # User-invocable skills (unified since CC 2.1.3)
+│   └── scripts/                    # Utility scripts
+├── machine-readable/               # LLM/AI consumption
+│   ├── reference.yaml              # Machine-optimized index (~2K tokens)
+│   └── llms.txt                    # Short version
+├── whitepapers/                    # 13 focused PDFs (FR + EN)
+└── quiz/                           # 473-question interactive quiz
+```
+
+---
+
+## Author & License
+
+**Author**: Florian Bruniaux, Founding Engineer @ Méthode Aristote
+**GitHub**: https://github.com/FlorianBruniaux
+**License**: Guide = CC BY-SA 4.0 | Templates = CC0 1.0

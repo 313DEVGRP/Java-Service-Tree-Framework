@@ -1,0 +1,259 @@
+---
+title: "Agentic Software Factories: Orientation Map"
+description: "Where to start when scaling from a single Claude Code session to a multi-agent software factory, and when a closed commercial platform actually beats the native path"
+tags: [workflow, agents, orchestration, software-factory, decision-guide]
+---
+
+# Agentic software factories: Orientation map
+
+This page answers one question: you want to run Claude Code as something closer to a software factory than a single session, so where do you start and what do you pick. It does not repeat the detailed material that already exists across six other files in this guide. It points to it, in order, and adds the two things that were missing: an honest decision tree for closed commercial platforms, and a governance checklist that includes a question no vendor page asks about itself.
+
+**Reading time**: ~15 min
+**Prerequisites**: Basic familiarity with sub-agents and the Task tool
+**Related**: [Agent Teams](./agent-teams.md), [Dynamic Workflows](./dynamic-workflows.md), [Plan-Validate-Execute Pipeline](./plan-pipeline.md), [Spec-First Development](./spec-first.md), [Loop & Graph Engineering](../core/loop-graph-engineering.md), [Agent Tools: Beyond Claude Code](../ecosystem/agentic-tools.md)
+
+---
+
+## Read the map before adding a control plane
+
+A software factory combines several layers. The model reasons; the runtime harness owns the coding loop; the repository harness provides instructions and deterministic delivery gates; the orchestrator dispatches work across sessions or workspaces. A factory or control plane can coordinate runtimes without becoming the runtime itself.
+
+Start with the [Agent Harness Map](../ecosystem/agent-harness-landscape.md) when the question is which product owns a coding loop and which catalog entries are merely adjacent. Read [Agent Harness Engineering](../core/agent-harness.md) for the layer boundaries, [Loop & Graph Engineering](../core/loop-graph-engineering.md) for control flow and judgment contracts, [Agent Tools: Beyond Claude Code](../ecosystem/agentic-tools.md) for frameworks and orchestration products, [Agent Evaluation](../roles/agent-evaluation.md) for the test protocol, [Session Observability](../ops/observability.md) for the evidence trail, and [Security Hardening](../security/security-hardening.md) before allowing unattended work. Terms are defined in the [glossary](../core/glossary.md).
+
+### A software factory is an operating model
+
+Buying a platform does not create a software factory. The operating model defines who writes intent, which runtime acts, where state persists, which checks can block progress, who handles exceptions, and who may release an irreversible change. A product can package those functions, but the responsibility split remains yours.
+
+| Responsibility | Default owner | Evidence required |
+|---|---|---|
+| intent, scope, and risk tolerance | accountable human | versioned specification and named owner |
+| bounded execution | runtime harness or workflow graph | trace, tool policy, budget, and stop reason |
+| mechanical verification | repository harness or policy engine | command, output, exit status, and artifact revision |
+| ambiguous exception or high-impact release | named human or pre-authorized policy | verdict, evidence references, and exception record |
+| future process improvement | versioned improvement loop | candidate diff and held-out evaluation |
+| whether the shipped change delivered the intended value | the person who wrote the intent, usually product | an outcome or adoption signal named before the work starts, read after release |
+
+Pavan Belagatti summarizes the split as ["agents do the work, humans provide the gates"](https://www.youtube.com/watch?v=0nM1ygBm8tA&t=97s). His longer software-factory walkthrough shows a [human review gate](https://www.youtube.com/watch?v=pE1S1egMrAI&t=908s) plus [automated rollback and feedback](https://www.youtube.com/watch?v=pE1S1egMrAI&t=764s) in a Port-oriented workflow. The videos prove that the demonstrated workflow can be configured. They do not measure reliability, total cost, reviewer time, hostile-input behavior, or comparative productivity.
+
+OpenAI's [Harness Engineering](https://openai.com/index/harness-engineering/) report uses the related phrase "Humans steer. Agents execute" and documents one internal greenfield experiment. Its self-reported throughput and time estimate are useful implementation evidence, not a neutral benchmark. In both accounts, the human leaves repeated execution while remaining responsible for governance.
+
+### The constraint moves upstream, to what is worth building
+
+Most software-factory designs, including every level in section 1, optimize engineering time: faster implementation, more parallel agents, tighter verification loops. Once code production speeds up, engineering time stops being the scarce resource. The scarce resources become deciding what is worth shipping and checking that what shipped does what it was meant to do. A factory built only around the engineering stages speeds up the part of the system that is no longer the bottleneck, and ships more features without shipping more value.
+
+OpenAI's account of its own pipeline points the same way (see [section 6](#6-the-half-of-the-factory-that-runs-after-the-merge) for the source and its limits). Venkat Venkataramani places judgment, prioritization and taste in the first stage, where a human defines the outcome, and states that OpenAI's engineers are becoming more like product managers than traditional systems engineers. The same article reports that subject matter experts are embedded in the ChatGPT Work engineering teams, because in some domains developers can no longer channel the needed taste into the harness themselves, for example what a good slide deck or business report looks like. That is one company's self-description, not a measured result, but it locates the work that remains human in intent and judgment rather than in execution.
+
+Two consequences for anyone building a factory:
+
+- **Bring the author of the intent back into verification.** Section 4's first question asks whether a gate is deterministic. A second gap sits beside it: tests can pass while failing to cover what the ticket asked for. A read-only review agent can compare the ticket's acceptance criteria with the tests actually written and report criteria that no test exercises, to the person who wrote them. The output is a gap list for that person to judge, not an approval. [Spec-first development](./spec-first.md) covers how to write acceptance criteria an agent can check.
+- **Measure the other half.** A factory that reports throughput and change failure rate but not adoption or time-to-value repeats, on the product side, the trap section 5 describes on the code side. The product metrics in [Team Metrics](../ops/team-metrics.md#product-metrics-the-often-missing-layer) are the missing half of the factory's dashboard, and the last row of the table above gives them an owner.
+
+---
+
+## Table of contents
+
+1. [The spectrum: six levels, six costs](#1-the-spectrum-six-levels-six-costs)
+2. [The missing decision tree: when does a closed software factory actually win](#2-the-missing-decision-tree-when-does-a-closed-software-factory-actually-win)
+3. [The map of six files](#3-the-map-of-six-files)
+4. [Five governance questions before you adopt anything](#4-five-governance-questions-before-you-adopt-anything)
+5. [The unbounded velocity trap](#5-the-unbounded-velocity-trap)
+6. [The half of the factory that runs after the merge](#6-the-half-of-the-factory-that-runs-after-the-merge)
+7. [Before the merge: two loops Claude Code already ships](#7-before-the-merge-two-loops-claude-code-already-ships)
+
+---
+
+## 1. The spectrum: six levels, six costs
+
+Every option below solves a real problem the previous level does not. None of them is free, and the cost is rarely just money.
+
+**Level 0: a single Claude Code session.** Solves nothing beyond what one developer, one context window, and one conversation can hold. Costs whatever your subscription already costs. Move up when a task naturally splits into independent chunks that would otherwise force you to context-switch manually inside one session.
+
+**Level 1: `/batch`.** A native command, added in v2.1.63, that distributes a large repetitive change (a migration, a bulk type-annotation pass, a dependency swap) across 5 to 30 parallel agents, each in its own git worktree, each opening its own pull request. Solves the "same edit, many files, no shared judgment needed" case. Costs roughly N times the token cost of a single agent doing one unit of the work, paid up front, with no coordination overhead because there is nothing to coordinate: the units are independent by construction. Full description at [guide/ultimate-guide.md:9642](../ultimate-guide.md#the-batch-command). Move up when the units are not actually independent, when they need to see each other's output, or when the task is not repetitive but exploratory.
+
+**Level 2: Agent Teams (native, experimental).** Multiple Claude Code instances coordinating through git and a shared mailbox, with a lead agent synthesizing results from teammates. Solves read-heavy coordination: multi-angle code review, parallel hypothesis testing during debugging, architecture analysis from several perspectives at once. Costs 3x or more in tokens compared to a single agent, and real cognitive load in learning when it helps versus when it just burns budget for the same output. Six documented production cases exist (Fountain, CRED, an Anthropic Research internal C compiler project, Paul Rayner's job-search app, parallel hypothesis testing, and one large refactor), all detailed with sources in [guide/workflows/agent-teams.md](./agent-teams.md) section 4. The decision tree at [guide/workflows/agent-teams.md](./agent-teams.md) section 7 already separates Agent Teams from plain multi-instance and dual-instance work; read that before reading anything else on this page. Move up when the work stops being "several agents look at the same thing" and becomes "several agents build different pieces of a defined pipeline."
+
+**Level 3: Dynamic Workflows (`ultracode`).** A JavaScript-orchestrated pipeline, added in v2.1.154, built from a small set of primitives (`agent`, `parallel`, `pipeline`, `phase`) that gives you deterministic control flow, schema-validated outputs between stages, and automatic resume after an interruption. The orchestrator script itself costs nothing to run; every dollar goes into the `agent()` calls it makes. This is the closest thing in the native toolchain to a scriptable factory: a real dev-flow example (issue to merged PR) is documented end to end in [guide/workflows/dynamic-workflows.md](./dynamic-workflows.md) section 7. Move up when you need durable state across many runs, an ADR-driven learning loop, or a formal plan-validate-execute separation with independent reviewers, none of which the raw primitives give you by themselves.
+
+**Level 4: Plan-Validate-Execute Pipeline.** Three commands (`/plan-start`, `/plan-validate`, `/plan-execute`) built on top of the same primitives, adding a dynamic research agent pool, a two-layer independent validation pool, and an ADR learning loop that reduces how often a human needs to interrupt the next run. Documented in full in [guide/workflows/plan-pipeline.md](./plan-pipeline.md), including a real cost profile (typically $2 to $10 per Tier 2 feature, falling as ADR coverage grows). This is the practical ceiling of what the native Claude Code toolchain offers today for something resembling a software factory. Move up only if you need something outside the Anthropic ecosystem entirely: cross-machine agent federation, a different model provider mixed into the pipeline, or a vendor-managed governance layer you do not want to build yourself.
+
+**Level 5: third-party orchestration frameworks.** Tools that sit above or beside Claude Code and manage multiple instances or agents at a level the native toolchain does not reach: Ruflo (hierarchical swarms, cross-machine federation), Gas Town and multiclaude (multi-Claude workspace managers), Entire CLI (governance-first, sequential handoffs, compliance audit trails), CAO (AWS Labs, supervisor-worker delegation over MCP with each agent in its own tmux session, and the only project in this category to survive a bus-factor check, see [agentic-tools.md §4.6](../ecosystem/agentic-tools.md#46-cli-agent-orchestrator-cao-aws-labs)). Full comparison in [guide/ecosystem/third-party-tools.md](../ecosystem/third-party-tools.md) under Multi-Agent Orchestration and External Orchestration Frameworks, and in [guide/ecosystem/agentic-tools.md](../ecosystem/agentic-tools.md) for tools that replace Claude Code rather than orchestrate it. Costs go up in three ways at once: token spend, infrastructure to run and maintain the orchestrator, and the time to learn a second system's failure modes on top of Claude Code's own. Move up (or rather, sideways) to level 6 only if you also want someone else to own the entire spec-to-deploy lifecycle, not just the coordination layer.
+
+**Level 6: closed full-cycle software factories.** Commercial platforms (Maleus, Factory.ai, Blitzy, and Devin when used this way) that run the whole cycle behind a managed interface: specification intake, isolated parallel build, validation, deployment. Documented as a market category in [guide/workflows/spec-first.md:959-999](./spec-first.md#full-cycle-ai-software-factories). This is where section 2 below matters, because the honest cost of this level is not published by any of the vendors.
+
+---
+
+## 2. The missing decision tree: when does a closed software factory actually win
+
+Two decision trees already exist in this guide for adjacent choices: multi-instance versus single-instance work in [guide/ultimate-guide.md:20320](../ultimate-guide.md#decision-matrix) (branches on developer count and budget), and Agent Teams versus multi-instance versus dual-instance in [guide/workflows/agent-teams.md](./agent-teams.md) section 7 (branches on task shape). No equivalent existed for the choice between a closed software factory and the native stack (Agent Teams, `/batch`, dynamic-workflows) that already covers most of the same ground for the cost of a Claude subscription. Here is one, built from what could actually be verified rather than from vendor claims.
+
+```
+Do you need the whole spec-to-deploy cycle owned by one vendor?
+├─ No, you just need faster parallel execution on defined tasks
+│  └─ Use Level 1-4 (native stack). Stop here.
+│
+├─ Yes, but your team can write specs and review PRs
+│  ├─ Team size < 10, no dedicated platform engineer
+│  │  └─ Native stack (Level 2-4) almost always wins on cost and control.
+│  │     A closed factory adds a vendor relationship, a second billing
+│  │     model, and a lock-in risk for a problem you can already solve.
+│  │
+│  ├─ Team size 10-50, budget clearly allocated for tooling
+│  │  ├─ Regulatory or audit requirement (SOC2, HIPAA, traceability)?
+│  │  │  └─ Consider Entire CLI (governance-first, sequential, native
+│  │  │     Claude Code compatible) before a full closed factory.
+│  │  │     See guide/ops/ai-traceability.md section 5.1.
+│  │  └─ No compliance driver, just want to move faster
+│  │     └─ Pilot one closed factory on a single bounded project.
+│  │        Do not migrate the primary codebase on a first pilot.
+│  │
+│  └─ Team size 50+, or non-developer stakeholders need to ship product
+│     └─ A closed factory (Maleus for natural-language intent, Factory.ai
+│        for the Missions architecture, Blitzy for very large codebases)
+│        becomes defensible. Run the governance checklist in section 4
+│        below before signing anything, because the vendor will not
+│        run it for you.
+│
+└─ Yes, and you want to self-host and keep the code fully in-house
+   └─ OpenHands is the closest open-source equivalent to Devin's
+      dependency-graph parallelism, at the cost of running the
+      infrastructure yourself. See guide/ecosystem/agentic-tools.md
+      section 2.4.
+```
+
+Say the quiet part directly: for a small team, it is almost never. Treat that as this guide's editorial judgment rather than a measured threshold, because no one has published the comparative cost study that would settle it. The reasoning behind it is checkable, though: Agent Teams has six production use cases documented with sources ([`agent-teams.md`](./agent-teams.md) section 4), while the closed platforms have funding rounds and demos and no independently verified deployment with metrics. Agent Teams plus `/batch` plus dynamic-workflows already cover the large majority of what a closed software factory sells, for the price of a Claude subscription rather than a second vendor contract. The gap that remains, mostly, is not capability. It is governance packaging: audit trails, approval gates, and a managed interface for people who are not going to read a git diff. If you need that packaging specifically, buy it. If you are buying a closed factory because parallel agent execution sounds like it needs a dedicated platform, it does not, not yet, not at that team size.
+
+The evidence gap cuts the other way too, and it should make anyone cautious regardless of team size. Be precise about what the gap is, because the closed platforms are not short on named customers. Cognition publishes Mercedes-Benz (200,000 lines of COBOL, an eight-month estimate cut to eight days) and Itaú (70% of security vulnerabilities auto-resolved). Blitzy publishes a Fortune 100 mainframe modernization (33 million lines in 3.5 days), QAD, and Builders FirstSource (3x velocity). Factory publishes aggregate figures (550,000 developer-hours saved, 31x faster delivery). These are real companies that agreed to be named, and dismissing them as vapor would be dishonest.
+
+The problem is one level down. Every one of those numbers is reported by the vendor, not by the customer and not by an independent third party. A July 2026 sweep for this guide could not find a single case in the category where the customer published its own measured outcomes, or where a neutral party verified the vendor's. A named logo is an endorsement; it is not a measurement you can audit. Mercedes let Cognition publish "eight months to eight days" and did not publish its own figures. That distinction is the whole point: the six Agent Teams cases at [`agent-teams.md`](./agent-teams.md) section 4 are sourced to the practitioners who ran them, while the closed-platform cases are sourced to the sales page. The only third-party signals that surfaced in the sweep run against the platforms, not for them: a documented account of three teams dropping Devin inside their first quarter, and field reports putting agent-generated defect rates at roughly 1.5x to 2x human-authored code. No independent comparative cost study between a closed factory and the native stack exists at all, which is exactly the number that would settle the "almost never" judgment above and exactly the number nobody has published. Treat every claim from a closed factory's own marketing material the way section 5 below treats a README: verify it is wired before you believe it.
+
+---
+
+## 3. The map of six files
+
+No single file in this guide covers the whole subject, and that is deliberate: each file earns its place by covering one layer well rather than everyone trying to cover everything shallowly. Read in this order depending on what you actually need.
+
+**Starting from zero**, read this page first, then [guide/workflows/agent-teams-quick-start.md](./agent-teams-quick-start.md) for a 5-minute native setup with four copy-paste patterns, before touching anything else.
+
+**Building a native pipeline**, read [guide/workflows/dynamic-workflows.md](./dynamic-workflows.md) for the primitives, then [guide/workflows/plan-pipeline.md](./plan-pipeline.md) for the three-command production pipeline built on top of them.
+
+**Writing specs before code**, read [guide/workflows/spec-first.md](./spec-first.md), which also covers the closed software factory market category, the four governance questions this page extends in section 4, and the decorative-CI trap.
+
+**Comparing methodologies at the strategic level** (BMAD, GSD, and thirteen others), read [guide/core/methodologies.md](../core/methodologies.md), Tier 1: Strategic Orchestration.
+
+**Evaluating a third-party tool that runs alongside or instead of Claude Code**, read [guide/ecosystem/agentic-tools.md](../ecosystem/agentic-tools.md) for autonomous coders and multi-agent frameworks (Devin, OpenHands, CrewAI, LangGraph), and [guide/ecosystem/third-party-tools.md](../ecosystem/third-party-tools.md) for tools that specifically orchestrate multiple Claude Code instances (Gas Town, multiclaude, Ruflo, Entire CLI).
+
+**Scaling the decision itself** (how many developers, what budget, what red flags mean rollback), read [guide/ultimate-guide.md](../ultimate-guide.md), the progressive scaling section starting around line 19986.
+
+---
+
+## 4. Five governance questions before you adopt anything
+
+[guide/workflows/spec-first.md:970-975](./spec-first.md#full-cycle-ai-software-factories) already lists four questions worth asking before adopting any full-cycle platform, closed or open. Repeated here because they apply just as much to a native dynamic-workflow pipeline you build yourself as to a vendor platform, plus a fifth added from direct evidence.
+
+1. **Deterministic gate, or LLM self-grading?** Does a separate, non-LLM process (lint, type check, test suite, contract validation) block the merge, or does the agent that wrote the code also decide whether it is correct?
+2. **Is there a stop-the-line mechanism?** After N failed remediation attempts, does the pipeline halt and escalate to a human, or does it keep retrying and burning tokens?
+3. **Is every decision traceable?** Can you reconstruct, after the fact, which agent and which model version made a given change, and whether a human approved it?
+4. **Does the spec stay authoritative after the first generation?** Or does the code drift away from the spec as the app evolves past its first version, with no reliable sync mechanism?
+5. **Is the verification feature the README advertises actually wired into the code path that runs?** This is not a hypothetical concern. A source-level audit of one self-described "software factory" (see section 5 below) found a 986-line adversarial verification module, a genuinely strong design that would answer question 1 above better than most alternatives in this guide, imported with `import type` only. Type-only imports erase at compile time. The module was never instantiated at the single production entry point; the code path that should have called it silently treated the check as failed instead. The feature existed, was tested, and did not run. Checking that a file exists, or even that it is imported, proves nothing about whether it executes. Ask for the specific runtime entry point that calls the verification code, not the module's existence in the repository.
+
+---
+
+## 5. The unbounded velocity trap
+
+A source-level evaluation of Fusion, a self-described "software factory run by a multi-agent orchestrator," is documented in full at [docs/resource-evaluations/fusion-multi-agent-orchestrator.md](../../docs/resource-evaluations/fusion-multi-agent-orchestrator.md). It is short and worth reading directly. The summary here is deliberately narrow: what it demonstrates about velocity without architecture, not a review of the tool itself.
+
+The repository is under four months old (first commit 2026-03-25, evaluated 2026-07-15) and contains 727,279 lines of code excluding tests, written almost entirely by one person working with agents: 94% of the 11,333 commits on main come from a single contributor identity plus its bot accounts, with the second human contributor at 3.3%. One file, `executor.ts`, runs to 19,328 lines. Two storage backends (SQLite and Postgres) are maintained in full parallel, each store implemented twice, with the roadmap still calling the migration "planned" while the cutover review sits dated a day before the evaluation. The behavioral verification module described in question 5 above, a design pattern strong enough to solve the decorative-CI problem this guide already flags at [guide/workflows/spec-first.md:979-988](./spec-first.md#the-decorative-ci-trap-question-1-in-practice), was built, tested, and never wired into production.
+
+That last point turned out to be larger than a single project's mistake. A July 2026 market sweep of this category, run after the Fusion evaluation and cross-checked against the GitHub API rather than project READMEs, could not find a single maintained open-source orchestrator that takes agent-written code, generates an adversarial attack plan against it, executes that plan in a sandbox, and withholds the "done" verdict until the attacks fail. What exists instead, across every tool examined, is exit codes, pre-push hooks, conflict guards, and LLM reviewers grading other LLMs, the last of which the Refute-or-Promote paper cited above kills empirically. Even that paper's own reference implementation ([abhinavagarwal07/refute-or-promote](https://github.com/abhinavagarwal07/refute-or-promote)) is an orchestration playbook rather than a runnable harness, at one star, with its last commit three days after its first.
+
+The conclusion is uncomfortable. Fusion's double-checkout appears to be the closest thing to an industrialized answer that anyone has written, and it does not run. The strongest mechanism in a market worth tens of billions in aggregate valuation sits in 986 lines of MIT-licensed dead code, reachable by anyone willing to copy it. Adversarial verification is not a solved problem this guide is late to; it is an open hole, and section 4's question 5 exists because of it.
+
+None of this is a claim that agentic velocity is bad. It is a measurement of what happens when velocity outruns architecture: 727,000 lines shipped in sixteen weeks by one person is a real capability, not a myth. What that capability produces without a second reviewer, a bus factor above one, or a deliberate stop to consolidate the two storage backends into one, is documentation describing behavior that does not happen and a codebase that will cost more to untangle than it took to write. Scale up your own use of Level 3 through 6 above with that trade in view. The question is never whether agents can produce this much code. It is whether anyone, including the person who wrote the prompts, can still explain what all of it does a year later.
+
+The same trap shows up from the inside, not just in an audited codebase. Anthropic's own account of scaling its CI test-selection service ([Agentic coding is straining CI](https://claude.com/blog/agentic-coding-is-straining-ci-heres-how-we-scaled-test-impact-analysis-at-anthropic), September 2026; see [full evaluation](../../docs/resource-evaluations/2026-09-14-anthropic-ci-test-impact-analysis.md)) describes verification infrastructure, not code, buckling under agent-driven volume: a bigger machine bought 70 days, sharding bought 29 more, daily restarts bought less than a day, before a rewrite replaced a single-writer singleton with a stateless, horizontally scalable design. Anthropic is explicit that the individual scaling techniques are not the insight to take from that story. The insight is the same one Fusion demonstrates from the outside: velocity that outruns its own verification layer, whether that layer is adversarial testing or the CI pipeline deciding what to test, produces a system nobody can trust to tell them what actually broke.
+
+OpenAI reports the same wall from a separate codebase and toolchain: roughly a 10x load increase on some delivery systems in about six months, named across version control, CI/CD and production release, with the stated expectation of a new infrastructure scaling problem every month ([evaluation](../../docs/resource-evaluations/2026-09-15-openai-agentic-software-factory.md), and section 6 below). Neither account publishes a defect rate, an escape rate or a change failure rate alongside those throughput figures. Two frontier labs converging on the same bottleneck is worth weight; two frontier labs both measuring only the numerator is worth caution.
+
+---
+
+## 6. The half of the factory that runs after the merge
+
+Every level in section 1 stops at the same place: a merged pull request. That is not an accident of this page, it is where the native toolchain and every orchestrator compared above actually end. A factory that stops at the merge is a code-production line, not a factory, because nothing in it owns the part where software meets users.
+
+The first dated operator account of the other half comes from OpenAI, reported by Gergely Orosz in [Inside OpenAI's agentic software factory](https://newsletter.pragmaticengineer.com/p/openai-software-factory) (September 2026, paywalled after section 3; the pipeline description is in the free preview). Full evaluation with the fact-check table at [docs/resource-evaluations/2026-09-15-openai-agentic-software-factory.md](../../docs/resource-evaluations/2026-09-15-openai-agentic-software-factory.md). Read what follows as one company's running system described to a journalist, not as a validated reference architecture. Every figure in it is self-reported by OpenAI, and the article publishes no defect rate, no change failure rate and no rollback count anywhere.
+
+### 6.1 Four post-merge stages, and who holds each gate
+
+| Stage | What the agent does | Where the gate sits | Not published |
+|---|---|---|---|
+| Risk-tiered review | Several agents review in parallel, each configured for one domain (data, infra, cloud, security). The change is classified by risk | High-risk: more agent reviews, plus a mandated human after the agents finish. Low-risk: a codebase area can opt in to an agent that auto-approves | Whether auto-approved low-risk PRs have the same defect profile as human-reviewed ones |
+| Per-change deploy | One agent per change, instructed to handhold it until it is fully rolled out. For a feature flag it locates the flag, works out what the change does, decides which signals mean success or failure, and builds its own dashboard | A human approves the change for production before the agent takes it | What happens to the dashboards afterwards, and who reconciles them with the shared observability stack |
+| Perf Factory | Agents sift alerts and dashboards, de-duplicate signals, isolate real latency regressions, root-cause them and propose fixes that re-enter the pipeline at the coding stage | The proposed fix goes back through the normal review and deploy path | The false-positive rate on regression identification |
+| Sevbot (incidents) | Collects context on a detected incident, determines possible mitigations, answers engineers' questions in the Slack channel | The agent never executes a mitigation. An engineer tells it which one to apply | Whether anything closes the loop from incident to permanent fix |
+
+The stated long-term goal is a per-change autonomous SRE, and autonomous mitigation of routine outages so nobody is woken outside working hours. The article is explicit that neither exists today and that on-call duty still does.
+
+### 6.2 Three things worth taking, and what each costs
+
+**Risk classification as review routing, not as a label.** The interesting part is not that changes get a risk score, it is that the score picks the path: more reviewers, a mandated human, or nobody. This is the same question 1 from section 4 applied at the routing layer rather than the gate layer, and it is the only mechanism in the account that makes a human reviewer a scarce resource spent deliberately instead of a bottleneck applied uniformly. The cost is that your risk classifier becomes a security control. Misclassify a change as low-risk in an area that opted into auto-approval and it reaches production with no human having read it.
+
+**Per-change observability instead of per-service observability.** The reported shift is from engineers building dashboards per service to agents building them per deployed change, scoped to the signals that specific change should move. This is the same instinct as the ephemeral per-worktree observability stack in OpenAI's earlier [harness engineering account](../../docs/resource-evaluations/2026-02-11-openai-harness-engineering.md), pushed into production. The cost is sprawl, and the account does not address it. Per-change dashboards and steady-state service dashboards answer different questions and do not substitute for each other, so unless something garbage-collects the first category or promotes its findings into the second, an organization ends up unable to answer which dashboard to open during an incident. Ask for the retention policy before copying the pattern.
+
+**An incident agent that proposes and never executes.** Sevbot's constraint is the notable design choice, not its capability. It holds context, drafts mitigations and answers questions in the channel, and a human decides. That is the creator-verifier split from [agent-harness.md §8](../core/agent-harness.md#8-creator-verifier-pattern) applied at the worst possible moment to get it wrong, and the constraint is what makes the pattern adoptable during an outage rather than during a demo.
+
+### 6.3 The loop nobody closes
+
+The account contains exactly one automated feedback loop back into development: Perf Factory, which takes a latency regression it found in production and proposes a fix that re-enters at the coding stage. That loop is real and it is the architectural proof that the pipeline knows how to feed production back into code.
+
+Nothing equivalent exists for incidents. Sevbot mitigates; it does not remediate, and no stage described takes an incident and produces the durable fix that prevents recurrence. The standard post-incident discipline, where every incident owes a root cause and a planned change, has no agent and no named owner in this pipeline.
+
+Resist the easy conclusion that this is an oversight. Post-incident analysis is the highest-judgment work in the entire operating model: it is where causal reasoning, organizational context and the decision about what not to fix all land at once. An automated loop that takes an outage and proposes a permanent architectural change is the single place where a wrong answer compounds fastest. OpenAI automating the latency loop and not the incident loop is at least as defensible as a deliberate boundary as it is damning as a gap. What is fair to say is narrower and still useful: this is the one stage where the factory hands the work back to humans with nothing but context, and anyone copying the pipeline inherits that hole knowingly or not.
+
+### 6.4 What this changes about the levels in section 1
+
+Nothing, at the levels most readers occupy. Levels 1 through 4 remain the right answer for a small team, and none of the four stages above is reachable from a native Claude Code setup without building the deployment and observability integration yourself.
+
+What the account does change is the shape of the ceiling. The constraint at OpenAI is not model capability and not orchestration; it is that every delivery system downstream of code generation is absorbing load it was not built for, reported as roughly 10x on some systems in about six months. That is the same wall Anthropic hit in its own CI, documented in section 5, from an entirely separate codebase and toolchain. Two competing frontier labs independently reporting that their verification and delivery infrastructure, not their agents, became the binding constraint is the most transferable thing in either account.
+
+Read that alongside what neither account publishes. Both measure throughput in detail and neither publishes a defect rate, an escape rate or a change failure rate. Section 5's trap is not a hypothetical that applies to smaller teams with less rigor. It is visible in the reporting of the two organizations best placed to measure their way out of it.
+
+---
+
+## 7. Before the merge: two loops Claude Code already ships
+
+Section 6 covers the stages a native setup cannot reach. The same OpenAI account also describes two pre-merge loops that do have a native Claude Code counterpart, which makes them the cheapest part of the pipeline to copy. The source and its limits are the same as in section 6: one company's system, described to a journalist, with no quality figures.
+
+### 7.1 One long-running goal instead of many supervised sessions
+
+OpenAI attributes part of its internal adoption surge to a `/goal` setting in Codex, where the agent keeps working until a stated outcome is reached. Andrew Ambrosino, the Codex desktop lead, describes the effect on how people work: "Codex being good at longer-running tasks seems to cause people to do fewer things in parallel. This is because a long-running agent often spins off other agents to do other things, reducing the surface area that you, as a human, have to manage." That is an observation from one team, not a measurement. The April to May internal usage jump (60% to 90%), which he attributes in part to better handling of long-running tasks, is self-reported with no counting method.
+
+The claim is still worth taking seriously, because it cuts against a common piece of advice: open more sessions in parallel to go faster. Every parallel session is a context a human has to hold, check and merge. A single goal that delegates to sub-agents moves that fan-out inside the harness, where the lead agent owns the synthesis. Level 2 and Level 3 in section 1 already describe that shape; the goal is what keeps it running without a prompt per step.
+
+Claude Code ships the same primitive. The [official `/goal` documentation](https://code.claude.com/docs/en/goal) describes the mechanics:
+
+- `/goal <condition>` starts a turn immediately and keeps starting new ones. After each turn, a small fast model (Haiku by default on the Claude API) returns one of three verdicts: not yet met, met, or impossible. The goal clears on met, on impossible, or on an error you have to fix.
+- The completion check comes from a separate model, not from the one doing the work. This is the creator-verifier split from [agent-harness.md §8](../core/agent-harness.md#8-creator-verifier-pattern), applied at the loop level.
+- A goal does not change the permission mode. Unattended runs need auto mode; in Manual mode Claude still asks before tool calls your settings do not allow.
+- It runs non-interactively: `claude -p "/goal <condition>"` loops to completion in one invocation.
+- If Claude keeps answering the evaluator without using any tool for several turns, the loop stops and hands control back with the goal still set.
+
+The limit to design around: the evaluator judges the condition against what appears in the conversation. It does not run commands or read files itself. A condition such as "the feature works" can be satisfied by a confident summary. A condition such as "`npm test` exits 0 and `git status` shows no change outside `src/auth`" forces the proof into the transcript, where the evaluator can read it. That is question 1 from section 4, deterministic gate or LLM self-grading, applied to a single session. To bound the cost, the documentation's own advice is to put a turn or time clause in the condition itself, such as `or stop after 20 turns`.
+
+### 7.2 An agent that babysits the pull request until it is green
+
+In OpenAI's pipeline, the coding agent opens the pull request and then stays on it: it fixes CI failures, answers review comments and updates the PR until checks pass. The human is not the one relaying red builds back to the agent.
+
+The native counterpart is [Auto-fix pull requests](https://code.claude.com/docs/en/claude-code-on-the-web#auto-fix-pull-requests), started from the terminal with `/autofix-pr` on the PR's branch. According to the official documentation, it spawns a cloud session that subscribes to GitHub activity on that PR. On a failing check or a new review comment, Claude pushes a fix when it is confident, asks you when a comment is ambiguous or architecturally significant, and logs duplicates without acting.
+
+Four constraints decide whether it fits your repository:
+
+| Constraint | Consequence |
+|---|---|
+| Requires the Claude GitHub App on the repository | Not available on a forge the app cannot reach |
+| GitHub sends no webhook when the base branch moves and creates a conflict | Conflicts still need a human prompt ("rebase") |
+| Claude replies to review threads under your GitHub account, labeled as Claude Code | Reviewers see your name on agent-written replies |
+| Those replies can trigger comment-driven automation (Atlantis, Terraform Cloud, `issue_comment` workflows) | The documentation recommends disabling auto-fix where a PR comment can deploy infrastructure |
+
+The last row matters most for a factory. An agent that can post comments in a repository where comments are commands has deploy rights by a side door. Audit the repository's comment-triggered workflows before turning it on, the same way section 4's questions audit a platform before adopting it.
+
+What the native loop does not include is the part of OpenAI's review stage that decides how much review a change gets. `/autofix-pr` reacts to whatever reviewers and CI produce. The risk classification that routes a change to more agents, a mandated human, or auto-approval (section 6.1) remains something you build. The loop removes the relay work; it does not replace the decision about who has to look.

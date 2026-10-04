@@ -1,0 +1,22 @@
+{
+  "skill": "code-review",
+  "positive": [
+    "review this function",
+    "check my implementation",
+    "look for bugs in this code",
+    "can you review this PR",
+    "does this look correct to you",
+    "what do you think of this approach",
+    "find issues in this code",
+    "is there anything wrong with this implementation",
+    "check this for security problems",
+    "review my changes before I merge",
+    "critique this solution",
+    "does this code have any edge cases I missed"
+  ],
+  "negative": [
+    "my tests are failing with a TypeError",
+    "deploy this to production",
+    "write a new feature for user authentication"
+  ]
+}

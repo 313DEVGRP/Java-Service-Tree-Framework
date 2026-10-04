@@ -1,0 +1,94 @@
+name: Link Check
+
+on:
+  schedule:
+    # Run on the 1st of each month at 08:00 UTC
+    - cron: "0 8 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  link-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check links in guide markdown files
+        id: lychee
+        uses: lycheeverse/lychee-action@v2
+        with:
+          # The Gemini web app rejects this headless checker, while Google's
+          # public product and support pages confirm the destination is live.
+          # Schneider Digital intermittently times out from GitHub's runner;
+          # keep it under direct HTTP verification instead of opening noise issues.
+          args: >
+            --verbose
+            --no-progress
+            --timeout 30
+            --max-retries 3
+            --accept 200,202,206,429,302,403
+            --root-dir "$(pwd)"
+            --exclude "^mailto:"
+            --exclude "^#"
+            --exclude "^file://"
+            --exclude "^https://twitter\\.com"
+            --exclude "^https://x\\.com"
+            --exclude "^https://linkedin\\.com"
+            --exclude "^https://www\\.linkedin\\.com"
+            --exclude "^https://gemini\\.google\\.com/?$"
+            --exclude "^https://shop\\.schneider-digital\\.com/en/graphics-cards/nvidia/rtx-pro-blackwell-series/nvidia-rtx-pro-6000-blackwell-workstation-edition-96gb-pcie-5\\.0-x16/?$"
+            --exclude "^https://localhost"
+            --exclude "^http://localhost"
+            --exclude "%7B"
+            --exclude "watch\\?v=\\."
+            --exclude "\\.\\.\\."
+            './guide/**/*.md'
+            './examples/**/*.md'
+          fail: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create issue on broken links
+        if: steps.lychee.outputs.exit_code != 0
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          title: "Broken links detected in guide markdown"
+          content-filepath: ./lychee/out.md
+          labels: |
+            bug
+            broken-links
+
+      - name: Check internal file links in guide markdown
+        id: mlc
+        run: |
+          npm install -g markdown-link-check --quiet 2>/dev/null
+          REPORT="./mlc-report.md"
+          EXIT_CODE=0
+          echo "## Broken internal file links" > "$REPORT"
+          echo "" >> "$REPORT"
+          while IFS= read -r -d '' FILE; do
+            OUTPUT=$(markdown-link-check --config .mlc-config.json --quiet "$FILE" 2>&1) || {
+              EXIT_CODE=1
+              echo "### $FILE" >> "$REPORT"
+              echo '```' >> "$REPORT"
+              echo "$OUTPUT" >> "$REPORT"
+              echo '```' >> "$REPORT"
+              echo "" >> "$REPORT"
+            }
+          done < <(find ./guide ./examples -name "*.md" -print0)
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+        continue-on-error: true
+
+      - name: Create issue on broken internal links
+        if: steps.mlc.outputs.exit_code != 0
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          title: "Broken internal file links in guide markdown"
+          content-filepath: ./mlc-report.md
+          labels: |
+            bug
+            broken-links

@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this guide, please cite it as below."
+type: dataset
+title: "Claude Code Ultimate Guide"
+abstract: "Comprehensive community guide for Claude Code (Anthropic's CLI tool). 9,600+ lines of documentation, 87 production-ready templates, 159-question quiz."
+authors:
+  - family-names: "Bruniaux"
+    given-names: "Florian"
+    affiliation: "Méthode Aristote"
+version: "3.8.0"
+date-released: "2026-01-16"
+license: "CC-BY-SA-4.0"
+url: "https://github.com/FlorianBruniaux/claude-code-ultimate-guide"
+repository-code: "https://github.com/FlorianBruniaux/claude-code-ultimate-guide"
+keywords:
+  - claude-code
+  - anthropic
+  - ai-coding
+  - developer-tools
+  - ai-assistant
+  - prompt-engineering
+  - mcp-servers
+  - productivity
+  - cli-tool
+  - llm

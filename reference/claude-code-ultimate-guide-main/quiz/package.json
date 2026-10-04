@@ -1,0 +1,37 @@
+{
+  "name": "claude-code-quiz",
+  "version": "1.0.0",
+  "description": "CLI quiz to test your Claude Code knowledge",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "claude-quiz": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "quiz": "node src/index.js",
+    "test": "node --test",
+    "sync-from-web": "node scripts/generate-from-web.mjs",
+    "sync-from-web:check": "node scripts/generate-from-web.mjs --check"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "quiz",
+    "cli",
+    "learning"
+  ],
+  "author": "Florian BRUNIAUX",
+  "license": "CC-BY-SA-4.0",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "inquirer": "^9.2.12",
+    "yaml": "^2.8.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "js-yaml": "^4.1.1"
+  }
+}

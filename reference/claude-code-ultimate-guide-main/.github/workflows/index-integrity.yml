@@ -1,0 +1,174 @@
+name: Index Integrity
+
+on:
+  pull_request:
+    paths:
+      - "README.md"
+      - "CHANGELOG.md"
+      - "llms.txt"
+      - ".claude/commands/ccguide/**"
+      - "guide/**"
+      - "examples/**"
+      - "machine-readable/**"
+      - "mcp-server/**"
+      # The gates themselves live here. Without this the workflow could not fire
+      # on a change that breaks a gate, only later on an unrelated content edit.
+      - "scripts/**"
+      - ".github/workflows/index-integrity.yml"
+      - ".github/workflows/collect-agent-harnesses-github.yml"
+      - ".github/workflows/collect-mcp-stats.yml"
+      - ".github/workflows/collect-mcp-dashboard.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - "README.md"
+      - "CHANGELOG.md"
+      - "llms.txt"
+      - ".claude/commands/ccguide/**"
+      - "guide/**"
+      - "examples/**"
+      - "machine-readable/**"
+      - "mcp-server/**"
+      # The gates themselves live here. Without this the workflow could not fire
+      # on a change that breaks a gate, only later on an unrelated content edit.
+      - "scripts/**"
+      - ".github/workflows/index-integrity.yml"
+      - ".github/workflows/collect-agent-harnesses-github.yml"
+      - ".github/workflows/collect-mcp-stats.yml"
+      - ".github/workflows/collect-mcp-dashboard.yml"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # check-translations.py reads recorded provenance blobs with
+          # `git show <commit>:<path>`, so the default single-commit
+          # checkout makes every declared source commit unavailable.
+          fetch-depth: 0
+
+      - name: Check public content for workstation paths
+        run: |
+          python3 scripts/check-public-paths.py --self-test
+          python3 scripts/check-public-paths.py
+
+      - name: Check reference.yaml structural integrity
+        run: |
+          # Hard gate, currently at zero. Covers what the ratchet below cannot:
+          # YAML parseability, anchor resolution against real headings, path
+          # existence, line-reference bounds, and section_maps validity. Anchors
+          # do not drift when lines are inserted above them, so this gate stays
+          # cheap to keep green. If it fails, something is actually broken.
+          python3 scripts/validate-reference-yaml.py --ci
+
+      - name: Check the reference-repair tooling still works
+        run: |
+          # The tool is what everything below trusts. Its own traps are covered by
+          # tests that fail on bad input: counter-valued integers, a counter guard
+          # too broad to spare real references, CommonMark fence tracking, the
+          # URL-as-path false positive, and the declared-anchor hard check.
+          python3 scripts/test-resync-reference-yaml.py
+
+      - name: Check reference.yaml positional-reference backlog
+        run: |
+          # The backlog is at zero as of 2026-07-29, down from 383 then 145. No
+          # ceiling left: --max-broken defaults to 0, so any new imprecise
+          # reference fails the build on the commit that introduces it.
+          #
+          # Prefer `path#anchor` over `path:N`: the guide gained lines three times
+          # during this work, twice from a concurrent session, and the drift figures
+          # moved between runs of the same script. Anchors do not have that failure
+          # mode. Where a bare integer must stay (the landing turns every deep_dive
+          # string starting with `guide/` into a Cmd+K entry, so converting ~90 of
+          # them would add ~90 entries pointing into a 26K-line file), declare the
+          # heading in the trailing comment as `# anchor: some-slug`. That is
+          # machine-checked here and auto-repaired by --apply when lines shift.
+          python3 scripts/resync-reference-yaml.py --check
+
+      - name: Check every guide file is reachable from the index
+        run: |
+          # Coverage, the mirror of the integrity gate above. That one asks "do
+          # the references still resolve?"; this one asks "did anything land in
+          # guide/ that reference.yaml never learned about?". A page nobody
+          # indexed is invisible to the MCP server and to the landing's Cmd+K
+          # palette, and the only signal today is an anchor audit months later.
+          #
+          # Hard gate at zero: coverage was 92/92 when this was added on
+          # 2026-07-29, so there is no backlog to ratchet down.
+          python3 scripts/check-index-coverage.py --check --max-missing 0
+
+      - name: Check the MCP server's bundled content mirrors machine-readable/
+        run: |
+          # mcp-server/content/ is a hand-copied bundle published to npm as
+          # claude-code-ultimate-guide-mcp. Nothing regenerates it and nothing
+          # checked it, so it drifted silently before, and it drifted again during
+          # this pass the moment reference.yaml was repaired. Same failure class as
+          # the reference rot itself: a copy nobody verifies.
+          fail=0
+          for f in reference.yaml claude-code-releases.yaml llms.txt agent-harnesses.json translations.json distribution-channels.yaml; do
+            if ! diff -q "mcp-server/content/$f" "machine-readable/$f" >/dev/null; then
+              echo "DRIFTED: mcp-server/content/$f differs from machine-readable/$f"
+              echo "  fix with: cp machine-readable/$f mcp-server/content/$f"
+              fail=1
+            fi
+          done
+          # The volatile GitHub sidecar is deliberately absent until the first
+          # complete API collection is reviewed and promoted. Once present, it
+          # must be mirrored exactly or the MCP package would serve stale facts.
+          github_sidecar="agent-harnesses-github.json"
+          if [[ -e "machine-readable/$github_sidecar" || -e "mcp-server/content/$github_sidecar" ]]; then
+            if ! diff -q "mcp-server/content/$github_sidecar" "machine-readable/$github_sidecar" >/dev/null; then
+              echo "DRIFTED: mcp-server/content/$github_sidecar differs from machine-readable/$github_sidecar"
+              echo "  fix with: cp machine-readable/$github_sidecar mcp-server/content/$github_sidecar"
+              fail=1
+            fi
+          fi
+          exit $fail
+
+      - name: Check examples-data.ts is in sync with examples/
+        run: python3 scripts/generate-examples-data.py --check
+
+      - name: Check AgentSec feed compatibility
+        run: |
+          python3 scripts/test-check-agentsec-security-feed.py
+          python3 scripts/check-agentsec-security-feed.py
+
+      - name: Check the Agent Harness catalog and page renderer
+        run: |
+          python3 -m pip install --disable-pip-version-check jsonschema==4.25.1
+          python3 scripts/test-agent-harnesses.py
+          python3 scripts/test-agent-harness-page.py
+          python3 scripts/build-agent-harness-page.py \
+            --catalog machine-readable/agent-harnesses.json \
+            --page guide/ecosystem/agent-harness-landscape.md \
+            --check
+
+      - name: Check VERSION is in sync across docs
+        run: ./scripts/sync-version.sh --check
+
+      - name: Check MCP public statistics snapshot
+        run: |
+          python3 scripts/test-collect-mcp-stats.py
+          python3 scripts/collect-mcp-stats.py --validate-file machine-readable/mcp-stats.json
+
+      - name: Check MCP monthly dashboard snapshot
+        run: |
+          python3 scripts/test-collect-mcp-dashboard.py
+          python3 scripts/collect-mcp-dashboard.py --validate-file machine-readable/mcp-dashboard.json
+
+      - name: Check MCP product release contract
+        working-directory: mcp-server
+        run: npm run release:check
+
+      - name: Check translation provenance and bilingual publication parity
+        run: |
+          python3 scripts/test-check-translations.py
+          python3 scripts/check-translations.py --check
+
+      - name: Check distribution channel registry
+        run: |
+          python3 scripts/test-check-distribution-channels.py
+          python3 scripts/check-distribution-channels.py

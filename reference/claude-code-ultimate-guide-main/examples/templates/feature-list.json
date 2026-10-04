@@ -1,0 +1,33 @@
+{
+  "_comment": "feature_list.json — Harness Engineering scope tracker. One active feature at a time (WIP=1). Evidence field must be filled before setting status to passing.",
+  "features": [
+    {
+      "id": "feat-001",
+      "name": "Example Feature Name",
+      "description": "One sentence describing the expected user-facing behavior, not the implementation.",
+      "dependencies": [],
+      "status": "not_started",
+      "evidence": ""
+    },
+    {
+      "id": "feat-002",
+      "name": "Second Feature",
+      "description": "Another user-facing behavior. List feat-001 in dependencies if this requires it.",
+      "dependencies": ["feat-001"],
+      "status": "not_started",
+      "evidence": ""
+    }
+  ],
+  "_status_values": [
+    "not_started",
+    "active",
+    "blocked",
+    "passing"
+  ],
+  "_rules": [
+    "Only ONE feature can be active at a time (WIP=1).",
+    "Evidence field must contain the verification command and output before status moves to passing.",
+    "blocked status requires a blocker description added to the feature object.",
+    "Status flows one-way: not_started → active → passing. A passing feature is never set back to active."
+  ]
+}

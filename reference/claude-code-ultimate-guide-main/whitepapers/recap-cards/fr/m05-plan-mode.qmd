@@ -1,0 +1,86 @@
+---
+title: "Plan Mode"
+subtitle: "Faire planifier Claude avant d'agir"
+card-number: "M05"
+category: "Méthodologie"
+difficulty: "intermediate"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: fr
+format:
+  recap-card-typst: default
+---
+
+## Qu'est-ce que Plan Mode
+
+Plan Mode est le mode "regarder sans toucher" de Claude Code. En Plan Mode, Claude peut lire, chercher, analyser, et proposer des approches, tout en limitant les changements d'implémentation et les commandes qui modifient l'état du système. Il peut écrire dans son fichier de plan désigné.
+
+```
+/plan              # Entrer en Plan Mode
+Shift+Tab          # Parcourir les modes de permission disponibles
+Approuver le plan   # Quitter et passer à l'exécution
+```
+
+## Pourquoi Ça change tout
+
+La planification permet de relire le périmètre, les dépendances et les critères d'acceptation avant l'implémentation. Elle ne garantit pas un résultat correct dès la première tentative.
+
+Claude explore le codebase sans pression d'agir. Il identifie les dépendances cachées, les impacts secondaires, les edge cases. Le plan qui en sort est plus solide que ce que Claude produirait en mode réactif.
+
+## Ce que permet plan mode
+
+- Lecture de fichiers et exploration du codebase
+- Analyse d'architecture et de dépendances
+- Proposition d'approches et de plans d'action
+- Écriture dans son fichier de plan désigné
+
+**Ce qu'il interdit :**
+- Édition de fichiers d'implémentation
+- Création de fichiers arbitraires dans le projet
+- Exécution de commandes modifiant l'état
+- Commits git
+
+## Quand l'Utiliser
+
+| Situation | Plan Mode ? |
+|-----------|-------------|
+| Exploration d'un codebase inconnu | Oui |
+| Feature touchant 3+ fichiers | Oui |
+| Refactorisation significative | Oui |
+| Fix de typo ou renommage simple | Non |
+| Edit rapide sur fichier connu | Non |
+
+## Pattern plan-validate-execute
+
+```
+1. /plan
+   Claude explore et propose un plan structuré
+
+2. Review du plan
+   Modifier, affiner, valider les étapes
+
+3. Approuver le plan (ou Shift+Tab pour sortir sans valider)
+   Exécution supervisée du plan approuvé
+```
+
+Relire le plan pour repérer les erreurs de périmètre, de dépendances et de critères d'acceptation avant l'implémentation. Le bénéfice dépend de la tâche et de la qualité de la relecture.
+
+## Auto plan mode
+
+Une instruction `--append-system-prompt` peut demander un plan avant chaque action. Elle ne constitue pas une frontière d’autorisation ; utilisez le mode plan et les permissions d’outils pour imposer les restrictions :
+
+```bash
+# Alias pratique
+alias claude-safe='claude --append-system-prompt \
+  "Before executing ANY tool, present a plan and wait for approval."'
+```
+
+Valider le plan avant l'exécution, puis mesurer les tokens, les nouvelles tentatives et les résultats acceptés sur ses propres tâches. Aucun taux universel d'économie n'est établi pour ce workflow.
+
+## Intégration avec Agents
+
+Définissez `permissionMode: plan` dans le frontmatter d’un agent personnalisé pour la planification. Un agent peut transmettre un plan enregistré à un agent d’implémentation ; choisissez explicitement chaque modèle et séparez la responsabilité des fichiers.

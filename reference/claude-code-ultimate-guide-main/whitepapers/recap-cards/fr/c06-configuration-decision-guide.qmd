@@ -1,0 +1,89 @@
+---
+title: "Guide de Décision Configuration"
+subtitle: "Quel mécanisme de configuration utiliser selon la situation"
+card-number: "C06"
+category: "Conception"
+difficulty: "intermediate"
+guide-version: "3.43.0"
+wp-version: "1.0.0"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "Août 2026"
+layout: "two-col"
+lang: fr
+format:
+  recap-card-typst: default
+---
+
+## Le problème des configurations fragmentées
+
+Sans configuration projet partagée pour Claude Code, chaque développeur configure son environnement localement, les conventions dérivent, et personne ne sait quelle version des instructions est "correcte". Le résultat : des comportements inconsistants selon qui lance Claude et sur quelle machine.
+
+La bonne pratique se résume à une distinction simple : ce qui appartient à l'équipe va dans les fichiers versionnés, ce qui est personnel reste local.
+
+## Tableau de décision
+
+| Fichier | Scope | Versionné | Contenu type |
+|---------|-------|-----------|--------------|
+| `CLAUDE.md` | Équipe/projet | Oui | Conventions, commandes, architecture |
+| `.claude/settings.json` | Équipe/projet | Oui | Hooks, permissions, modèle par défaut |
+| `.claude/settings.local.json` | Personnel | Non (gitignore) | Permissions perso, préférences |
+| `~/.claude/CLAUDE.md` | Global toutes sessions | Non | Style, préférences personnelles |
+| `~/.claude/settings.json` | Global toutes sessions | Non | Config globale |
+
+## CLAUDE.md vs settings.json : quoi va où
+
+**CLAUDE.md** sert aux règles de comportement : comment nommer les fichiers, quel package manager utiliser, quelles conventions de commit, les décisions d'architecture à ne pas remettre en question. C'est un document Markdown lisible par un humain et par Claude.
+
+**settings.json** sert à la configuration technique : quels hooks exécuter, quels outils autoriser ou interdire, quel modèle utiliser par défaut, les variables d'environnement à injecter.
+
+```json
+// .claude/settings.json (équipe, versionné)
+{
+  "hooks": { "PreToolUse": [...] },
+  "permissions": {
+    "allow": ["Edit", "Read", "Bash"]
+  }
+}
+```
+
+```json
+// .claude/settings.local.json (personnel, gitignore)
+{
+  "permissions": {
+    "allow": ["Bash(git *)", "Bash(pnpm *)"]
+  }
+}
+```
+
+## Les 3 questions de décision
+
+Avant d'écrire une nouvelle règle ou configuration, posez-vous ces trois questions dans l'ordre :
+
+1. **Est-ce que ça change selon la machine ou l'OS ?** Si oui, `settings.local.json` ou `~/.claude/`.
+
+2. **Est-ce que l'équipe doit partager ça ?** Si oui, `CLAUDE.md` ou `.claude/settings.json` (versionné).
+
+3. **Est-ce que ça expire après la session ?** Si oui, passez-le directement dans le prompt.
+
+## Configuration minimale recommandée
+
+Pour un projet d'équipe, la configuration minimum qui vaut la peine d'être mise en place dès la semaine 1 :
+
+```markdown
+# CLAUDE.md (3 sections essentielles)
+## Stack
+- Runtime, framework, package manager
+
+## Commandes
+- pnpm dev / pnpm test / pnpm lint
+
+## Conventions
+- Style de commit, règles importantes
+```
+
+Claude détecte automatiquement la plupart des éléments de la stack depuis `package.json`, `go.mod`, ou `Cargo.toml`. Inutile de tout documenter.
+
+## Règle des overrides personnels
+
+`settings.local.json` est gitignore par convention. Si ce fichier n'est pas dans votre `.gitignore`, ajoutez-le maintenant : les permissions et préférences personnelles ne doivent jamais se retrouver dans le dépôt partagé.

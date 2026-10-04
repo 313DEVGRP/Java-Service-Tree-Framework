@@ -1,0 +1,86 @@
+---
+title: "Plan Mode"
+subtitle: "Let Claude plan before acting"
+card-number: "M05"
+category: "Methodology"
+difficulty: "intermediate"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: en
+format:
+  recap-card-typst: default
+---
+
+## What is Plan Mode
+
+Plan Mode is Claude Code's "look but don't touch" mode. In Plan Mode, Claude can read, search, analyze, and propose approaches, while restricting implementation changes and state-changing commands. It can write its designated plan artifact.
+
+```
+/plan              # Enter Plan Mode
+Shift+Tab          # Cycle available permission modes
+Approve the plan   # Exit and move to execution
+```
+
+## Why it changes everything
+
+Planning gives you an opportunity to review scope, dependencies and acceptance criteria before implementation. It does not guarantee a correct first attempt.
+
+Claude explores the codebase without pressure to act. It identifies hidden dependencies, secondary impacts, edge cases. The resulting plan is more solid than what Claude would produce in reactive mode.
+
+## What plan mode allows
+
+- Reading files and exploring the codebase
+- Architecture and dependency analysis
+- Proposing approaches and action plans
+- Writing its designated plan file
+
+**What it prohibits:**
+- Editing implementation files
+- Creating arbitrary project files
+- Executing state-changing commands
+- Git commits
+
+## When to use it
+
+| Situation | Plan Mode? |
+|-----------|------------|
+| Exploring an unfamiliar codebase | Yes |
+| Feature touching 3+ files | Yes |
+| Significant refactoring | Yes |
+| Typo fix or simple rename | No |
+| Quick edit on a known file | No |
+
+## Plan-validate-execute pattern
+
+```
+1. /plan
+   Claude explores and proposes a structured plan
+
+2. Review the plan
+   Modify, refine, validate the steps
+
+3. Approve the plan (or Shift+Tab to leave without approving)
+   Supervised execution of the approved plan
+```
+
+Review the plan to catch scope, dependency and acceptance-criteria mistakes before implementation. The benefit depends on the task and the quality of the review.
+
+## Auto plan mode
+
+An `--append-system-prompt` instruction can request a plan before each action. It is not a permission boundary; use Plan Mode and tool permissions for enforced restrictions:
+
+```bash
+# Practical alias
+alias claude-safe='claude --append-system-prompt \
+  "Before executing ANY tool, present a plan and wait for approval."'
+```
+
+Validate the plan before execution and measure total tokens, retries and accepted results on your own tasks. This workflow has no established universal savings rate.
+
+## Integration with agents
+
+Set `permissionMode: plan` in a custom agent's frontmatter for planning. A planner can pass a saved plan to an implementation agent; choose each model explicitly and keep file ownership separate.

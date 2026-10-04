@@ -1,0 +1,22 @@
+{
+  "skill": "deploy",
+  "positive": [
+    "deploy to production",
+    "ship this release",
+    "push to prod",
+    "release version 2.1",
+    "how do I deploy this",
+    "run the deployment pipeline",
+    "publish this to staging",
+    "cut a new release",
+    "deploy the new build",
+    "trigger the CI/CD pipeline",
+    "promote to production",
+    "release to users"
+  ],
+  "negative": [
+    "review my deployment script for bugs",
+    "write tests for the deploy command",
+    "fix the failing build"
+  ]
+}

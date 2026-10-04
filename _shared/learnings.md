@@ -110,3 +110,8 @@
 **교훈**: Windows 에서 `check-invariants.sh --self-test` 가 "깨뜨렸는데 통과함" 을 대량으로 내면 러너 결함보다 **`python3` 가 Microsoft Store 스텁**(실행 시 "Python" 만 출력하고 실패)인지 먼저 본다. `replace_in` fixture 가 아무것도 깨지 못해 사본이 무결로 남는다(echo·rm fixture 만 PASS 하는 패턴이 신호). 실제 Python 을 `python3` 로 잡고 `PYTHONUTF8=1`(cp949 기본 인코딩 회피)을 줘야 판정이 유효하다. 또 Bash heredoc 으로 Python 편집 스크립트를 넘기면 `\t` 이스케이프·`\` 줄연속이 변형될 수 있어, 백슬래시가 있는 셸 코드 편집은 Write 도구로 만든 raw-string 스크립트로 한다.
 **근거**: 워커 풀 재구성(D15) 검증 시 self-test 14건 FAIL → python3 shim(+UTF-8) 후 21/21 PASS. heredoc 편집 1회 불일치·1회 탭 변형 발생.
 **worker**: orchestrator 단독(worker 호출 0건)
+
+## [2026-10-04] [scope-check-windows-path]
+**교훈**: Windows Git Bash 에서 `scope_check.sh` 가 scope 안 파일까지 `../<path>` 로 보고하며 exit 10 을 내면, `git rev-parse --show-toplevel`(`C:/...`)과 `pwd -P`(`/c/...`) 표기 불일치로 prefix 정규화가 실패한 오탐이다. 이 경우 대상 repo 의 `git status --porcelain` 을 write_scope 와 수동 대조해 판정하고 log 에 [ERROR]+수동 근거를 남긴다(스크립트 보정은 별도 과제: 두 경로를 `cygpath -u`/`pwd -P` 로 같은 표기로 맞춰 비교).
+**근거**: ai-agent-process-color-themes — 변경 4파일 전부 scope 안인데 exit 10.
+**worker**: frontend-expert(외부 쓰기) 사후 검사

@@ -1,0 +1,357 @@
+---
+title: "TDD with Claude Code"
+description: "Test-Driven Development workflow with explicit prompting for red-green-refactor cycles"
+tags: [workflow, tdd, testing]
+---
+
+# TDD with Claude Code
+
+> **Confidence**: Tier 1, based on official Anthropic best practices and extensive community validation.
+
+Test-Driven Development with Claude requires explicit prompting. Claude naturally writes implementation first, then tests. TDD requires the inverse.
+
+---
+
+## Table of contents
+
+1. [TL;DR](#tldr)
+2. [The Problem](#the-problem)
+3. [Setup](#setup)
+4. [The Red-Green-Refactor Cycle](#the-red-green-refactor-cycle)
+5. [Integration with Claude Code Features](#integration-with-claude-code-features)
+6. [Anti-Patterns](#anti-patterns)
+7. [Advanced Patterns](#advanced-patterns)
+8. [See Also](#see-also)
+
+---
+
+## TL;DR
+
+```
+Red → Green → Refactor
+
+But you MUST prompt Claude explicitly:
+"Write a FAILING test for [feature]. Do NOT write implementation yet."
+```
+
+---
+
+## The problem
+
+Without explicit instruction, Claude will:
+1. Write implementation code
+2. Then write tests that pass against that implementation
+
+This defeats TDD's purpose: tests should drive design, not validate existing code.
+
+---
+
+## Setup
+
+### CLAUDE.md Configuration
+
+Add to your project's CLAUDE.md:
+
+```markdown
+## Testing Conventions
+
+### TDD Workflow
+- Always write failing tests BEFORE implementation
+- Use AAA pattern: Arrange-Act-Assert
+- One assertion per test when possible
+- Test names describe behavior: "should_return_empty_when_no_items"
+
+### Test-First Rules
+- When I ask for a feature, write tests first
+- Tests should FAIL initially (no implementation exists)
+- Only after tests are written, implement minimal code to pass
+```
+
+### Hook for auto-run tests (optional)
+
+Create `.claude/hooks/test-on-save.sh`:
+
+```bash
+#!/bin/bash
+# Auto-run tests when test files change
+if [[ "$1" == *test* ]] || [[ "$1" == *spec* ]]; then
+  npm test --watchAll=false 2>&1 | head -20
+fi
+```
+
+---
+
+## The red-green-refactor cycle
+
+### Phase 1: Red (write failing test)
+
+**Prompt**:
+```
+Write a failing test for [feature description].
+Do NOT write the implementation yet.
+The test should fail because the function/method doesn't exist.
+```
+
+**Example**:
+```
+Write a failing test for a function that calculates the total price
+of items in a cart, applying a 10% discount if total exceeds $100.
+Do NOT implement the function yet.
+```
+
+**Expected Claude behavior**:
+- Creates test file with test cases
+- Tests reference function that doesn't exist
+- Running tests would fail with "function not defined" or similar
+
+**Verification**:
+```bash
+npm test  # Should fail with "calculateCartTotal is not defined"
+```
+
+### Phase 2: Green (minimal implementation)
+
+**Prompt**:
+```
+Now implement the minimum code to make these tests pass.
+Only write enough code to pass the current tests, nothing more.
+```
+
+**Expected Claude behavior**:
+- Creates implementation file
+- Writes minimal code to satisfy tests
+- Avoids over-engineering
+
+**Verification**:
+```bash
+npm test  # Should pass
+```
+
+### Phase 3: Refactor (clean up)
+
+**Prompt**:
+```
+Refactor the implementation to improve code quality.
+Tests must stay green after refactoring.
+Focus on: [readability / performance / removing duplication]
+```
+
+**Expected Claude behavior**:
+- Improves code without changing behavior
+- Runs tests to verify they still pass
+- Documents any significant changes
+
+---
+
+## Integration with Claude Code features
+
+### With TodoWrite
+
+Track TDD phases in your task list:
+
+```
+User: "Implement user authentication with TDD"
+
+Claude creates todos:
+- [ ] RED: Write failing tests for login
+- [ ] GREEN: Implement login to pass tests
+- [ ] REFACTOR: Clean up login implementation
+- [ ] RED: Write failing tests for logout
+- [ ] GREEN: Implement logout
+- [ ] REFACTOR: Clean up
+```
+
+### With plan mode
+
+Use planning for test strategy:
+
+```
+[Press Shift+Tab to enter Plan Mode]
+
+I need to implement a shopping cart with TDD.
+Plan the test cases before we start writing any code.
+```
+
+Claude will explore codebase in read-only mode, then propose test plan before any implementation.
+
+### With hooks
+
+Auto-run tests after edits using a PostToolUse hook:
+
+```json
+// In .claude/settings.json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npm test --watchAll=false 2>&1 | head -20"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### With sub-agents
+
+Delegate test writing to scope-focused agent:
+
+```
+Use the test-writer agent to create comprehensive tests for
+the UserService class, covering all edge cases.
+Then I'll implement to pass those tests.
+```
+
+---
+
+## Anti-patterns
+
+### The verification gap
+
+The Verification Gap is the failure mode where an agent reports a feature complete before the verification suite confirms it. It is the most common reliability failure in multi-session agent work, and it is entirely preventable with the right harness design.
+
+Three observable symptoms: the agent prints a success message before any test command runs; tests run but stderr is discarded or not read; only unit tests pass when the acceptance criteria specified end-to-end behavior.
+
+The fix is a three-layer verification stack that must all pass before any feature is marked `passing` in the feature list:
+
+1. **Lint**: syntax and style checks (fastest, catches obvious errors before running tests)
+2. **Unit and integration tests**: functional correctness of individual components
+3. **End-to-end tests**: behavioral contract as seen by a user or external caller
+
+Each layer catches a different class of failure. Unit tests can pass while component boundaries break. End-to-end tests surface state propagation errors and lifecycle issues that unit tests cannot see. Skipping any layer leaves a gap.
+
+The independent evaluator principle: the agent that writes the code must not be the same invocation that certifies it done. This is not about distrust of the model; it is about how context affects evaluation. An agent that just spent two hours building a feature interprets ambiguous output charitably. A PostToolUse hook or a second agent reading the exit code independently does not. The hook in `examples/hooks/bash/verification-gate.sh` implements this pattern.
+
+Anthropic documented this failure in their harness design research: in a bare run (no harness), their agent reported the game editor complete after 20 minutes. Nothing worked. With an independent evaluator added to the harness, the same model ran for 6 hours and delivered a functional result. (Source: [https://www.anthropic.com/engineering/harness-design-long-running-apps](https://www.anthropic.com/engineering/harness-design-long-running-apps))
+
+The WIP=1 rule connects here: keeping only one feature `active` at a time means the verification gap, when it occurs, affects one feature, not several simultaneously.
+
+### What NOT to do
+
+| Anti-Pattern | Why It's Wrong | Correct Approach |
+|--------------|----------------|------------------|
+| "Write tests for this feature" | Claude implements first | "Write FAILING tests that don't exist yet" |
+| "Add tests and implementation" | Loses test-first benefit | Separate into two prompts |
+| "Make sure tests pass" | Encourages implementation-first | "Write tests, then implement minimally" |
+| Skipping refactor phase | Accumulates technical debt | Always refactor after green |
+| Multiple features at once | Loses focus | One feature per TDD cycle |
+
+### Common mistakes
+
+**Mistake**: Asking Claude to "test" existing code.
+```
+# Wrong
+"Write tests for the existing calculateTotal function"
+
+# Right
+"Write tests for calculateTotal behavior, assuming function doesn't exist.
+Then we'll verify the existing implementation passes."
+```
+
+**Mistake**: Combining red and green phases.
+```
+# Wrong
+"Implement calculateTotal with tests"
+
+# Right
+"Write failing tests for calculateTotal. Stop there."
+[After tests written]
+"Now implement to pass those tests."
+```
+
+---
+
+## Advanced patterns
+
+### Property-based testing
+
+```
+Write property-based tests for the sort function.
+Properties to test:
+- Output length equals input length
+- All input elements exist in output
+- Output is ordered
+Use fast-check or similar library.
+```
+
+### Mutation testing
+
+```
+After tests pass, run mutation testing to find weak spots.
+Identify tests that don't catch mutations.
+```
+
+> **Going further**: JiTTesting applies mutation testing automatically at PR time: LLM-generated, ephemeral, zero maintenance. Meta deployed this at scale with 4x regression catch improvement over traditional tests. See [Just-in-Time Catching Test Generation at Meta](https://arxiv.org/abs/2601.22832) and the [methodologies guide](../core/methodologies.md#jittesting-just-in-time-testing) for the approximation pattern with Claude Code today.
+
+### TDD with legacy code
+
+```
+I need to refactor legacyFunction.
+First, write characterization tests that capture current behavior.
+Then we'll refactor with confidence.
+```
+
+Characterization tests pin what the code does today, not what it should do. Keep the odd outputs: in an old system, some of that behavior is what other teams or the business depend on, and an agent will happily "fix" it behind a green suite.
+
+Do not let the session that will change the code be the only author of the tests that judge the change. It then writes a suite that encodes the implementation it is about to invent. Pin the behavior in a separate session, in a separate commit reviewed before the refactor starts, or have a person write the tests; then start the refactor in a fresh session that is told the characterization tests are read-only:
+
+```
+The tests in tests/characterization/ are read-only.
+Refactor legacyFunction until they pass. If a test looks wrong,
+stop and report it instead of editing it.
+```
+
+A `PreToolUse` hook that denies `Edit` and `Write` on the characterization directory turns that instruction into a guarantee. Source: Addy Osmani, [Brownfield Agentic Engineering](https://addyo.substack.com/p/brownfield-agentic-engineering) (September 2026); for zones and migration completeness in legacy codebases, see [Legacy Codebase Modernization](../ultimate-guide.md#921-legacy-codebase-modernization).
+
+---
+
+## Example session
+
+### User request
+```
+Implement a URL shortener service with TDD.
+```
+
+### Phase 1: Red
+```
+Let's use TDD. First, write failing tests for:
+1. Shortening a URL returns a short code
+2. Retrieving a short code returns original URL
+3. Invalid URLs are rejected
+4. Expired links return error
+
+Do NOT implement anything yet.
+```
+
+### Phase 2: Green
+```
+Tests are written and failing. Now implement the minimum
+code to make them pass. Use an in-memory store for now.
+```
+
+### Phase 3: Refactor
+```
+Tests pass. Now refactor:
+- Extract URL validation to separate function
+- Add proper error types
+- Improve variable names
+
+Run tests after each change to ensure they stay green.
+```
+
+---
+
+## See also
+
+- [../core/methodologies.md](../core/methodologies.md): full methodology reference
+- [Tight Feedback Loops](../ultimate-guide.md): Section 9.5
+- [examples/skills/tdd-workflow.md](../../examples/skills/tdd-workflow.md): TDD skill template
+- [Anthropic Best Practices](https://www.anthropic.com/engineering/claude-code-best-practices)
+- [task-management.md](./task-management.md): track TDD cycles across sessions with Tasks API
+- [Superpowers](https://github.com/obra/superpowers): plugin suite that enforces TDD as a mandatory gate, code written before a failing test exists gets deleted and redone from scratch. Stricter enforcement than manual prompting.
+- [TDD avec Claude Code](https://florian.bruniaux.com/guides/tdd-avec-claude-code/): a separate hands-on guide to the same workflow, in French

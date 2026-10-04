@@ -1,0 +1,25 @@
+{
+  "$comment": "Greptile PR review config — copy to .greptile/config.json at repo root. Docs: https://docs.greptile.com",
+
+  "review": {
+    "confidence_threshold": 2,
+    "comment_types": ["logic", "security", "performance"],
+    "language": "en",
+    "auto_review": true,
+    "auto_approve": false
+  },
+
+  "$comment_confidence_threshold": "1 = flag everything (noisy). 2 = balanced, recommended default. 3 = only high-confidence findings.",
+  "$comment_comment_types": "Restrict to the categories Claude Code Action and CodeRabbit don't already own on this repo — see rules.md header for the split.",
+
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "**/*.lock",
+    "**/dist/**",
+    "**/build/**",
+    "**/__generated__/**",
+    "**/migrations/**",
+    "CHANGELOG.md",
+    "**/*.md"
+  ]
+}

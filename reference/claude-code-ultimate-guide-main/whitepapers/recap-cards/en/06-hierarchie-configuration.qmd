@@ -1,0 +1,89 @@
+---
+title: "Configuration Hierarchy"
+subtitle: "Where to configure what, from global to local"
+card-number: "T05"
+category: "Technical"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+difficulty: "beginner"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: en
+format:
+  recap-card-typst: default
+---
+
+## Configuration levels
+
+| Level | File | Scope | Git |
+|-------|------|-------|-----|
+| Global user | `~/.claude/settings.json` | All projects | No |
+| Global rules | `~/.claude/CLAUDE.md` | All projects | No |
+| Shared project | `.claude/settings.json` | Team | Yes |
+| Local project | `.claude/settings.local.json` | Personal | No |
+| Project rules | `CLAUDE.md` (root) | Team | Yes |
+| Subfolder | `subfolder/CLAUDE.md` | Folder | Yes |
+
+## Conflict resolution
+
+```
+~/.claude/CLAUDE.md          (1 - global base)
+↓ + merge
+./CLAUDE.md                  (2 - project rules)
+↓ + merge
+subfolder/CLAUDE.md          (3 - local rules)
+↓ + merge
+@explicit import             (4 - inline import)
+```
+
+Rules at a lower level **supplement** rather than replace higher levels.
+
+## settings.json: Structure
+
+```json
+{
+  "model": "claude-sonnet-5",
+  "permissions": {
+    "allow": ["Bash(git *)"],
+    "deny": ["Bash(rm -rf*)"]
+  },
+  "env": {
+    "DISABLE_TELEMETRY": "1"
+  }
+}
+```
+
+## CLAUDE.md: Best practices
+
+```markdown
+# Project Conventions
+
+## Stack
+- TypeScript strict mode
+- pnpm (not npm)
+- Tests: Vitest
+
+## Rules
+- Always check types before modifying
+- Commits in English
+- Never modify package-lock.json
+```
+
+## What goes where
+
+**Global CLAUDE.md**: personal preferences, code style, universal conventions.
+
+**Project CLAUDE.md**: architecture, stack, team conventions, build/test commands.
+
+**Project settings.json**: tool permissions, default model, dev environment variables.
+
+**settings.local.json**: personal overrides that should not affect the team.
+
+## Required .gitignore
+
+```
+# In the project .gitignore
+.claude/settings.local.json
+```

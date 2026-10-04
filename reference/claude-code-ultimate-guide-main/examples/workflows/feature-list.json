@@ -1,0 +1,35 @@
+{
+  "_template": "feature-list.json — Claude Code harness scope tracker",
+  "_usage": "Place in project root. Agent reads at session start, writes at session end.",
+  "features": [
+    {
+      "id": "feat-001",
+      "name": "Document Import",
+      "description": "Allow users to import PDF and TXT files from local filesystem",
+      "verify": "npm test -- --grep 'document import'",
+      "status": "passing",
+      "evidence": "npm test: 12 passed, 0 failed (2026-05-01 14:22)"
+    },
+    {
+      "id": "feat-002",
+      "name": "Document Chunking",
+      "description": "Split imported documents into ~500-character chunks with metadata",
+      "verify": "npm test -- --grep 'chunking'",
+      "status": "active",
+      "evidence": "",
+      "dependencies": ["feat-001"]
+    },
+    {
+      "id": "feat-003",
+      "name": "Semantic Search",
+      "description": "Full-text search across all indexed document chunks",
+      "verify": "npm run e2e -- --spec search.spec.ts",
+      "status": "not_started",
+      "evidence": "",
+      "dependencies": ["feat-002"]
+    }
+  ],
+  "_states": "not_started → active → blocked → passing (one direction only)",
+  "_wip_rule": "Only one feature can be 'active' at a time",
+  "_blocked_usage": "Set status to 'blocked' and add a 'blockedReason' field explaining the blocker"
+}

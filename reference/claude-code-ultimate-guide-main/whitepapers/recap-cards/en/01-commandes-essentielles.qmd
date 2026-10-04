@@ -1,0 +1,103 @@
+---
+title: "Essential Commands"
+subtitle: "Keyboard shortcuts & indispensable slash commands"
+card-number: "T01"
+category: "Technical"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+difficulty: "beginner"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: en
+format:
+  recap-card-typst: default
+---
+
+## Keyboard shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Shift+Tab` | Cycle permission mode (Manual, acceptEdits, Plan) |
+| `Ctrl+O` | Toggle verbose transcript |
+| `Ctrl+C` | Interrupt generation |
+| `Esc` | Cancel current action |
+| `↑` / `↓` | Message history |
+| `Tab` | Path completion |
+
+| `Ctrl+X Ctrl+K` | Stop background subagents |
+| `Ctrl+Enter` / `Ctrl+X Ctrl+S` | Send queued messages now |
+
+## Core slash commands
+
+```
+/help           Help and available commands
+/clear          Clear context (reset)
+/compact        Compress history
+/model          Choose model; Enter saves, s applies once
+/cost           View session costs
+/status         Account and active settings sources
+/context        Context usage breakdown
+```
+
+## Permission modes
+
+```
+claude                    Interactive mode (default)
+claude --dangerously-skip-permissions
+                          Bypass permission prompts; requires isolation
+claude --allowedTools "Edit,Read,Bash"
+                          Pre-approve tools; --tools restricts availability
+```
+
+## Quick start
+
+```bash
+# Launch Claude Code
+claude
+
+# CLAUDE.md is loaded automatically at startup
+# To add a file during the session:
+@src/auth.ts Look at this function
+
+# Non-interactive mode (scripts)
+claude -p "Analyze this file" < input.txt
+
+# Continue last session
+claude --continue
+```
+
+## Session commands
+
+```
+/new            New session (alias for /clear)
+/resume         Resume a session (opens the picker)
+/branch         Fork the conversation here (v2.1.77)
+```
+
+## Context navigation
+
+| Command | Effect |
+|---------|--------|
+| `/compact` | Summarize and free up space |
+| `/clear` | Full reset |
+| `@file` | Reference a file in the prompt |
+
+## Custom slash commands
+
+```
+# Invoke a custom command
+/command-name [args]
+
+# Defined in:
+.claude/skills/command-name/SKILL.md
+```
+
+## Essential tips
+
+**Verbosity control**: use `--verbose` at launch, or `Ctrl+O` in session, to see the full turn-by-turn transcript.
+
+**Multiline**: `Shift+Enter` in the terminal to add a new line without submitting.
+
+**Vim mode**: `/config` → Editor mode, or `{"editorMode": "vim"}` in `~/.claude/settings.json`. The `/vim` command was removed in v2.1.92.

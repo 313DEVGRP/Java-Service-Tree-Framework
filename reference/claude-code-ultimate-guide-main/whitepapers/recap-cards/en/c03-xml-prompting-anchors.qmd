@@ -1,0 +1,104 @@
+---
+title: "XML Prompting & Semantic Anchors"
+subtitle: "Structuring complex prompts for reproducible results"
+card-number: "C03"
+category: "Design"
+difficulty: "advanced"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: en
+format:
+  recap-card-typst: default
+---
+
+## Why XML works
+
+Claude was trained on massive corpora that include XML. When you structure a prompt with tags, you create unambiguous delimiters that separate the instruction, context, reference code, and constraints. The structure can make those roles clearer, but it does not guarantee instruction following or prevent prompt injection.
+
+XML structure is relevant for complex or reusable tasks. For a one-line fix, it is unnecessary noise.
+
+## Basic structure
+
+```xml
+<instruction>
+Extract the validation logic into a separate module
+</instruction>
+
+<context>
+Express service, Node.js 20, no external dependencies
+</context>
+
+<code_example>
+// Existing pattern to preserve
+function validateEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+</code_example>
+
+<constraints>
+- Do not modify public function signatures
+- Maintain compatibility with existing tests
+</constraints>
+
+<output>
+New file src/validation/index.ts with exports
+</output>
+```
+
+## Reusable tag catalog
+
+| Tag | Usage |
+|-----|-------|
+| `<instruction>` | The main task |
+| `<context>` | Stack, system state, history |
+| `<code_example>` | Reference pattern to follow |
+| `<constraints>` | What must not be modified |
+| `<output>` | Expected format and content |
+| `<state>` | Current state (bug, diff, logs) |
+| `<task>` + `<subtask>` | Hierarchical decomposition |
+
+## Semantic Anchors in code
+
+Anchors are comment markers that allow Claude to reference specific areas of code without reading entire files.
+
+```typescript
+// ANCHOR: auth-flow
+export async function authenticate(token: string) {
+  // ...
+}
+// END-ANCHOR: auth-flow
+
+// ANCHOR: token-validation
+function validateJWT(token: string): Claims {
+  // ...
+}
+// END-ANCHOR: token-validation
+```
+
+In your prompt: "Modify only the ANCHOR: auth-flow section to add expired token handling." The marker narrows the requested edit; Claude may still need surrounding code to validate its effect.
+
+## When to use XML
+
+| Case | Use XML? |
+|------|----------|
+| Simple single-line request | No |
+| Bug to fix in one function | No |
+| Multi-file implementation | Yes |
+| Reusable prompt in a command | Yes |
+| Review with precise criteria | Yes |
+
+## Integration with CLAUDE.md
+
+You can define the project XML conventions in `CLAUDE.md` to standardize team prompts:
+
+```markdown
+## XML Prompt Conventions
+Project tags: <api_design>, <accessibility>, <perf_budget>
+For features: always include <context> and <constraints>
+```
+
+All team members then use the same tag vocabulary, making shared prompts (in `.claude/skills/`) consistent and understandable.

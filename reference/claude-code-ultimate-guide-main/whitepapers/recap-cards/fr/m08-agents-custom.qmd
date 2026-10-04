@@ -1,0 +1,92 @@
+---
+title: "Agents Custom"
+subtitle: "Créer des sous-agents spécialisés pour déléguer des tâches"
+card-number: "M08"
+category: "Méthodologie"
+difficulty: "intermediate"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: fr
+format:
+  recap-card-typst: default
+---
+
+## Structure d'un agent
+
+Un agent est un fichier Markdown placé dans `.claude/agents/` avec un frontmatter YAML. Claude Code le découvre automatiquement au démarrage de session.
+
+```yaml
+---
+name: code-reviewer
+description: Utiliser pour relire du code avant tout commit
+model: sonnet
+tools: Read, Grep, Glob
+---
+```
+
+Le corps du fichier contient les instructions en Markdown : rôle, méthodologie, exemples, contraintes.
+
+## Champs du frontmatter
+
+| Champ | Obligatoire | Rôle |
+|-------|-------------|------|
+| `name` | Oui | Identifiant kebab-case |
+| `description` | Oui | Déclencheur d'activation (50-100 chars) |
+| `model` | Non | Alias comme `sonnet`, `inherit`, ou identifiant de modèle pris en charge |
+| `tools` | Non | Whitelist des outils accessibles |
+| `memory` | Non | Portée de la mémoire persistante |
+| `maxTurns` | Non | Limite de tours agentic |
+| `permissionMode` | Non | Contrôle des permissions |
+| `isolation` | Non | `worktree` pour isolation git |
+| `color` | Non | Couleur CLI pour distinction visuelle |
+
+Sans `model`, le sous-agent hérite du modèle parent. `inherit` demande explicitement ce comportement. Les règles de l’organisation et de l’environnement restent applicables.
+
+## Le champ tools : isolation par défaut
+
+Limiter `tools` à ce dont l'agent a réellement besoin réduit la surface d'exposition et les erreurs accidentelles. Un agent de code review n'a besoin que de `Read, Grep, Glob`. Aucune raison de lui donner `Bash` ou `Write`.
+
+## Mémoire persistante (v2.1.33+)
+
+```yaml
+memory: project   # .claude/agent-memory/<name>/
+memory: user      # ~/.claude/agent-memory/<name>/
+memory: local     # .claude/agent-memory-local/<name>/
+```
+
+La mémoire `project` peut être commitée pour l’équipe après relecture. La mémoire `local` reste privée à la machine. Activer la mémoire ajoute automatiquement Read, Write et Edit : omettre `memory` pour un agent strictement en lecture seule.
+
+## Agent vs slash command
+
+| Critère | Agent | Slash Command |
+|---------|-------|---------------|
+| Spécialité | Oui, domaine précis | Non, workflow générique |
+| Mémoire propre | Oui (v2.1.33+) | Non |
+| Outils isolés | Oui, whitelist | Non |
+| Invocation | Automatique ou manuelle | Manuelle uniquement |
+| Format | Markdown + frontmatter | Markdown template |
+
+Créer un agent quand la tâche revient régulièrement avec un contexte et des outils stables. Créer une command quand c'est un workflow ponctuel ou une procédure à suivre.
+
+## Exemple concret : agent de code review
+
+```yaml
+---
+name: code-reviewer
+description: Utiliser PROACTIVELY après chaque modification
+  de code pour vérifier qualité, sécurité et conventions
+model: sonnet
+tools: Read, Grep, Glob
+---
+
+# Code Reviewer
+
+Vérifier systématiquement : sécurité OWASP, couverture de tests,
+respect des conventions du projet, et dette technique introduite.
+```
+
+Le mot-clé `PROACTIVELY` dans la description encourage Claude à invoquer l'agent sans attendre une demande explicite.

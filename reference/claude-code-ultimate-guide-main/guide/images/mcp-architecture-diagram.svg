@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  MCP Architecture Diagram - 7-Layer Security Model
+
+  Version: 1.0.0
+  Created: 2026-01-25
+  License: Apache-2.0
+
+  Design inspired by Dinesh Kumar's LinkedIn visualization
+  (https://www.linkedin.com/posts/dinesh-kumar-6b0528b4_model-context-protocol-mcp-why-it-came-activity-7419969525795782656-VoFh)
+  Recreated as original work for Claude Code Ultimate Guide
+
+  Structure:
+  - 7 vertical layers (USER → AI APP → LLM → MCP CLIENT → MCP SERVER → TOOLS → REAL SYSTEMS)
+  - Bottom workflow (5 steps with icons)
+  - Golden rule banner
+
+  Maintenance notes:
+  - Colors are defined in CSS for easy theme changes
+  - Each layer has semantic <g id="layer-N-name"> for targeting
+  - Text sizes: titles 18px, subtitles 14px, body 12px
+-->
+<svg width="900" height="1200" viewBox="0 0 900 1200" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">MCP Architecture - 7-Layer Security Model</title>
+  <desc id="desc">Diagram showing the Model Context Protocol architecture with 7 layers: User, AI Application, LLM (no data access), MCP Client, MCP Server (control and security), Tools, and Real Systems (hidden from AI). The diagram illustrates how MCP creates a secure control layer between language models and real systems.</desc>
+
+  <defs>
+    <style>
+      /* Layer colors */
+      .layer-user { fill: #2E5266; }
+      .layer-ai-app { fill: #4A7C59; }
+      .layer-llm { fill: #F4C542; }
+      .layer-mcp-client { fill: #5DA5DA; }
+      .layer-mcp-server { fill: #F07B3F; }
+      .layer-tools { fill: #8B5FBF; }
+      .layer-real-systems { fill: #3E3E3E; }
+      .workflow-bg { fill: #F5F5F5; }
+      .golden-rule-bg { fill: #FFD700; }
+      .highlight-box { fill: none; stroke: #000; stroke-width: 2; stroke-dasharray: 5,5; }
+
+      /* Typography */
+      .title { font-family: Arial, Helvetica, sans-serif; font-size: 18px; font-weight: bold; fill: white; }
+      .subtitle { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 500; fill: white; opacity: 0.9; }
+      .body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; fill: white; }
+      .highlight { font-family: Arial, Helvetica, sans-serif; font-size: 14px; font-weight: bold; fill: #000; }
+      .workflow-text { font-family: Arial, Helvetica, sans-serif; font-size: 12px; fill: #333; }
+      .golden-text { font-family: Arial, Helvetica, sans-serif; font-size: 16px; font-weight: bold; fill: #000; }
+
+      /* Common styles */
+      .layer-rect { rx: 12; }
+      .shadow { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+    </style>
+  </defs>
+
+  <!-- LAYER 1: USER -->
+  <g id="layer-1-user">
+    <rect class="layer-user layer-rect shadow" x="50" y="50" width="800" height="100"/>
+    <!-- User icon (simple silhouette) -->
+    <circle cx="120" cy="100" r="20" fill="white" opacity="0.9"/>
+    <path d="M 100 135 Q 100 115 120 115 Q 140 115 140 135 Z" fill="white" opacity="0.9"/>
+    <text class="title" x="160" y="95">USER</text>
+    <text class="body" x="160" y="115">Human Asks a Question</text>
+  </g>
+
+  <!-- LAYER 2: AI APPLICATION -->
+  <g id="layer-2-ai-app">
+    <rect class="layer-ai-app layer-rect shadow" x="50" y="180" width="800" height="100"/>
+    <text class="title" x="80" y="215">AI APPLICATION</text>
+    <text class="subtitle" x="80" y="235">Chat UI / Agent / SaaS</text>
+    <text class="body" x="80" y="260">Takes Input, Shows Answer</text>
+  </g>
+
+  <!-- LAYER 3: LLM (with NO DATA ACCESS highlight) -->
+  <g id="layer-3-llm">
+    <rect class="layer-llm layer-rect shadow" x="50" y="310" width="800" height="120"/>
+    <text class="title" x="80" y="350" fill="#000">LLM</text>
+    <text class="body" x="80" y="375" fill="#000">Thinks &amp; Decides</text>
+    <!-- Highlight box -->
+    <rect class="highlight-box" x="400" y="335" width="400" height="60"/>
+    <text class="highlight" x="420" y="358">NO DATA ACCESS</text>
+    <text class="body" x="420" y="378" fill="#000">Reasoning Only - Isolated Layer</text>
+  </g>
+
+  <!-- LAYER 4: MCP CLIENT -->
+  <g id="layer-4-mcp-client">
+    <rect class="layer-mcp-client layer-rect shadow" x="50" y="460" width="800" height="100"/>
+    <text class="title" x="80" y="495">MCP CLIENT</text>
+    <text class="subtitle" x="80" y="515">Library Inside Host</text>
+    <text class="body" x="80" y="540">Sends Structured Request</text>
+  </g>
+
+  <!-- LAYER 5: MCP SERVER (with 3 bullets) -->
+  <g id="layer-5-mcp-server">
+    <rect class="layer-mcp-server layer-rect shadow" x="50" y="590" width="800" height="140"/>
+    <text class="title" x="80" y="625">MCP SERVER</text>
+    <text class="subtitle" x="80" y="645">Control &amp; Security</text>
+    <!-- 3 bullet points -->
+    <text class="body" x="80" y="675">• Tool Registry</text>
+    <text class="body" x="80" y="695">• Policies &amp; Permissions</text>
+    <text class="body" x="80" y="715">• Validation &amp; Logs</text>
+  </g>
+
+  <!-- LAYER 6: TOOLS -->
+  <g id="layer-6-tools">
+    <rect class="layer-tools layer-rect shadow" x="50" y="760" width="800" height="100"/>
+    <text class="title" x="80" y="795">TOOLS</text>
+    <text class="subtitle" x="80" y="815">Safe Backend Logic</text>
+    <text class="body" x="80" y="840">Read DBs, Call APIs, Perform Actions</text>
+  </g>
+
+  <!-- LAYER 7: REAL SYSTEMS (with lock icon and highlight) -->
+  <g id="layer-7-real-systems">
+    <rect class="layer-real-systems layer-rect shadow" x="50" y="890" width="800" height="120"/>
+    <!-- Lock icon (simple padlock) -->
+    <rect x="100" y="930" width="30" height="35" rx="3" fill="white" opacity="0.9"/>
+    <circle cx="115" cy="930" r="12" fill="none" stroke="white" stroke-width="3" opacity="0.9"/>
+    <text class="title" x="150" y="945">REAL SYSTEMS</text>
+    <text class="body" x="150" y="970">Databases, APIs, Files</text>
+    <!-- Highlight box -->
+    <rect class="highlight-box" x="450" y="925" width="350" height="50" stroke="white"/>
+    <text class="highlight" x="470" y="948" fill="white">HIDDEN FROM AI</text>
+    <text class="body" x="470" y="968">Protected Data Layer</text>
+  </g>
+
+  <!-- BOTTOM WORKFLOW (5 steps with icons) -->
+  <g id="workflow">
+    <rect class="workflow-bg" x="50" y="1040" width="800" height="80" rx="8"/>
+
+    <!-- Step 1: User Asks -->
+    <text class="workflow-text" x="80" y="1070" font-size="20">👤</text>
+    <text class="workflow-text" x="70" y="1090">User Asks</text>
+
+    <!-- Arrow -->
+    <path d="M 160 1075 L 190 1075" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+
+    <!-- Step 2: LLM Thinks -->
+    <text class="workflow-text" x="210" y="1070" font-size="20">🧠</text>
+    <text class="workflow-text" x="195" y="1090">LLM Thinks</text>
+
+    <!-- Arrow -->
+    <path d="M 295 1075 L 325 1075" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+
+    <!-- Step 3: MCP Controls -->
+    <text class="workflow-text" x="345" y="1070" font-size="20">🛡️</text>
+    <text class="workflow-text" x="320" y="1090">MCP Controls</text>
+
+    <!-- Arrow -->
+    <path d="M 435 1075 L 465 1075" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+
+    <!-- Step 4: Tools Execute -->
+    <text class="workflow-text" x="485" y="1070" font-size="20">⚙️</text>
+    <text class="workflow-text" x="460" y="1090">Tools Execute</text>
+
+    <!-- Arrow -->
+    <path d="M 565 1075 L 595 1075" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+
+    <!-- Step 5: Safe Result -->
+    <text class="workflow-text" x="615" y="1070" font-size="20">✅</text>
+    <text class="workflow-text" x="595" y="1090">Safe Result</text>
+  </g>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#666"/>
+    </marker>
+  </defs>
+
+  <!-- GOLDEN RULE BANNER -->
+  <g id="golden-rule">
+    <rect class="golden-rule-bg shadow" x="50" y="1145" width="800" height="45" rx="8"/>
+    <text class="golden-text" x="450" y="1172" text-anchor="middle">LLM Thinks → MCP Controls → Tools Execute → Data Locked</text>
+  </g>
+</svg>
