@@ -1,0 +1,147 @@
+name: Claude Code Review (Batched — large PRs)
+
+# Pattern: for PRs above a file-count threshold, split the diff into domain-scoped
+# batches and review them in a parallel matrix, then synthesize one final comment.
+#
+# Why: a single review pass over a huge diff either times out or produces shallow
+# findings because Claude has to spread attention across too many unrelated files.
+# Splitting by domain (migrations, backend, routes, frontend, tests) keeps each
+# batch focused and lets the matrix run concurrently instead of sequentially.
+#
+# Use this ALONGSIDE claude-code-review.yml, not instead of it — add a path/size
+# guard so only one of the two runs per PR (see the `check-size` job below).
+#
+# Prompt file: .github/prompts/code-review.md (same file as the non-batched workflow)
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+env:
+  # Switch to batched mode above this many changed files. Tune to your typical PR size.
+  BATCH_THRESHOLD: 75
+
+jobs:
+  check-size:
+    if: |
+      (github.event_name == 'pull_request' && github.event.pull_request.draft == false) ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request != null &&
+       contains(github.event.comment.body, '/claude-review'))
+    runs-on: ubuntu-latest
+    outputs:
+      should_batch: ${{ steps.count.outputs.should_batch }}
+      pr_number: ${{ steps.count.outputs.pr_number }}
+    steps:
+      - name: Count changed files
+        id: count
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request?.number ?? context.payload.issue?.number;
+            const { data: files } = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+              per_page: 100,
+            });
+            const threshold = parseInt(process.env.BATCH_THRESHOLD, 10);
+            core.setOutput('pr_number', prNumber.toString());
+            core.setOutput('should_batch', (files.length > threshold).toString());
+            core.info(`${files.length} changed files, threshold=${threshold}, batch=${files.length > threshold}`);
+
+  review-batch:
+    needs: check-size
+    if: needs.check-size.outputs.should_batch == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        domain:
+          # Adjust these globs to match your project's actual directory layout.
+          - name: migrations
+            paths: "prisma/migrations/**,db/migrations/**,**/*.sql"
+          - name: backend-core
+            paths: "src/server/services/**,src/server/repositories/**,src/lib/**"
+          - name: api-routes
+            paths: "src/server/api/**,src/server/routers/**,src/pages/api/**"
+          - name: frontend
+            paths: "src/components/**,src/app/**,src/pages/**"
+          - name: tests-and-tooling
+            paths: "**/*.test.*,**/*.spec.*,scripts/**,.github/**"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Claude Code Review — ${{ matrix.domain.name }}
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          model: claude-sonnet-5
+          prompt_file: .github/prompts/code-review.md
+          # Scope this batch to its domain — appended on top of the shared prompt file
+          append_system_prompt: |
+            SCOPE: only review files matching these paths: ${{ matrix.domain.paths }}
+            Skip any changed file outside this scope entirely, even if it appears in the diff.
+            Tag your summary comment with the domain name: "${{ matrix.domain.name }}"
+          allowed_tools: >-
+            Read,
+            Glob,
+            Grep,
+            mcp__github__get_pull_request,
+            mcp__github__get_pull_request_diff,
+            mcp__github__list_pull_request_files,
+            mcp__github__create_issue_comment
+
+  synthesis:
+    needs: [check-size, review-batch]
+    if: needs.check-size.outputs.should_batch == 'true' && always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Collect batch comments
+        id: collect
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ needs.check-size.outputs.pr_number }};
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            // Only this run's batch comments — filtered by recency, not by author,
+            // since the bot login varies with your GitHub App configuration.
+            const recent = comments.filter(c => {
+              const ageMs = Date.now() - new Date(c.created_at).getTime();
+              return ageMs < 30 * 60 * 1000;
+            });
+            core.setOutput('pr_number', prNumber.toString());
+            core.setOutput('data', JSON.stringify(recent.map(c => c.body.slice(0, 2000))));
+
+      - name: Claude synthesis
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          model: claude-sonnet-5
+          allowed_tools: >-
+            mcp__github__create_issue_comment
+          direct_prompt: |
+            Merge these per-domain review batches for PR #${{ steps.collect.outputs.pr_number }}
+            into a single summary comment, one severity table (🔴 Must Fix / 🟡 Should Fix /
+            🟢 Can Skip) across all domains, deduplicated. Post it with
+            `mcp__github__create_issue_comment`.
+
+            Batch comments:
+            ${{ steps.collect.outputs.data }}

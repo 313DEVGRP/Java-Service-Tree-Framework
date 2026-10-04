@@ -1,0 +1,23 @@
+{
+  "$comment": "RAG index for Greptile — maps a glob scope to the internal doc it should load for context. Copy to .greptile/files.json, then replace entries with your actual internal docs (architecture guides, security runbooks, domain glossaries). Greptile loads the matched doc when reviewing a file under that glob, instead of relying on training data alone.",
+
+  "entries": [
+    {
+      "glob": "src/server/api/**",
+      "doc": "doc/architecture/api-conventions.md",
+      "$comment": "Example — point this at your actual API conventions doc"
+    },
+    {
+      "glob": "prisma/migrations/**",
+      "doc": "doc/architecture/database-migrations.md",
+      "$comment": "Example — migration safety rules, index policy, rollback expectations"
+    },
+    {
+      "glob": "src/components/**",
+      "doc": "doc/frontend/component-guidelines.md",
+      "$comment": "Example — design system rules, accessibility baseline"
+    }
+  ],
+
+  "$note": "Keep this list in sync manually — it is not auto-generated from a single source of truth. If your repo already has a canonical rules directory, treat this file as a thin routing table pointing INTO it, not a copy of its content."
+}

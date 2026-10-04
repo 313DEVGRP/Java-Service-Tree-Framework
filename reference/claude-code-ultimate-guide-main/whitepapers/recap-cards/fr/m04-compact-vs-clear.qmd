@@ -1,0 +1,81 @@
+---
+title: "Compact vs Clear"
+subtitle: "Quand résumer et quand réinitialiser le contexte"
+card-number: "M04"
+category: "Méthodologie"
+difficulty: "beginner"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: fr
+format:
+  recap-card-typst: default
+---
+
+## Les deux commandes
+
+| | `/compact` | `/clear` |
+|--|-----------|---------|
+| Historique | Remplacé par un résumé | Réinitialisé dans la conversation courante |
+| Fil de session | Maintenu | Rompu |
+| Effet sur le contexte | Historique remplacé par un résumé ; volume variable | Historique de conversation réinitialisé |
+| Quand utiliser | En cours de tâche | Changement de sujet |
+
+`/compact` compresse sans couper le fil, `/clear` repart de zéro. Aucun des deux n'est meilleur dans l'absolu, le choix dépend de la situation.
+
+## Décider selon le contexte
+
+Utiliser `/context` pour inspecter l'usage. Compacter quand l'historique utile devient volumineux ; vider quand le sujet change ou qu'une nouvelle conversation serait plus utile. Aucun pourcentage d'occupation ne prédit la qualité des réponses. Sauvegarder décisions, critères d'acceptation et travail inachevé avant l'une ou l'autre opération.
+
+## Quand utiliser `/compact`
+
+**Situations idéales :**
+- Tâche en cours avec contexte historique utile
+- Session longue sur un même module ou feature
+- Vous avez besoin de vous souvenir des décisions prises
+
+```
+/compact
+```
+
+Claude remplace l'historique de conversation par un résumé. L'espace récupéré et les détails conservés varient ; vérifier `/context` et garder l'état critique dans des fichiers.
+
+## Quand utiliser `/clear`
+
+**Situations idéales :**
+- Changement complet de sujet ou de projet
+- Contexte pollué par de nombreuses erreurs et tentatives ratées
+- Session mal engagée qui génère des incohérences
+
+```
+/clear
+```
+
+La conversation repart de zéro ; les instructions applicables sont rechargées. Les sessions sauvegardées restent accessibles via reprise. Commencer avec un prompt ciblé et les fichiers de contexte nécessaires.
+
+## "Summarize from Here" : La Troisième Option
+
+Via `/rewind` (ou `Esc + Esc`), on peut sélectionner un point précis dans l'historique et choisir "Summarize from here". Claude résume uniquement depuis ce point, en conservant le contexte antérieur intact.
+
+```
+Esc + Esc → sélectionner un checkpoint → "Summarize from here"
+```
+
+Plus précis que `/compact` global, utile quand seule la fin de la session est verbeuse.
+
+## Comparaison rapide
+
+| Situation | Commande |
+|-----------|---------|
+| Historique volumineux, même tâche | `/compact` |
+| Nouveaux sujets après une session dense | `/clear` |
+| Fin de session verbeuse à nettoyer | Rewind → Summarize |
+| Historique utile à résumer | `/compact` |
+| Confusion répétée, nouveau départ nécessaire | `/clear` |
+
+## Ce que `/compact` NE conserve PAS
+
+Le résumé généré par `/compact` est une synthèse. Il peut simplifier des nuances techniques ou des décisions implicites. Après un compact, vérifier que les éléments critiques sont encore accessibles avant de poursuivre une implémentation complexe.

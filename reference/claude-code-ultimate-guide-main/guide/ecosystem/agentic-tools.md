@@ -1,0 +1,1213 @@
+---
+title: "Agent Tools: Beyond Claude Code"
+description: "Comparative guide to terminal coding agents, autonomous coders, multi-agent frameworks, orchestrators, and adjacent harness optimizers, with evidence-aware selection guidance."
+tags: [agents, hermes, codex-cli, aider, deepseek-harness, warp-agent, devin, swe-agent, crewai, langgraph, autogen, metagpt, symphony, paperclip, opencode, gemini-cli, crush, comparison]
+---
+
+# Agent tools: Beyond Claude Code
+
+Claude Code is one tool in a field that has expanded dramatically since 2024. Dozens of agent frameworks, autonomous coders, and multi-agent systems have shipped, each with different trade-offs. This page maps that field so you can decide when Claude Code is the right call, and when something else fits better.
+
+**What this page covers**: terminal coding agents, autonomous coders, multi-agent orchestration frameworks, and agent orchestration tooling. Claude Code's own multi-agent capabilities (agent teams, event-driven workflows, programmatic usage) are documented separately, linked throughout.
+
+**What it does not cover**: editor-only comparisons. IDEs, ADEs, and products that combine several interfaces are covered in [AI Ecosystem §6](./ai-ecosystem.md#6-ide-ade-and-hybrid-coding-environments). A hybrid product appears here only when its coding agent is also usable as a terminal runtime. Multi-Claude orchestration tools (Gas Town, multiclaude, Conductor desktop app) are in [Third-Party Tools: Multi-Agent Orchestration](./third-party-tools.md#multi-agent-orchestration).
+
+For the full field across CLI, IDE, and cloud agents, use the [Agent Harness Landscape](./agent-harness-landscape.md). For the loop, context, tools, permissions, recovery, observability, and automated harness optimization, read [Agent Harness Engineering](../core/agent-harness.md). For explicit feedback loops, workflow graphs, stopping rules, and responsibility boundaries, read [Loop & Graph Engineering](../core/loop-graph-engineering.md). The [glossary](../core/glossary.md) separates runtime harnesses from repository harnesses, evaluation harnesses, orchestrators, and meta-harnesses.
+
+---
+
+## The spectrum
+
+Agent tools fall on a spectrum from interactive to autonomous:
+
+```
+Interactive pair programmer
+  Claude Code, Codex CLI, Aider, Goose, opencode, Gemini CLI, crush
+        |
+  Hermes Agent (interactive + scheduled + messaging gateways)
+        |
+Autonomous issue fixer
+  SWE-agent, Devin, claude -p in CI
+        |
+Multi-agent framework (build your own)
+  CrewAI, LangGraph, AutoGen/MAF, MetaGPT
+        |
+Agent orchestrator (manage a fleet)
+  Symphony (issue → run), Paperclip (goal → org chart)
+```
+
+**Interactive agents**: you stay in the loop, approve actions, redirect the agent. Best for daily coding, debugging, and exploratory work where requirements shift.
+
+**Autonomous agents**: you assign a task and come back to a result. Best for well-specified, bounded tasks: fix this bug, implement this spec, review this PR. The quality of the task description determines the quality of the output more than the agent choice.
+
+**Multi-agent frameworks**: libraries for building custom agent systems. Not coding tools themselves. You use LangGraph to build an agent, not to write code.
+
+**Harness optimizers and meta-harnesses**: systems that modify a target harness and compare candidate versions. They are not another terminal coding-agent category. [ADAS](https://proceedings.iclr.cc/paper_files/paper/2025/hash/36b7acf6f6010652b3f2a433774a66fe-Abstract-Conference.html), [AFlow](https://arxiv.org/abs/2410.10762), [Meta-Harness](https://arxiv.org/abs/2603.28052), and [Agentic Harness Engineering](https://arxiv.org/abs/2604.25850) operate at this outer loop. Compare them through the [Landscape research layer](./agent-harness-landscape.md#harness-optimizers-and-meta-harnesses), not by placing them beside Claude Code or Codex in a runtime feature table.
+
+---
+
+## Section 1: Terminal coding agents
+
+These tools do what Claude Code does: sit in your terminal, read your codebase, write code, run commands. The differences are in model support, cost model, and specific capabilities.
+
+---
+
+### 1.1 Codex CLI (OpenAI)
+
+OpenAI's direct answer to Claude Code. Launched April 2025, built in Rust, open-sourced under Apache 2.0.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [openai/codex](https://github.com/openai/codex) |
+| **Stars** | 86,200+ (May 2026) |
+| **Install** | `npm install -g @openai/codex` |
+| **Language** | Rust (96%) |
+| **License** | Apache 2.0 |
+| **Version** | v0.134.0 (May 26, 2026) |
+| **Releases** | 800+ since April 2025 |
+| **Contributors** | 400+ |
+
+#### What is Codex CLI?
+
+A terminal AI agent for writing, editing, and running code, built on OpenAI's model family. The architecture mirrors Claude Code closely: you describe a task, the agent reads files, makes edits, runs tests, and iterates. The main difference is the model provider: Codex CLI talks to GPT-4o, o3, o4-mini, and other OpenAI models, not Claude.
+
+ChatGPT Pro and Team subscribers get Codex CLI usage included in their plan, making it a zero-marginal-cost tool for teams already paying for OpenAI.
+
+#### Claude Code vs Codex CLI
+
+| Aspect | Claude Code | Codex CLI |
+|--------|-------------|-----------|
+| **Models** | Claude family (Opus 5.5, Sonnet 5, Haiku 4.5, Fable 5.1) only | GPT-4o, o3, o3-mini, o4-mini, plus future OpenAI models |
+| **Language** | TypeScript | Rust |
+| **License** | Open source | Apache 2.0 |
+| **Subscription** | Anthropic Claude Max ($20-$200/mo) | OpenAI ChatGPT Pro/Team ($20-$30/mo) |
+| **MCP Support** | Native, growing ecosystem | MCP compatible |
+| **Release cadence** | Weekly | Very high (800+ releases in 13 months) |
+| **Memory** | CLAUDE.md + Auto Memory | AGENTS.md convention |
+| **Skills/Hooks** | Full system | Compatible with agentskills.io standard |
+
+#### When to choose Codex CLI
+
+Good fit if you are already on a ChatGPT Pro or Team plan and want to avoid a second subscription. Also the right call if you prefer GPT-4o or o3 for specific tasks (reasoning, long-context analysis) and want a terminal agent that uses those models natively.
+
+Poor fit if your team has invested in Claude Code workflows, CLAUDE.md files, and Anthropic-specific patterns. The cognitive cost of context-switching between two agent environments is real.
+
+#### Quick start
+
+```bash
+npm install -g @openai/codex
+export OPENAI_API_KEY=sk-...
+codex
+```
+
+OpenAI's [Codex docs](https://github.com/openai/codex/blob/main/README.md) cover setup in detail.
+
+---
+
+### 1.2 Hermes Agent (formerly OpenClaw)
+
+The most starred open-source agent framework as of May 2026. Created by Nous Research, the AI lab known for its Hermes series of fine-tuned models. Was called OpenClaw until late 2025, when it rebranded on Anthropic reinstating subscription support.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) |
+| **Stars** | 170,000+ (May 2026) |
+| **Install** | `pip install hermes-agent` or `curl -sSL install.hermes-agent.dev \| sh` |
+| **Language** | Python (89%), TypeScript (8%) |
+| **License** | MIT |
+| **Version** | v0.15.1 (June 2026) |
+| **Release cadence** | Weekly (v0.10 Apr 16 → v0.15.1 Jun 2026) |
+| **Contributors** | 215+ |
+| **Creator** | Nous Research (Teknium, @teknium1) |
+
+#### What is Hermes Agent?
+
+A self-improving terminal agent that works with 200+ LLM providers, runs on any platform, and connects to 22 messaging platforms (Telegram, Discord, Slack, WhatsApp, Signal, Teams, LINE, SimpleX, and more). The distinguishing feature is its learning loop (GEPA): after completing tasks, Hermes analyzes what worked, extracts reusable patterns, and generates skills automatically. Community benchmarks show agents with 20+ auto-generated skills completing similar tasks 40% faster than fresh instances on the same codebase.
+
+The OpenClaw history matters for two reasons. First, the migration path is clean: `hermes-agent` imports OpenClaw memories, skills, and settings during setup, so switching costs are low. Second, the Anthropic billing controversy from early 2026 was specifically about OpenClaw/Hermes being used on Claude Max subscriptions without proper programmatic billing attribution. Anthropic's May 2026 announcement placed Hermes in a programmatic usage bucket, a change it has since paused (see [Billing: Programmatic vs Interactive](../ultimate-guide.md#the-interactiveprogrammatic-billing-split-announced-then-paused)).
+
+#### Claude Code vs Hermes Agent
+
+| Aspect | Claude Code | Hermes Agent |
+|--------|-------------|--------------|
+| **Models** | Claude only | 200+ via OpenRouter, OpenAI, Anthropic, HuggingFace, local |
+| **Self-improvement** | Each session starts fresh | Skills auto-generated from recurring patterns |
+| **Messaging** | Terminal + IDE | Terminal + 22 chat platforms |
+| **Cron scheduling** | Routines (Anthropic cloud) | Built-in cron, runs locally |
+| **Billing** | Subscription or API | Pay your LLM provider directly |
+| **Agent SDK** | Anthropic-specific | `ctx.llm` plugin for any provider |
+| **Skills** | SKILL.md system | Skills Hub (agentskills.io) + auto-generated |
+| **Memory** | CLAUDE.md + Auto Memory | Cross-session persistent memory, agent-curated |
+
+#### When to choose Hermes Agent
+
+The model-agnostic case is the strongest argument. If you want to run Claude for code generation, GPT-4o for specific reasoning tasks, and a local model (via Ollama) for offline work, Hermes handles all three in a single agent. Claude Code cannot.
+
+The self-improving loop is genuinely differentiated. Over 30-40 sessions on the same codebase, Hermes builds a library of skills specific to your project's patterns. Community benchmarks put the compound gain at 40% faster task completion once 20+ skills are accumulated. CLAUDE.md is human-authored and intentional; Hermes skills are machine-generated and project-specific. Different mechanisms, both worth having.
+
+The 22 messaging platform integrations are useful for teams that want to interact with their agent via Telegram or Slack rather than a terminal. Not a priority for most developers, but critical for some workflows.
+
+Poor fit if you are invested in Anthropic's ecosystem (Claude Max subscription, Routines, the Agent SDK). Anthropic does not permit third-party developers to route requests through Free, Pro, or Max credentials on behalf of their users ([Claude Code legal and compliance](https://code.claude.com/docs/en/legal-and-compliance)). Anthropic also announced, then paused, a separate programmatic credit for third-party app usage; while it is paused, that usage draws from your subscription limits. Factor both in.
+
+#### Quick start
+
+```bash
+pip install hermes-agent
+
+# Or one-line installer
+curl -sSL install.hermes-agent.dev | sh
+
+# Import from OpenClaw if migrating
+hermes import --from openclaw
+
+# Start (terminal-only, no WebUI, no dashboard)
+hermes chat
+```
+
+Hermes has no official graphical interface. The entry point is `hermes chat` in a terminal. On Windows, WSL2 is required; native Windows support does not exist. A community project (`hermes-webui`) exists but is not maintained by Nous Research.
+
+#### Known operational issues (v0.15.x)
+
+Several failure modes recur in production deployments and are not obvious from the documentation. The following are drawn from community reports and verified issues on the project tracker.
+
+**Agent executes before analyzing.** The default behavior is to start writing code immediately, without listing impacted files or proposing an approach. On complex refactors this leads to partial writes before scope is understood. Add this block to `SOUL.md` (the identity file injected at every session start):
+
+```
+## Defaults
+Before any development action, explicitly list:
+1. Files that will be modified
+2. Proposed approach
+3. Identified risks
+Never write code before confirming these three points.
+```
+
+`SOUL.md` holds durable agent personality and behavior. `AGENTS.md` holds project-specific rules (paths, ports, commands). Mixing them creates confusion when switching projects.
+
+**Kanban parallelism flood.** The default config has `max_in_progress_per_profile: null` (unlimited) combined with `auto_decompose_per_tick: 3`. A batch of 10 tasks can spawn 30+ concurrent workers within seconds. Explicit limits in `.hermes/config.yaml`:
+
+```yaml
+kanban:
+  max_in_progress_per_profile: 2
+  auto_decompose_per_tick: 1
+  task:
+    max_runtime_seconds: 300
+```
+
+**Subprocess PATH not inherited.** Binaries outside `/usr/bin` and `/usr/local/bin` are invisible to Hermes subprocesses (opencode, nvm-managed Node, pyenv Python, any tool installed under `$HOME`). Fix in `.hermes/config.yaml`:
+
+```yaml
+terminal:
+  env_passthrough:
+    - PATH
+```
+
+As of v0.15.1, this is partially resolved for Docker environments (npx, npm, node resolve against `/usr/local/bin`). Native installs still require the manual config above.
+
+**Workers that exit without closing tasks.** A worker that finishes its work and exits without calling `kanban_complete` or `kanban_block` leaves the task permanently in "in progress" state. The dispatcher can re-launch the worker in a loop (issue #28712). Add this rule to every worker profile:
+
+```
+Every session must end with an explicit call to kanban_complete or kanban_block.
+Exiting without this call is a protocol violation and blocks downstream tasks.
+```
+
+**SQLite corruption on `kanban.db`.** Rapid task creation, frequent gateway restarts via SIGTERM, and concurrent gateway access on the same file can corrupt the database. A minimal safeguard:
+
+```bash
+# Hourly backup (add to crontab)
+0 * * * * cp ~/.hermes/kanban.db ~/.hermes/kanban.db.bak.$(date +%Y%m%d%H)
+```
+
+Recovery with `sqlite3` available: dump to SQL, reimport into a fresh file, replace. An open RFC (#23717) proposes replacing SQLite with a pluggable backend (PostgreSQL, MySQL) for multi-agent deployments.
+
+**`HERMES_HOME` not propagated to subprocesses.** In profile mode, subprocesses launched by the gateway start with a minimal environment and do not inherit `HERMES_HOME`. They fall back silently to `~/.hermes`, writing memories and session data to the wrong profile. Workaround until the upstream fix lands:
+
+```bash
+export HERMES_HOME=~/.hermes/profiles/your-profile-name
+hermes ...
+```
+
+**Token overhead is significant.** Each LLM call carries approximately 13,900 tokens of fixed overhead before any task content: tool definitions (~8-9K) and system prompt (~5K). Messaging gateway integrations (Telegram, LINE, Discord) add 15-20K tokens per request on top of that. A community analysis (issue #4379) documented 4 million tokens consumed in two hours on a misconfigured Telegram gateway. Cap context explicitly:
+
+```yaml
+context:
+  max_tokens: 32000
+```
+
+---
+
+### 1.3 Aider
+
+The original terminal AI pair programmer. Launched in 2023 by Paul Gauthier before Claude Code existed, Aider established many of the conventions that later tools adopted: direct file editing, automatic git commits, multi-file context windows.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [Aider-AI/aider](https://github.com/Aider-AI/aider) |
+| **Stars** | 45,400+ (May 2026) |
+| **Install** | `pip install aider-install && aider-install` |
+| **Language** | Python (80%) |
+| **License** | Apache 2.0 |
+| **Creator** | Paul Gauthier (paul-gauthier) |
+| **PyPI downloads** | 5.3M+ |
+
+#### What is Aider?
+
+A Python-based coding assistant that edits files in your local git repo and auto-commits with descriptive messages. Key characteristic: near-universal model support via LiteLLM, covering GPT-4o, the Claude 5 family, Gemini, Ollama, and dozens of other providers. Aider popularized the "whole file" and "diff" editing formats that informed how later agents handle file modifications.
+
+The SWE-Bench benchmark trajectory tells the story well: Aider held the top score on SWE-Bench Verified for several months in 2024-2025 before larger-context models and more capable agents surpassed it. That benchmark record established its reputation as a serious tool, not just a convenience wrapper.
+
+#### Claude Code vs Aider
+
+| Aspect | Claude Code | Aider |
+|--------|-------------|-------|
+| **Model support** | Claude only | GPT-4o, Claude, Gemini, Ollama, 50+ providers |
+| **Git integration** | Native (reads .git, runs git) | Deep (auto-commits, commit messages, blame context) |
+| **Architecture** | Anthropic proprietary | Open source, LiteLLM under the hood |
+| **File editing** | Tool-based (Edit, Write) | Whole-file or diff format sent to model |
+| **Web search** | Via MCP | Not native (requires plugin) |
+| **Agentic loop** | Full (multi-turn, tool use) | Full (auto-accepts changes in architect mode) |
+| **Release cadence** | Weekly | Monthly (last: v0.86.0, Aug 2025) |
+
+The last release date, August 2025, matters here: Aider remains maintained and functional, but the release cadence has slowed relative to Claude Code and Hermes. That is not a warning sign by itself, but check it against your need for recent features before adopting.
+
+#### When to choose Aider
+
+Best case: you need multi-model support in a mature, battle-tested tool and do not want the operational overhead of Hermes. Aider is simpler to configure than Hermes, has a smaller footprint, and has years of community documentation.
+
+Also a good fit for teams that have strong git discipline and want every AI change explicitly committed with a clear message. Aider's auto-commit behavior is more aggressive than Claude Code's (which asks before committing by default).
+
+#### Quick start
+
+```bash
+pip install aider-install && aider-install
+
+# With Claude
+export ANTHROPIC_API_KEY=sk-ant-...
+aider --model claude-sonnet-5
+
+# With GPT-4o
+export OPENAI_API_KEY=sk-...
+aider
+```
+
+See [aider.chat](https://aider.chat) for the full model list and configuration options.
+
+---
+
+### 1.4 Goose (AAIF/block)
+
+A general-purpose agent, not just a coding tool. Originally built by Block (formerly Square), transferred to the Linux Foundation's AAIF (Agentic AI Infrastructure Foundation) for long-term governance neutrality.
+
+**Full coverage in [AI Ecosystem §11.1: Goose](./ai-ecosystem.md#111-goose-open-source-alternative-block).**
+
+Quick stats: 51,819 stars as of 2026-07-27 (45,900+ in May 2026), Rust (63%) + TypeScript (30%), Apache 2.0, daily active development, 368+ contributors. The headline difference from Claude Code: provider-agnostic (Claude, GPT, Gemini, Ollama, 15+ providers), with recipe-based reusable workflows and heterogeneous subagent teams where each subagent can run a different model.
+
+---
+
+### 1.5 Opencode (Anomaly, formerly SST)
+
+The single most-starred tool in this category, betting on provider neutrality and a client/server split instead of a fixed terminal UI.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [anomalyco/opencode](https://github.com/anomalyco/opencode) |
+| **Stars** | 199,400+ (Aug 2026) |
+| **Install** | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai@latest` |
+| **Language** | TypeScript |
+| **License** | MIT |
+| **Version** | v1.18.19 (Aug 2026) |
+| **Contributors** | 1,000+ (GitHub API, Aug 2026) |
+
+#### What Is opencode?
+
+A terminal coding agent built around a client/server split: the agent itself runs as a server process, and a terminal, an IDE plugin, or a separate machine connects to it as a client. That architecture makes headless operation and resumable sessions first-class rather than bolted on, since disconnecting a client does not stop the server-side session. opencode was originally an SST project; it moved to a company called Anomaly, and the project keeps the name.
+
+Model support is the other headline: 75+ providers through a single configuration surface, including local models, so nothing in the harness assumes Claude, GPT, or Gemini specifically. That breadth is also why the project has become the default reference point for "a coding agent that runs anywhere, on anything."
+
+#### Claude Code vs opencode
+
+| Aspect | Claude Code | opencode |
+|--------|-------------|----------|
+| **Models** | Claude family only | 75+ providers, including local models |
+| **Architecture** | Single terminal process | Client/server; agent runs as a server, terminal is one possible client |
+| **Language** | TypeScript | TypeScript |
+| **License** | Proprietary | MIT |
+| **Skills/Hooks** | Full first-party system | Plugin and MCP-based extension |
+| **Memory** | CLAUDE.md + Auto Memory | AGENTS.md convention |
+| **Governance** | Anthropic, single vendor | Anomaly (company), formerly SST |
+
+#### When to Choose opencode
+
+The strongest case is provider flexibility: a team that wants to route between Claude, GPT, Gemini, and a local model inside one harness, without switching tools per provider, gets that natively here. The client/server design also pays off for anyone running an agent on a remote box or inside CI and watching it from a laptop.
+
+The honest weak point is depth of integration per provider. Being multi-provider by design means no single model gets the first-party polish Claude Code gives Claude models specifically (prompt caching behavior, skills, hooks tuned to one vendor's tool-use format). Star count also is not a proxy for stability here: the project moved stewards once already (SST to Anomaly), and a team betting on long-term API surface stability should read the migration history before standardizing on it.
+
+Provider breadth also does not remove operational approval or version risk. A practitioner talk about an AI code reviewer built for a stated 200-engineer scope described using OpenRouter to prototype quickly through one API, then moving to Vertex AI and Gemini for stronger monitoring, logs, budgets, and security controls. After a later model update reduced the reviewer's measured satisfaction, the team rolled back to the previous model and observed recovery. The talk reports neither active-user count, migration cost, nor satisfaction values. Treat provider allowlists, pinned model versions, quality telemetry, and rollback as acceptance criteria for a multi-provider harness. Source: ["How We Built an AI Code Reviewer for 200 Engineers", 17:19](https://www.youtube.com/watch?v=dTye2zVfSco&t=1039s) and [21:44](https://www.youtube.com/watch?v=dTye2zVfSco&t=1304s), AI DevCon, published 2026-05-29.
+
+#### Quick start
+
+```bash
+curl -fsSL https://opencode.ai/install | bash
+opencode
+```
+
+Full provider list and configuration at [opencode.ai/docs/providers](https://opencode.ai/docs/providers/); server architecture at [opencode.ai/docs/server](https://opencode.ai/docs/server/).
+
+#### opencode Go: the subscription tier, and why it does not scale to a team
+
+Beyond bring-your-own-provider-key usage, opencode offers a subscription called Go for $10/month. The current catalog includes Grok 4.6 and GPT 5.6 Luna alongside DeepSeek, Qwen, GLM, Kimi, and other models, so this is a curated coding-model subscription rather than an open-weight-only tier. Usage is limited in dollar-value terms rather than fixed request counts: $12 per 5-hour window, $30 per week, and $60 per month. The official estimates currently range from 110 to 45,300 requests per 5-hour window, but those estimates assume model-specific request profiles with large cached-input volumes and are not request guarantees. Source: [opencode.ai/docs/go](https://opencode.ai/docs/go/), verified 2026-08-30.
+
+The plan is explicitly single-seat: only one member per workspace can subscribe to Go. The usage limits are also not necessarily a hard financial stop. If the subscriber enables **Use balance**, Go falls back to the workspace's OpenCode Zen balance after a limit is reached instead of blocking requests. Go can serve an individual evaluation, but it is not a documented way to provision or govern a team. Source: [opencode.ai/docs/go](https://opencode.ai/docs/go/), verified 2026-08-30. For team-scale subscription comparisons across providers, see [Subscription Strategy at Team Scale](../ops/subscription-strategy.md).
+
+---
+
+### 1.6 Gemini CLI (Google)
+
+Google's first-party terminal agent, built for Gemini models with a free tier generous enough to be the primary reason to pick it.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [google-gemini/gemini-cli](https://github.com/google-gemini/gemini-cli) |
+| **Stars** | 106,600+ (Aug 2026) |
+| **Install** | `npm install -g @google/gemini-cli` or `npx @google/gemini-cli` or `brew install gemini-cli` |
+| **Language** | TypeScript |
+| **License** | Apache-2.0 |
+| **Version** | v0.56.0 (Aug 2026) |
+| **Contributors** | 690+ (GitHub API, Aug 2026) |
+
+#### What is Gemini CLI?
+
+A terminal coding agent built and maintained by Google, wired to Gemini models rather than offering broad multi-provider support. The case for it does not rest on harness novelty: the agent loop, tool set, and approval model look similar to what Codex CLI and Claude Code already do. The case rests on the free tier, personal Google accounts get 60 requests per minute and 1,000 requests per day at no cost, the most generous first-party allowance among the major terminal agents.
+
+The agent runs in bounded-autonomy mode by default (step-gated, not headless) and supports resumable sessions. It reads `GEMINI.md` for project instructions by default; a single setting switches it to the shared `AGENTS.md` convention other tools use, so migrating instructions in either direction is cheap.
+
+#### Claude Code vs Gemini CLI
+
+| Aspect | Claude Code | Gemini CLI |
+|--------|-------------|-------------|
+| **Models** | Claude family only | Gemini family (first-party) |
+| **Free tier** | None on the CLI itself | 60 req/min, 1,000/day on personal Google accounts |
+| **License** | Proprietary | Apache-2.0 |
+| **Memory** | CLAUDE.md + Auto Memory | GEMINI.md by default, AGENTS.md via one setting |
+| **MCP Support** | Native, growing ecosystem | Native |
+| **Steward** | Anthropic, single vendor | Google, single vendor |
+
+#### When to choose Gemini CLI
+
+The clear-cut case is cost: a developer or small team already on Gemini, or wanting to try an agentic terminal workflow before paying for one, gets a working setup with a real daily quota and no subscription. It is also the sensible default if the rest of a team's stack already runs on Google Cloud and Gemini.
+
+The honest limitation is that this is not a multi-provider tool: switching models means switching to a different harness entirely, unlike opencode or Aider. Anyone who expects to compare Claude, GPT, and Gemini output on the same task inside one terminal agent will not get that here.
+
+#### Quick start
+
+```bash
+npm install -g @google/gemini-cli
+gemini
+```
+
+Or try it without installing: `npx @google/gemini-cli`. Full setup and free-tier details at the [Gemini CLI README](https://github.com/google-gemini/gemini-cli#readme).
+
+---
+
+### 1.7 Crush (charm)
+
+Charm's terminal coding agent, built by the team behind Bubble Tea and Lip Gloss, the TUI libraries much of this category's terminal interfaces are built on.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [charmbracelet/crush](https://github.com/charmbracelet/crush) |
+| **Stars** | 27,500+ (Aug 2026) |
+| **Install** | `brew install charmbracelet/tap/crush` or `npm install -g @charmland/crush` or `go install github.com/charmbracelet/crush@latest` |
+| **Language** | Go |
+| **License** | FSL-1.1-MIT (Functional Source License; see caveat below) |
+| **Version** | v0.90.0 (Aug 2026) |
+| **Contributors** | 144+ (GitHub API, Aug 2026) |
+
+#### What Is crush?
+
+A terminal coding agent with no model lock-in (multi-provider, same posture as opencode and Aider on that axis) and two distinctive bets: per-project session persistence, and a terminal interface built with Charm's own TUI tooling, which shows in day-to-day polish. Bounded autonomy, resumable sessions.
+
+The license needs a direct flag. crush ships under FSL-1.1-MIT (Functional Source License), not a standard OSI-approved open source license at release. Each release converts to full MIT automatically two years after it ships, so older versions become plain MIT over time, but the current release is source-available rather than open source in the OSI sense. This is fine for individual use or internal team use. It is a real constraint if the plan involves redistributing crush, hosting it as a competing service, or bundling it into another commercial product before that release's two-year window closes; read the license text before doing any of those.
+
+#### Claude Code vs crush
+
+| Aspect | Claude Code | crush |
+|--------|-------------|-------|
+| **Models** | Claude family only | Multi-provider, no lock-in |
+| **Language** | TypeScript | Go |
+| **License** | Proprietary | FSL-1.1-MIT (converts to MIT 2 years after each release) |
+| **Session persistence** | Native, per-project | Native, per-project |
+| **Terminal UI** | Anthropic-built | Charm's Bubble Tea/Lip Gloss stack |
+| **Steward** | Anthropic, single vendor | Charm |
+
+#### When to Choose crush
+
+The strongest reason to pick crush over opencode or Aider is the terminal experience itself: Charm has been building TUI tooling for years, and it is the most polished interface among the multi-provider terminal agents covered here. Per-project session persistence also makes it a reasonable fit for developers who juggle several codebases and want the agent to remember state per repo without extra configuration.
+
+The weak points are real. It has the smallest community of the three tools added in this section (27,500+ stars against opencode's 199,400+ and Gemini CLI's 106,600+), it is younger, and the FSL license is a genuine blocker for anyone building a product on top of it for resale rather than using it as a personal or internal tool. If license clarity matters more than terminal polish, opencode or Aider avoid the question entirely.
+
+#### Quick start
+
+```bash
+brew install charmbracelet/tap/crush
+crush
+```
+
+License text and the two-year MIT conversion terms at [charmbracelet/crush LICENSE.md](https://github.com/charmbracelet/crush/blob/main/LICENSE.md).
+
+---
+
+### 1.8 DeepSeek Harness (dsh)
+
+DeepSeek's official agent runtime. It is technically ambitious, explicitly experimental, and should not be confused with a safe-by-default production sandbox.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [deepseek-ai/deepseek-harness](https://github.com/deepseek-ai/deepseek-harness) |
+| **Interface** | Local web UI and headless CLI |
+| **License** | MIT |
+| **Status** | Developer preview; compatibility-breaking changes are expected |
+| **Architecture** | Cordis plugin tree: models, tools, skills, sessions, sandbox, storage, approvals, and UI are composable plugins |
+
+#### What is DeepSeek Harness?
+
+DeepSeek Harness, exposed as `dsh`, is a local-first runtime that composes a profile from plugins rather than shipping one fixed agent surface. Its official architecture documents profiles and bundles for the agent loop, model adapters, tools, MCP, skills, subagents, workflows, sandboxing, permissions, storage, and UI. That makes it an interesting reference for builders: the seams are visible instead of being hidden behind a single CLI command.
+
+Start from the official package rather than a similarly named community project:
+
+```bash
+npx @deepseek-ai/dsh web
+
+# Inspect the fully composed profile before trusting it
+npx @deepseek-ai/dsh --profile web --dump-config
+```
+
+The project documents Standard, PTC/Code Mode, Minimal, and Creation-oriented profiles. Its session event log can record messages, tool calls, and approval decisions for replay. That helps debugging, but it also raises a data-handling question: inspect telemetry and export settings before putting proprietary code or secrets through a local run.
+
+#### Security and operational limits
+
+The repository labels dsh a developer preview. Treat that as an operational constraint, not modest wording. A local-first agent can still read hostile repository content, call a powerful tool, and write to a workspace. Use an isolated VM or container for untrusted code, start with the least-privileged profile, and make consequential actions reviewable outside the model's own reasoning loop. Do not enable a `danger-full-access` preset on a primary machine.
+
+One external study, [arXiv:2608.16393](https://arxiv.org/abs/2608.16393), evaluated one DeepSeek Harness commit and configuration in 14,560 controlled indirect-prompt-injection tests. Its results are evidence about that tested configuration, not a universal security rating. The durable lesson is simpler: sandboxing alone does not prove that untrusted content cannot influence a tool-using agent. Keep provenance, independent authorization, and review gates on top of a sandbox.
+
+Official starting points: the [README](https://github.com/deepseek-ai/deepseek-harness), [architecture](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/architecture.md), [sandbox subsystem](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/sandbox.md), and [permission presets](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/permission-presets.md). Snapshot checked 2026-09-02.
+
+#### When to choose DeepSeek Harness
+
+Choose dsh to study or extend a plugin-first runtime, or to experiment in an isolated environment with its explicit composition model. Do not standardize on it for a production team merely because it is local or open source. Claude Code remains the better default in this guide for a stable, documented coding workflow; dsh is a fast-moving alternative worth evaluating behind clear security and maintenance gates.
+
+---
+
+### 1.9 Warp Agent CLI
+
+Warp Agent is a proprietary coding agent whose standalone CLI runs in third-party terminals as well as Warp. This matters for classification: Warp is no longer only a terminal application with an embedded assistant. The vendor now presents the agent as a terminal runtime with its own interactive surface, multi-agent coordination, and optional cloud continuation.
+
+| Attribute | Details |
+|-----------|---------|
+| **Official source** | [Introducing Warp Agent](https://www.warp.dev/blog/introducing-the-warp-agent-cli-coding-agent) |
+| **Interfaces** | CLI, interactive terminal UI, and web monitoring for cloud runs |
+| **Terminal support** | Standalone use in terminals including Ghostty, iTerm2, VS Code terminals, and Windows terminals |
+| **Execution model** | Local terminal work with optional handoff to Warp cloud agents |
+| **Model strategy** | Vendor-managed routing plus configurable model routing |
+| **License** | Proprietary |
+
+#### What distinguishes it?
+
+Warp emphasizes terminal fidelity. Its agent can multiplex pseudo-terminals and interact with full-screen applications such as debuggers, editors, and database clients instead of treating every command as a one-shot subprocess. The same product surface can coordinate several agents and delegate work to external coding agents, including Claude Code and Codex, according to Warp's launch article.
+
+The cloud handoff is the second differentiator. A task can begin in a local terminal and continue remotely, with progress visible from Warp's cloud surface. That is a hybrid execution model, not evidence that every command stays local. Teams should decide which repositories, credentials, and command outputs may cross that boundary before enabling remote runs.
+
+#### Evidence boundary
+
+The capabilities above come from Warp's launch article dated August 4, 2026. This guide did not independently test terminal compatibility, model routing quality, cloud isolation, or multi-agent reliability. Treat the profile as a sourced product map, then verify the exact client version, data path, permission model, and pricing against a representative repository before adoption.
+
+#### When to choose Warp Agent
+
+Shortlist it when interactive terminal programs are central to the task, when developers want the same agent in several terminal applications, or when local-to-cloud handoff is a real workflow requirement. Prefer an open-source terminal agent when inspectability or self-hosting is non-negotiable. Prefer a simpler CLI when remote continuation and terminal multiplexing do not justify another proprietary control surface.
+
+---
+
+## Section 2: Autonomous coding agents
+
+These tools run without you watching. You give them a task description (a GitHub issue, a spec, a bug report), and they produce a pull request. The interaction model is fundamentally different from terminal agents: less iterative, more like assigning work to a colleague.
+
+---
+
+### 2.1 Devin (Cognition)
+
+The first commercial fully autonomous software engineer. Closed-source, cloud-hosted, enterprise-priced.
+
+| Attribute | Details |
+|-----------|---------|
+| **Website** | [devin.ai](https://devin.ai) |
+| **Type** | Cloud SaaS, proprietary |
+| **Pricing** | Core: $20/mo (pay-as-you-go ACUs), Team: $500/mo (250 ACUs), Enterprise: custom |
+| **Launched** | 2024 |
+| **Valuation** | $25B (April 2026 fundraise) |
+| **Notable acquisition** | Windsurf AI-native IDE (July 2025) |
+| **Enterprise customers** | Goldman Sachs, Microsoft, Palantir, Citi, Dell |
+
+#### What is Devin?
+
+An autonomous software engineer that runs in a cloud-based Linux VM with its own shell, code editor, and browser. Devin plans its approach, writes code, runs tests, reads error messages, and iterates until the task is complete or it gets stuck. The primary interface is Slack: you send a message like "fix issue #342" and Devin opens a PR when done.
+
+Billing is in ACUs (Agent Compute Units), where 1 ACU maps to roughly 15 minutes of agent work. A complex feature might consume 10-20 ACUs; a simple bug fix might use 1-3.
+
+#### Claude Code vs Devin
+
+| Aspect | Claude Code | Devin |
+|--------|-------------|-------|
+| **Execution environment** | Your local machine | Cloud Linux VM (sandboxed) |
+| **Interaction model** | Interactive (you watch) | Async (assign and check back) |
+| **State** | Session-scoped | Persistent across the task |
+| **Pricing** | Subscription ($20-$200/mo) | Per-task ACU billing ($0.07-$0.15/ACU approx) |
+| **Who drives** | You (pair programming) | Agent (autonomous, you review) |
+| **Task specification** | Conversational, iterative | Upfront (better spec = better output) |
+| **Browser access** | Via MCP (Playwright) | Built-in, native |
+| **Code review integration** | You review in your IDE | Devin posts a PR, you review on GitHub |
+
+#### When to choose Devin
+
+Devin works best when the task is well-specified, bounded, and does not require continuous judgment calls. Refactoring a specific module, implementing a documented API endpoint, fixing a regression with a known root cause: these are Devin tasks. Designing a new system architecture, debugging an obscure production issue, or writing code that depends on implicit context in your codebase: these require a more interactive loop.
+
+The $500/month Team plan (250 ACUs) is substantial. At that price point, you are paying for the async value: developers not blocked waiting for agent output, agents running in parallel on multiple tasks, no context switching. If your bottleneck is developer attention rather than raw throughput, Devin is worth the calculation. If you want to stay in the loop and iterate interactively, Claude Code at $200/month delivers more value per dollar.
+
+The Windsurf acquisition (July 2025) signals Cognition moving toward a full developer environment, not just a background agent. Watch for integrated workflows combining interactive coding (Windsurf IDE) and autonomous task execution (Devin) in the same product.
+
+---
+
+### 2.2 SWE-agent (Princeton)
+
+An academic agent designed specifically for resolving GitHub issues from an issue description alone. NeurIPS 2024 paper, Princeton NLP Group and Stanford.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [SWE-agent/SWE-agent](https://github.com/SWE-agent/SWE-agent) |
+| **Stars** | 19,300+ (May 2026) |
+| **Paper** | NeurIPS 2024 |
+| **License** | MIT |
+| **Language** | Python (95%) |
+| **Version** | v1.1.0 (May 2025) |
+| **Maintainers** | Princeton NLP Group + Stanford |
+
+#### What is SWE-agent?
+
+An agent pipeline that takes a GitHub issue URL and a model, then attempts to reproduce the bug, write a fix, and produce a patch. Its architecture uses an Agent-Computer Interface (ACI) layer that abstracts terminal, file editing, and test running into a consistent set of commands regardless of the underlying environment. This ACI design is the main academic contribution: it shows that agent performance correlates strongly with how well the environment exposes information, not just with the model's raw capability.
+
+The peer-reviewed NeurIPS 2024 evaluation did not test Claude 3.7 or an open-weight model in its principal SWE-bench result. On the full SWE-bench test set, SWE-agent resolved 12.47% of issues with GPT-4 Turbo and 10.46% with Claude 3 Opus. Table 1 reports average API inference costs of $1.59 and $2.59, respectively, averaged only over successfully resolved instances, with a $4 cap per run. These figures describe the paper's 2024 benchmark configuration, not current state of the art. Source: [Yang et al., SWE-agent](https://proceedings.neurips.cc/paper_files/paper/2024/file/5a7c947568c1b1328ccc5230172e1e7c-Paper-Conference.pdf), PDF pp. 5-6, Table 1.
+
+#### When to choose SWE-agent
+
+Primarily academic and research use. If you want to run systematic evaluations of how different models perform on real GitHub issues, SWE-agent is the right tool because it has the reproducibility infrastructure (trajectory logging, evaluation harness, config YAML) that production tools skip.
+
+For production batch issue resolution, Devin's cloud sandbox and better error recovery make it more practical. SWE-agent requires you to set up the environment and handle failures manually.
+
+The research value is real: teams building agent systems can use SWE-agent's trajectory data (generated from issue resolution runs) to fine-tune models. Nous Research's SWE-agent-LM-32b (open weights, SoTA on SWE-Bench for open models) was trained on trajectories generated by SWE-agent.
+
+```bash
+pip install swe-agent
+
+# Run on a GitHub issue
+sweagent run \
+  --agent.model.name=claude-sonnet-5 \
+  --env.repo.github_url=https://github.com/org/repo \
+  --problem_statement.github_url=https://github.com/org/repo/issues/123
+```
+
+---
+
+### 2.3 Claude Code in headless mode
+
+Claude Code's own autonomous mode: `claude -p "task"` runs a single instruction non-interactively and exits. Combined with CI/CD, it becomes an autonomous agent that triggers on GitHub events, runs on schedule via Routines, or processes tasks programmatically via the Agent SDK.
+
+**Billing:** Anthropic announced a separate programmatic credit for `claude -p` and the Agent SDK from June 15, 2026, then paused it. As verified on 2026-09-30, this usage still draws from your subscription limits. See [Billing: Programmatic vs Interactive](../ultimate-guide.md#the-interactiveprogrammatic-billing-split-announced-then-paused) for the announced plan.
+
+Patterns:
+
+```bash
+# Single task, exits when done
+claude -p "Write tests for src/auth.ts, aim for 80% coverage"
+
+# GitHub Actions: triggered by issue label
+# See workflows/event-driven-agents.md for the full pattern
+
+# Agent SDK: programmatic with tools
+# See ai-ecosystem.md §14 (Claude Managed Agents)
+```
+
+Cross-references:
+- **Event-driven patterns**: [workflows/event-driven-agents.md](../workflows/event-driven-agents.md)
+- **Agent teams**: [workflows/agent-teams.md](../workflows/agent-teams.md)
+- **Managed Agents (cloud)**: [ai-ecosystem.md §14](./ai-ecosystem.md#14-claude-managed-agents)
+
+---
+
+### 2.4 OpenHands (all hands AI)
+
+Open source autonomous coding platform, formerly OpenDevin. The closest self-hostable equivalent to Devin.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [OpenHands/OpenHands](https://github.com/OpenHands/OpenHands) |
+| **Stars** | 79,900+ (July 2026) |
+| **Model support** | Claude, GPT, Gemini, open-weight models |
+| **Deployment** | Self-host (free) or OpenHands Cloud/Enterprise (paid) |
+| **Execution** | Sandboxed environment |
+
+#### What is OpenHands?
+
+A planning agent builds a dependency graph before any work starts, then spawns sub-agents to execute it: tasks with no dependencies (Tier 0) run in parallel, and each Tier 1 task starts as soon as its specific dependency resolves rather than waiting for all of Tier 0 to finish. An integrator agent then merges the resulting files, fixes import paths, wires API calls to frontend components, and runs the full test suite before handing back a result.
+
+#### When to choose OpenHands
+
+OpenHands is the practical choice when you want Devin's dependency-graph parallelism without the per-task billing or the closed-source lock-in. Self-hosting means you control the sandbox and the model routing, at the cost of running the infrastructure yourself.
+
+The governance layer (guardrails, budgets, an internal plugin marketplace, full audit trail) sits behind OpenHands Cloud/Enterprise. The open source core gives you the execution graph and the sandbox, not the organization-wide policy enforcement. If your priority is deterministic gates and traceability across a team, budget for the paid tier or pair OpenHands with an external policy layer.
+
+---
+
+## Section 3: Multi-Agent frameworks
+
+These are not coding tools. They are libraries for building custom multi-agent applications from scratch: marketing pipelines, research automation, document processing, customer support bots. You would use them if you are building a product that has AI agents inside it, not if you are a developer wanting an agent to write code for you.
+
+The relationship to Claude Code: Claude (the model) can be one of the LLMs powering agents built with these frameworks. The frameworks themselves do not compete with Claude Code any more than Express.js competes with a browser.
+
+---
+
+### 3.1 CrewAI
+
+Role-based multi-agent orchestration. The dominant choice for teams that want to define agents by job function (Researcher, Writer, Editor) and let them collaborate on structured tasks.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [crewAIInc/crewAI](https://github.com/crewAIInc/crewAI) |
+| **Stars** | 52,300+ (May 2026) |
+| **Language** | Python (99%) |
+| **License** | MIT |
+| **Version** | v1.14.5 (May 18, 2026) |
+| **Executions** | 2B+ agent task executions reported |
+| **Downloads** | 27M+ |
+| **Enterprise customers** | 150+ |
+
+#### What is CrewAI?
+
+You define agents with a role, a goal, and a backstory (the "crew"). You define tasks and assign them to agents. CrewAI handles routing: sequential (A finishes, then B starts), parallel (A and B run simultaneously), or hierarchical (a manager agent delegates to specialists). Each agent can use tools, including MCP servers and web search. Multiple LLM providers supported (Claude, GPT, Gemini, Ollama).
+
+It stands apart from LangChain (the older framework it frequently gets compared to) because it does not depend on LangChain at all. Standalone Python library.
+
+#### When to use CrewAI
+
+The right level of abstraction for teams that can describe their workflow in human roles. If you can say "I want a researcher who gathers information, a writer who drafts, and an editor who refines," CrewAI handles the orchestration and inter-agent communication. You write agent definitions, not orchestration code.
+
+Avoid it when your workflow has complex conditional branching, requires durable execution across failures, or needs fine-grained control over how state passes between agents. LangGraph handles those cases better.
+
+```python
+from crewai import Agent, Task, Crew, Process
+
+researcher = Agent(
+    role="Technical Researcher",
+    goal="Find accurate technical information",
+    backstory="Expert at synthesizing documentation and research papers",
+    llm="claude-sonnet-5"
+)
+
+writer = Agent(
+    role="Technical Writer",
+    goal="Write clear, accurate documentation",
+    backstory="Experienced at translating technical concepts",
+    llm="claude-sonnet-5"
+)
+
+task = Task(
+    description="Research and document the new auth API endpoints",
+    expected_output="Markdown documentation with examples",
+    agent=writer,
+    context=[research_task]  # researcher's output feeds writer
+)
+
+crew = Crew(agents=[researcher, writer], tasks=[task], process=Process.sequential)
+result = crew.kickoff()
+```
+
+---
+
+### 3.2 LangGraph
+
+Graph-based agent orchestration from LangChain. Lower-level than CrewAI, more flexible, better for complex stateful workflows.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [langchain-ai/langgraph](https://github.com/langchain-ai/langgraph) |
+| **Stars** | 33,100+ (May 2026) |
+| **Language** | Python (99%) + JS version available |
+| **License** | MIT |
+| **Version** | v1.2.2 (May 26, 2026) |
+| **Production users** | Klarna, Replit, Elastic |
+
+#### What is LangGraph?
+
+An agent construction framework that models workflows as directed graphs with nodes (agent steps) and edges (transitions). The key primitives are state (a typed dict that persists across all nodes), conditional edges (branching based on state), and persistence (checkpointing so an interrupted workflow resumes from the last checkpoint, not from scratch). Human-in-the-loop is a first-class pattern: you can pause execution at any node and wait for a human decision before continuing.
+
+LangGraph does not bundle agents. You define the workflow logic and plug in whatever LLM you want. The framework ensures that state transitions are predictable, failures are recoverable, and the workflow can be debugged step by step.
+
+#### When to use LangGraph
+
+The right tool when your agent needs to survive failures, branch on runtime conditions, or require human approval at specific decision points. Examples: a code review pipeline that escalates to a human when the agent detects a security-relevant change; a data processing workflow that checkpoints after each expensive step so restarts do not re-process completed stages; a multi-step research agent that pauses for human guidance when it hits ambiguous source material.
+
+Steeper learning curve than CrewAI. Worth it when the workflow complexity justifies the investment.
+
+```python
+from langgraph.graph import StateGraph, END
+from typing import TypedDict
+
+class AgentState(TypedDict):
+    messages: list
+    task_complete: bool
+
+graph = StateGraph(AgentState)
+graph.add_node("agent", call_agent)
+graph.add_node("tools", call_tools)
+graph.add_conditional_edges("agent", should_continue, {"continue": "tools", "end": END})
+graph.add_edge("tools", "agent")
+graph.set_entry_point("agent")
+
+app = graph.compile(checkpointer=MemorySaver())  # Durable execution
+```
+
+LangSmith (LangChain's observability product) integrates natively for debugging and tracing agent runs.
+
+---
+
+### 3.3 AutoGen / Microsoft Agent Framework
+
+Microsoft's multi-agent framework, mid-transition from the original AutoGen library (maintenance mode since September 2025) to the Microsoft Agent Framework (MAF), which merges AutoGen and Semantic Kernel into one SDK.
+
+| Attribute | Details (MAF) |
+|-----------|---------|
+| **GitHub** | [microsoft/agent-framework](https://github.com/microsoft/agent-framework) |
+| **Stars** | 12,444 (MAF, active, verified 2026-07-27; was 10,800+ earlier) |
+| **Legacy GitHub** | [microsoft/autogen](https://github.com/microsoft/autogen) (60,033 stars as of 2026-07-27, was 58,400, maintenance mode since Sep 2025) |
+| **Language** | Python + C# + TypeScript |
+| **License** | MIT |
+| **Version** | python-1.6.0 (May 22, 2026) |
+| **Production release** | v1.0 (April 2026) |
+
+#### What is Microsoft Agent Framework?
+
+MAF is the merge of AutoGen (Python, conversational multi-agent) and Semantic Kernel (C# + Python, function-calling abstractions). The result is a cross-runtime framework: Python agents can coordinate with .NET agents, all backed by the same messaging layer. It implements the A2A (Agent-to-Agent) protocol, Microsoft's contribution to agent interoperability, and supports MCP.
+
+The AutoGen star count (60,033 as of 2026-07-27) reflects its historical reputation. AutoGen pioneered the "conversable agent" pattern where agents talk to each other in a structured conversation loop. That pattern is still the dominant mental model in the framework even as the implementation evolved.
+
+#### When to use MAF
+
+Strong fit for Microsoft ecosystem teams: .NET + Python shops, Azure deployments, enterprise environments where Semantic Kernel is already established. The cross-runtime story is real: a Python agent can call tools implemented as .NET Semantic Kernel functions.
+
+Less compelling for teams without existing .NET investment. If you are Python-only, CrewAI or LangGraph have larger communities and more tutorials.
+
+---
+
+### 3.4 Anthropic Agent SDK
+
+Anthropic's own framework for building multi-agent systems programmatically, distinct from Claude Code. Covered in detail in [AI Ecosystem §14: Claude Managed Agents](./ai-ecosystem.md#14-claude-managed-agents).
+
+The operative distinction: Claude Code is a finished product you use as a developer; the Agent SDK is a library you use to build products that have Claude inside them. The Agent SDK handles tool use, context management, and multi-agent coordination via the Messages API. It is also in the programmatic billing bucket (see billing cross-reference above).
+
+---
+
+### 3.5 MetaGPT
+
+The original "AI software company" framework: five fixed roles (Product Manager, Architect, Project Manager, Engineer, QA) chained into a pipeline that turns a one-line request into PRDs, diagrams, and code. Historically important, currently dormant.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [FoundationAgents/MetaGPT](https://github.com/FoundationAgents/MetaGPT) |
+| **Stars** | 69,384 (July 2026) |
+| **Language** | Python |
+| **License** | MIT |
+| **Latest release** | v0.8.1 (April 22, 2024) |
+| **Last commit** | January 2026 |
+| **Commercial product** | MGX (hosted, launched Feb 2025) |
+
+#### The core idea
+
+MetaGPT's thesis fits in one line from its paper: `Code = SOP(Team)`. Encode a software company's standard operating procedure, assign each step to a role, and the pipeline produces the artifacts a real team would produce. Each role hands a structured document to the next. An executable feedback loop retries up to three times when code fails to run.
+
+The framework earned an ICLR 2024 oral and a large following. It proved that role decomposition plus structured handoffs beats a single agent on greenfield generation tasks.
+
+#### Read the dates before you adopt it
+
+The star count is misleading as an activity signal. The last tagged release is v0.8.1 from April 2024, and the repository has not received a commit since January 2026. Team attention moved to MGX, the hosted commercial product. The promised v1.0 open-source release has not shipped.
+
+Treat MetaGPT as a reference architecture rather than a dependency. Its structured-artifact-between-roles pattern is worth studying and shows up in nearly every framework that followed, including BMAD and Liza. The code itself is two years past its last release.
+
+#### Where it stops
+
+Trust is assumed through process compliance. Nothing prevents an agent from ignoring the SOP; the system bets that a clearly described procedure will be followed. Failure handling is retry-based (the same agent tries again) rather than structural. There is no crash recovery, no role boundary enforced outside the prompt, and no review loop where a second agent can reject the first agent's work.
+
+---
+
+## Section 4: Agent orchestration tools
+
+Tools that sit above agent frameworks and manage how agents are deployed, routed, and operated at scale. Not to be confused with multi-Claude orchestration tools (Gas Town, multiclaude) which are covered in [Third-Party Tools](./third-party-tools.md#multi-agent-orchestration).
+
+---
+
+### 4.1 Conductor (Gemini CLI methodology)
+
+A development methodology, not a product. "Conductor" started as an extension for Gemini CLI that enforces a Context, Spec, Plan, Implement workflow: before writing any code, the agent creates and commits a spec document, then a plan document, then implements against both.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [gemini-cli-extensions/conductor](https://github.com/gemini-cli-extensions/conductor) |
+| **Stars** | 3,600+ (May 2026) |
+| **License** | Apache 2.0 |
+
+The methodology has been ported to Claude Code via community repos: [lackeyjb/claude-conductor](https://github.com/lackeyjb/claude-conductor), [ryanmac/code-conductor](https://github.com/ryanmac/code-conductor), and the wshobson/agents plugin marketplace. None of these have significant traction on their own, but the pattern itself (spec-before-code, committed documentation) maps directly to Claude Code's [Spec-First Development workflow](../workflows/spec-first.md).
+
+---
+
+### 4.2 Conductor (Microsoft CLI)
+
+An entirely separate project from the Gemini one. A YAML-first CLI for deterministic multi-agent workflows where the routing logic is static configuration, not LLM decisions.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [microsoft/conductor](https://github.com/microsoft/conductor) |
+| **Stars** | 350 (2026-07-27, was 158 in May 2026, brand new at the time) |
+| **License** | MIT |
+| **Launched** | May 14, 2026 (Microsoft Open Source Blog) |
+
+Core idea: define your agent workflow in YAML (which agents run in sequence, which in parallel, which model each uses, what gets passed between stages) and execute it deterministically. No LLM in the orchestration loop, only in the agent steps. Supports both GitHub Copilot SDK and Anthropic Agent SDK as providers. Very early stage (350 stars as of 2026-07-27, up from 158 days after launch), but backed by Microsoft's open-source team.
+
+---
+
+### 4.3 Hermes control room
+
+A community template by Shann (@shannhk, Lisbon) for managing a fleet of Hermes agents on a VPS. Not a Nous Research project.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [shannhk/hermes-agent-control-room](https://github.com/shannhk/hermes-agent-control-room) |
+| **Stars** | 474 (May 2026) |
+| **Age** | 12 days (as of May 27, 2026) |
+| **Type** | Template/documentation, not executable software |
+
+The concept: a folder structure with governance docs, a registry of deployed agents, runbooks for common operations, and 8 bundled Hermes skills for VPS provisioning, task routing, backup, security auditing, and cron planning. Agents share a filesystem-based task bus (inbox/working/outbox/archive per specialty). The orchestrator reads the control room docs to know agent capabilities, routes tasks via the bus, and synthesizes results.
+
+The pattern is sound for anyone running 3+ Hermes agents. The specific repo is too new (7 commits) to recommend as a production dependency. Watch for a v1.0 with more operational hardening.
+
+---
+
+### 4.4 Symphony (OpenAI)
+
+OpenAI's answer to "what do you build on top of Codex?" Symphony watches a Linear board, creates an isolated workspace per issue, spawns a Codex agent in it, and collects proof of work before the PR lands.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [openai/symphony](https://github.com/openai/symphony) |
+| **Stars** | 25,969 (July 2026) |
+| **Language** | Elixir (reference implementation) |
+| **License** | Apache 2.0 |
+| **Created** | February 26, 2026 |
+| **Last commit** | June 9, 2026 |
+| **Status** | Engineering preview, no tagged release |
+
+#### What it actually does
+
+The tagline is "manage work, not agents." Symphony polls a tracker, dispatches an agent per issue into its own workspace, and gathers evidence the work is real: CI status, PR review feedback, complexity analysis, and a walkthrough video. An engineer reviews the evidence instead of watching the agent type.
+
+The distribution model is unusual: the repo's primary recommendation is not "install our binary" but "hand [SPEC.md](https://github.com/openai/symphony/blob/main/SPEC.md) to your favorite coding agent and have it build Symphony in the language of your choice." The Elixir version is an experimental reference implementation, built on BEAM/OTP for supervision and concurrency. The spec is the product.
+
+Symphony assumes you have already done [harness engineering](https://openai.com/index/harness-engineering/) on your codebase: making the repo legible to agents through tests, docs, and tooling. It positions itself as the step after that.
+
+#### Read the warning label
+
+The README opens with a bolded warning that this is "a low-key engineering preview for testing in trusted environments." No tagged release exists, and the repo has been quiet since June 9, 2026. The 26,265 stars (2026-07-27) measure OpenAI's distribution reach, not production readiness.
+
+#### Where it stops
+
+Symphony is deliberately narrow: a scheduler, runner, and tracker reader. It does not review, and it does not enforce. The spec explicitly states it "does not require a single approval, sandbox, or operator-confirmation policy," leaving trust posture to whoever implements it. The agent self-certifies its own work; there is no second agent that can reject it. The reference implementation is Codex-only.
+
+That narrowness is a design choice, not an oversight. If you want dispatch and workspace isolation, Symphony is a clean spec to copy. If you want a review loop or a merge gate, you build that yourself.
+
+---
+
+### 4.5 Paperclip
+
+An org chart for agents. Paperclip models the corporate apparatus (roles, budgets, approval gates, delegation chains) and lets you point any agent runtime at it. The fastest-growing project in this entire page.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [paperclipai/paperclip](https://github.com/paperclipai/paperclip) |
+| **Stars** | 74,900 (2026-07-27), 13,956 forks |
+| **Language** | TypeScript (Node.js server + React UI) |
+| **License** | MIT |
+| **Created** | March 2, 2026 |
+| **Latest release** | v2026.707.0 (July 7, 2026) |
+| **Works with** | Hermes Agent/OpenClaw, Claude Code, Codex, Cursor, Bash, HTTP |
+
+#### What it actually does
+
+The README frames it precisely: "If OpenClaw is an employee, Paperclip is the company." You define a goal, hire a team (CEO, CTO, engineers, marketers, each backed by whatever agent runtime you like), set budgets, and monitor from a dashboard. It looks like a task manager. Underneath sit org charts, budget caps, governance rules, and cost tracking per agent, task, and goal.
+
+Runtime-agnostic by design, summarized in their own line: "if it can receive a heartbeat, it's hired." This is what makes it interesting next to Claude Code rather than in competition with it. Claude Code becomes one of the employees.
+
+#### Why the traction matters
+
+75K stars and 14K forks (2026-07-27) in roughly four months, with releases shipping weekly. Whatever you think of the "zero-human company" narrative, the adoption is real and the project is maintained. A plugin ecosystem has already formed around it ([awesome-paperclip](https://github.com/gsxdsm/awesome-paperclip), company-wizard templates, a Hermes adapter from Nous Research).
+
+#### Where it stops
+
+Trust in Paperclip is organizational, not behavioral. It governs who may act and how much they may spend, with budget auto-pause and append-only audit trails. It does not govern how the work gets done inside an agent session. Their own docs are direct about it not being a code review tool. Nothing here stops an agent from modifying a test to make broken code pass; that is a different layer of the problem, addressed by [spec-first governance patterns](../workflows/spec-first.md).
+
+Different domain, too. Paperclip targets business operations broadly, not software engineering specifically. If your goal is shipping code, the org-chart abstraction may be more apparatus than the job needs.
+
+---
+
+### 4.6 CLI agent orchestrator (CAO, AWS labs)
+
+A supervisor agent that delegates to worker agents, each one a real CLI process in its own tmux session, coordinated over MCP. Notable for a reason that has nothing to do with its features: it is the only orchestrator in this category with a defensible bus factor.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [awslabs/cli-agent-orchestrator](https://github.com/awslabs/cli-agent-orchestrator) |
+| **Stars** | 954 (2026-07-27), 184 forks, 73 open issues (was 893 / 172 / 71 in July 2026) |
+| **Language** | Python 3.10+, distributed on PyPI as `cli-agent-orchestrator` |
+| **License** | Apache-2.0 |
+| **Created** | July 29, 2025 |
+| **Latest release** | v2.3.0 (July 12, 2026) |
+| **Contributors** | 41, top contributor at 20% of commits |
+| **Works with** | Claude Code, Kiro CLI, Codex CLI, Antigravity CLI, Hermes Agent, Kimi CLI, GitHub Copilot CLI, OpenCode, Cursor CLI |
+
+#### What it actually does
+
+One supervisor agent launches, messages, and coordinates multiple workers through three MCP primitives: `handoff` (synchronous, waits for completion), `assign` (asynchronous, fire and forget), and `send_message` (inbox delivery between agents). Every agent runs as a full CLI process in an isolated tmux session, which is the design decision that matters most: because it drives the real binary rather than wrapping an API, native features survive, including Claude Code sub-agents, Kiro custom agents, and provider auth.
+
+Two consequences follow that most orchestrators cannot offer. You can `tmux attach` to any running worker and steer it mid-task, rather than waiting for a sub-agent to finish and hoping. And you can mix providers inside one session, pinning a profile to a given CLI through agent frontmatter, so a Kiro supervisor can drive Claude Code workers.
+
+Around that core sit scheduled flows (cron-style unattended runs), a bundled Web UI, a `cao-ops-mcp` server that lets an agent spawn and monitor CAO sessions from its own chat loop, persistent cross-session memory via `memory_store` and `memory_recall`, and per-agent tool restrictions declared as `role` plus `allowedTools` in the profile, translated to each provider's native enforcement where one exists.
+
+#### Why it is listed here at all
+
+A July 2026 market sweep of eight open-source multi-agent orchestrators, verified against the GitHub API rather than project READMEs, found seven with a single contributor holding 95% to 100% of commits. CAO was the exception, at 41 contributors and a top contributor holding 20%.
+
+The comparison that should stay with you: Mission Control ([builderz-labs/mission-control](https://github.com/builderz-labs/mission-control), MIT) carries 5,862 stars as of 2026-07-27 (was 5,763), 6.1 times CAO's count, and one person authored 78% of its commits. Sorting that market by stars selects almost exactly the wrong tool. This guide's position on star counts as an adoption proxy is stated at [Section 5](#the-model-lock-in-question) and in [`docs/resource-evaluations/README.md`](../../docs/resource-evaluations/README.md); CAO versus Mission Control is the cleanest illustration of it in the wild.
+
+#### Where it stops
+
+CAO owns coordination and nothing else. It ships no quality gate of its own, and it is honest about this: whether an agent can declare "done" on broken code depends entirely on what the underlying CLI runs inside its worktree. Tool restrictions constrain which tools an agent may call, not whether its output is correct. Answer question 1 of the [governance checklist](../workflows/agentic-software-factories.md#4-five-governance-questions-before-you-adopt-anything) yourself, in your own CI, because CAO will not answer it for you.
+
+Isolation is process-level, not system-level. tmux separates contexts and gives real PTY access; it is not a sandbox. Agents inherit the environment, including secrets and configs. The `cao-server` is hardened for localhost specifically (host-header validation against DNS rebinding, WebSocket PTY refusing non-loopback connections), which tells you the intended deployment: your machine, not a shared host.
+
+No published case study with measured outcomes exists as of July 2026, which puts it in the same evidentiary position as every commercial platform in this category. AWS Labs backing means maintenance continuity, not proven production results.
+
+---
+
+### 4.7 Nimbalyst
+
+A desktop workspace for running Claude Code and Codex side by side, built around visual review rather than terminal output. Each session can be isolated in its own git worktree, so several agents work the same repository without colliding.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [nimbalyst/nimbalyst](https://github.com/nimbalyst/nimbalyst) |
+| **Stars** | 1,558 (2026-08-24), 223 forks |
+| **License** | MIT |
+| **Language** | TypeScript |
+| **Created** | October 30, 2025 |
+| **Platforms** | macOS, Windows, Linux; mobile companion for iOS and Android |
+| **Works with** | Claude Code, Codex; OpenCode and GitHub Copilot in alpha |
+
+#### What it actually does
+
+Every session lands on a searchable kanban board linked to the files it touched. The differentiator is how review works: agent edits render as inline red/green changes inside the document itself, whether that document is markdown, a mockup, a Mermaid or Excalidraw diagram, a CSV, or a data model, and each change gets accepted or rejected in place. Trackers for plans and bugs live in the same workspace and are readable and writable by the agents. It also bundles git management (worktrees, AI-assisted commits, workstreams) and a terminal, plus an extension SDK and MCP client for wiring in other tools.
+
+#### Where it stops
+
+560 open issues against 1,558 stars (2026-08-24) is a high ratio for a project that has been public less than a year, worth checking before depending on it for anything unattended. Codex and Claude Code are the only providers with full support; OpenCode and Copilot integration is still alpha.
+
+---
+
+### 4.8 Liza
+
+Liza is a code-enforced multi-agent control plane for coding work. It launches provider CLIs as workers, assigns each task to a doer/reviewer pair, isolates their branches in git worktrees, and persists coordination state outside model context.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [liza-mas/liza](https://github.com/liza-mas/liza) |
+| **Stars** | 363 (2026-08-28), 49 forks |
+| **License** | Apache-2.0 |
+| **Language** | Go supervisors, Python support utilities |
+| **Latest release** | [v0.8.0](https://github.com/liza-mas/liza/releases/tag/v0.8.0), 2026-06-03 |
+| **Adapter catalog** | Claude Code, Codex, OpenCode, Kimi, Gemini, Qwen, Mistral, Devin, Cursor; Gemini and Mistral disabled in the pinned catalog |
+| **Evidence snapshot** | [`a22c123`](https://github.com/liza-mas/liza/commit/a22c12381c5d884d2586a48aaaa517bca184f9cf), 2026-08-27 |
+
+#### What the code enforces
+
+Liza's [supervision model](https://github.com/liza-mas/liza/blob/a22c12381c5d884d2586a48aaaa517bca184f9cf/specs/architecture/supervision-model.md) separates semantic work from deterministic lifecycle control. Agents propose task transitions; Go supervisors validate ownership, state, leases, review verdicts, and merge eligibility. The YAML blackboard survives model context loss, while lease generations fence stale workers after recovery. Each doer works in an isolated worktree, and a separate reviewer can reject the submission before the supervisor allows integration.
+
+This makes Liza a useful example of two layers combined. Its `liza init` path installs repository-harness assets such as behavioral contracts, skills, settings, and guardrails. MAS mode adds an orchestrator above the selected runtime. The [provider catalog](https://github.com/liza-mas/liza/blob/a22c12381c5d884d2586a48aaaa517bca184f9cf/provider-catalog.yaml) confirms that Claude Code, Codex, and the other CLIs still own their inner tool loops.
+
+The reviewed commit contained 296 Go test files and passed the project's Ubuntu and macOS CI jobs. This review did not execute the suite locally because Go was unavailable on the review host. Upstream CI is useful maintenance evidence, but it does not establish task quality, recovery success under production load, or security against an untrusted repository.
+
+#### Where it stops
+
+Liza's isolation boundary is git, not the operating system. Several provider adapters enable broad approval modes, including OpenCode's `--dangerously-skip-permissions` and Devin's `--permission-mode dangerous`. Agents still inherit whatever filesystem, environment, credentials, and network access the underlying process receives. Put an OS or container sandbox and scoped credentials below Liza before unattended use.
+
+The project also publishes an unusually candid [architectural issues ledger](https://github.com/liza-mas/liza/blob/a22c12381c5d884d2586a48aaaa517bca184f9cf/specs/architecture/architectural-issues.md). It records reliance on one orchestrator for semantic interpretation, one supervisor as the correctness gate, incomplete cross-pair review, specification-quality feedback gaps, and context pressure from the behavioral contract. Those limits make Liza suitable for an isolated 8-to-12-ticket pilot, not a default production dependency based on feature count alone.
+
+Read Liza as both a loop system and a domain-specific graph. The frozen [pipeline configuration](https://github.com/liza-mas/liza/blob/a22c12381c5d884d2586a48aaaa517bca184f9cf/internal/embedded/pipeline.yaml) defines the stable organization graph: roles, role pairs, state vocabularies, quorums, and transitions. Runtime tasks and dependencies form the changing work graph. The model does semantic work inside nodes; deterministic Go code validates parts of the transition protocol. Liza is not a general graph runtime, because its transition type is intentionally narrow and its node programs are fixed to the coding lifecycle.
+
+The responsibility boundary is more important than the graph label. Illegal transitions, stale claims, and unmet quorums are mechanically rejectable. Whether a plan is sufficient or a patch is correct still depends on evidence and reviewer judgment. The pinned ledger explicitly identifies unmeasured reviewer accuracy, consequential cross-pair decomposition decisions, provider diversity that is preferred rather than guaranteed, and human checkpoints that constrain throughput. Evaluate workflow correctness and task correctness separately. See [Agent Evaluation](../roles/agent-evaluation.md#evaluate-judgment-allocation-and-reviewer-independence) for the test protocol.
+
+One independent practitioner report now exists. Hippolyte Durix's [Ippon write-up](https://blog.ippon.fr/2026/04/29/premier-rex-multi-agent-liza/) describes a small Spring Boot, Vue.js, and PostgreSQL catalog run: roughly 30 tasks over 5 automated sprints, 35 review verdicts, 3 rejections corrected and resubmitted, and 3 to 4 hours of human time. The author also reports massive token consumption, required human validation of planning stages, and no test of cross-provider review. This is useful operational evidence from a real user, but not a production benchmark: the project was deliberately simple, the figures are self-reported, and no comparable artifact-level baseline is published.
+
+Liza's maintainer also publishes the separate [bash-policy](https://github.com/liza-mas/bash-policy) project. It parses compound shell payloads into command units, evaluates project policy, and produces `allow`, `manual`, or `deny` decisions. The checked repository had no tagged release and no adoption evidence, so treat it as an inspectable policy experiment rather than a mature security dependency. Its boundary is still useful: command policy can constrain and audit what an agent asks to run, but it does not provide filesystem, credential, process, or network isolation. Pair it with the runtime's native policy engine and an OS-level sandbox.
+
+---
+
+### 4.9 Multica
+
+Multica is an issue-driven control plane for people and coding agents. It keeps workspaces, issues, chat, agent configuration, schedules, and run history in one application, then delegates execution to existing coding-agent CLIs. Claude Code, Codex, Cursor, OpenCode, and the other tools still own their inner model-and-tool loops.
+
+| Attribute | Details |
+|-----------|---------|
+| **GitHub** | [multica-ai/multica](https://github.com/multica-ai/multica) |
+| **Repository snapshot** | 49,348 stars and 6,375 forks on 2026-09-09 |
+| **License** | [Multica License](https://github.com/multica-ai/multica/blob/7a438bd5b8bf39afd54259a7eb0971390e50a8ef/LICENSE): Apache 2.0 text plus hosted-service, embedding, branding, and attribution conditions |
+| **Stack** | Go server and daemon, PostgreSQL, Next.js web app, Electron desktop app, Expo/React Native mobile app |
+| **Surfaces** | Web, desktop, mobile, CLI, API, and team chat channels |
+| **Latest release observed** | [v0.4.41](https://github.com/multica-ai/multica/releases/tag/v0.4.41), 2026-09-07 |
+| **Runtime catalog** | 26 advertised agent CLI integrations; the audited code contains 25 protocol families plus the OMP runtime identity |
+| **Evidence snapshot** | [`7a438bd`](https://github.com/multica-ai/multica/commit/7a438bd5b8bf39afd54259a7eb0971390e50a8ef), 2026-09-05 |
+
+#### What it actually does
+
+An issue assignment, direct chat, mention, or scheduled Autopilot creates a run in the server queue. A daemon on a connected computer claims that run, prepares a working directory or git worktree, invokes the configured local CLI, and streams progress, tool activity, errors, token usage, and the final result back to the issue.
+
+```text
+issue / chat / mention / Autopilot
+              |
+              v
+Multica server + PostgreSQL
+              |
+       queued run over WebSocket
+              |
+              v
+daemon on a connected computer
+              |
+      worktree + local agent CLI
+              |
+              v
+progress, logs, cost, result -> server timeline
+```
+
+The deployment mode changes where the coordination tier runs, not this execution split:
+
+| Mode | Coordination tier | Execution tier |
+|---|---|---|
+| Multica Cloud | Multica hosts the web app, API, and database | Your computer or cloud machine runs the daemon, repository, credentials, and agent CLIs |
+| Self-hosted | You run the web app, API, and PostgreSQL with Docker Compose or Helm | One or more connected machines run the daemon and agent CLIs |
+
+If a daemon is offline, new runs stay queued. Runs that were already executing can fail and become eligible for retry; the daemon re-registers runtimes and attempts recovery when it returns. This makes Multica more than a visual session launcher, while still leaving task reasoning and tool execution to the selected CLI.
+
+#### Data and security boundary
+
+Local repositories and tool credentials are not automatically uploaded in full. The server does retain issues, comments, agent configuration, run context, execution records, and results. Agent `custom_env` values and MCP configuration are stored server-side and passed to the runtime, so local execution does not mean every secret or task artifact stays on the execution machine.
+
+The [documented security model](https://github.com/multica-ai/multica/blob/7a438bd5b8bf39afd54259a7eb0971390e50a8ef/apps/docs/content/docs/security-model.mdx) makes the operating-system account running the daemon the effective boundary. Runs can read and write what that account can reach, use its credentials, and access the network. The audited default paths launch Claude Code with `bypassPermissions` and Codex with `danger-full-access`, except when the documented Windows Codex sandbox opt-in applies. Use a dedicated OS account, container, or VM with scoped Git and cloud credentials before unattended execution.
+
+The `in_review` state records workflow status inside Multica. It does not configure branch protection or replace Git-host review and merge rules. Agents can use credentials available on the execution machine to push branches or open pull requests, so repository policy remains the enforcement point.
+
+#### Where it stops
+
+The source review covered the pinned commit, documentation, daemon paths, agent adapters, database queries, licence, and successful upstream CI for that commit. The application was not started and no real agent run was executed. This establishes the architecture and declared controls, not end-to-end reliability, task quality, recovery under load, or protection against a hostile repository.
+
+The repository describes itself as open source, but its licence adds restrictions beyond Apache 2.0. Call it source-available unless legal review establishes a narrower usage conclusion. A team evaluating Multica should pilot the exact cloud or self-hosted topology with non-production credentials, branch protection, one recoverable repository, and an exercised daemon-disconnect scenario.
+
+---
+
+## Section 5: Decision framework
+
+### Full comparison matrix
+
+| Tool | Open Source | Stars | Model Support | Mode | Language | Cost |
+|------|------------|-------|---------------|------|----------|------|
+| **Claude Code** | Yes (TS) | 112K | Claude only | Interactive + headless | TypeScript | $20-$200/mo |
+| **Codex CLI** | Yes | 86K | GPT-4o, o3, o4-mini | Interactive + headless | Rust | Included in ChatGPT Pro/Team |
+| **Hermes Agent** | Yes (MIT) | 170K | 200+ providers | Interactive + cron + messaging | Python | Pay-per-LLM-call |
+| **Aider** | Yes | 45K | 50+ providers | Interactive | Python | Pay-per-LLM-call |
+| **Goose** | Yes | 46K | 15+ providers | Interactive + subagents | Rust | Pay-per-LLM-call |
+| **DeepSeek Harness** | Yes (MIT) | 200K | DeepSeek + multi-provider | Local web UI + headless | TypeScript | Free + per-LLM-call |
+| **Warp Agent** | No | N/A | Vendor routing + configurable routing | Interactive terminal + cloud handoff | Proprietary | See current Warp pricing |
+| **Devin** | No | N/A | Proprietary | Fully autonomous | Proprietary | $20-$500/mo |
+| **SWE-agent** | Yes (MIT) | 19K | Any (Claude, GPT...) | Autonomous (issue → PR) | Python | Pay-per-LLM-call |
+| **CrewAI** | Yes (MIT) | 55K | 50+ providers | Framework (build your own) | Python | Framework is free |
+| **LangGraph** | Yes (MIT) | 33K | Any | Framework | Python/JS | Framework is free |
+| **AutoGen/MAF** | Yes (MIT) | 58K/11K | Any | Framework | Python/C#/TS | Framework is free |
+| **MetaGPT** | Yes (MIT) | 69K | Any | Framework (SOP pipeline) | Python | Framework is free |
+| **Symphony** | Yes (Apache 2.0) | 26K | Codex (reference impl) | Orchestrator (issue → run) | Elixir | Free + per-agent LLM cost |
+| **Paperclip** | Yes (MIT) | 74K | Any (heartbeat protocol) | Orchestrator (goal → org) | TypeScript | Free + per-agent LLM cost |
+| **Liza** | Yes (Apache 2.0) | 363 | External coding-agent CLIs | Orchestrator + repository harness | Go | Free + per-agent LLM cost |
+| **Multica** | No (restricted source) | 49K | 26 agent CLI integrations | Control plane (issue/chat to local run) | Go/TypeScript | Self-host or current cloud plan + agent costs |
+
+Star counts read July 15, 2026 via the GitHub API, except DeepSeek Harness, checked August 27, 2026 and rounded from 199,777, Liza, checked August 28, 2026, and Multica, checked September 9, 2026 and rounded from 49,348. Four rows carry a caveat the number hides: DeepSeek Harness is a developer preview, MetaGPT's 69K sits on a repo whose last release was April 2024, Symphony's 26K sits on an explicit engineering preview, and Multica uses a restricted source-available licence. Stars measure reach, not maintenance.
+
+### Situation to tool guide
+
+| Situation | Recommended |
+|-----------|-------------|
+| Daily coding, already on Claude Max | Claude Code |
+| Daily coding, already on ChatGPT Pro | Codex CLI |
+| Daily coding, want any model | Hermes Agent or Aider |
+| Daily coding, general-purpose agent | Goose |
+| Run interactive terminal applications and optionally hand work to a cloud agent | Warp Agent |
+| Assign a task, come back to a PR | Devin ($500/mo) or `claude -p` in CI |
+| Fix GitHub issues autonomously, research/benchmark | SWE-agent |
+| Orchestrate multiple Claude Code instances | Gas Town, multiclaude, Ruflo (see [Third-Party Tools](./third-party-tools.md#multi-agent-orchestration)) |
+| Build a multi-agent product with roles | CrewAI |
+| Build a stateful, recoverable workflow | LangGraph |
+| Build in .NET + Python with Microsoft stack | AutoGen/MAF |
+| Anthropic ecosystem, cloud-hosted agents | Anthropic Agent SDK (see [ai-ecosystem.md §14](./ai-ecosystem.md#14-claude-managed-agents)) |
+| Manage a fleet of Hermes agents on VPS | Hermes Control Room pattern |
+| Study role decomposition and SOP pipelines | MetaGPT (read it, do not depend on it) |
+| Dispatch a tracker board to agents, one workspace per issue | Symphony spec (§4.4) |
+| Coordinate mixed agent runtimes under budgets and approvals | Paperclip |
+| Review Claude Code/Codex edits visually instead of reading diffs in a terminal | Nimbalyst (§4.7) |
+| Run spec-driven doer/reviewer pairs with worktrees, recovery, and merge gates | Liza (§4.8) |
+| Coordinate issue, chat, and scheduled work across local coding-agent CLIs | Multica (§4.9) |
+| Enforce how work gets done inside an agent session | None of the above (see [spec-first.md](../workflows/spec-first.md)) |
+
+### The model lock-in question
+
+The single most clarifying question for choosing between Claude Code, Codex CLI, Hermes, Aider, and Goose: does the tool need to work with exactly one model provider, or multiple?
+
+If you are committed to Claude and the Anthropic ecosystem (subscription, Routines, Agent SDK, CLAUDE.md tooling), Claude Code is unambiguously the right choice. The integration is native and the feature velocity from Anthropic is high.
+
+If you need model flexibility (local models for sensitive code, cheaper models for routine tasks, specific models for benchmarking), Hermes Agent handles the broadest range with the most automation. Aider and Goose are simpler alternatives with smaller footprints.
+
+If your team is OpenAI-first and already paying for ChatGPT Pro, Codex CLI costs nothing incremental.
+
+### The autonomy vs control trade-off
+
+Higher autonomy means the agent can complete more work without you watching, but also means more ways to go off track on ambiguous tasks. The right autonomy level depends on how well-specified your tasks are, not on which tool is "more powerful."
+
+Claude Code headless (`claude -p`) and SWE-agent give you controlled autonomy: you set the task, the agent runs, you review the output. Devin gives you maximal autonomy with a cloud sandbox: the agent has a full Linux environment and can take actions you did not anticipate. More power, more review required before merging.
+
+Interactive agents (Claude Code terminal, Hermes, Aider, Goose) give you real-time control. You watch the agent think, redirect it when it goes wrong, and approve destructive actions. For exploratory work where requirements shift mid-session, interactive is faster than autonomous despite appearing more manual.
+
+Agentless is a counterexample to treating autonomy or candidate volume as a quality proxy. Its FSE 2025 evaluation used a bounded three-phase workflow with GPT-4o on SWE-bench Lite and resolved 96 of 300 issues, or 32%, at an average reported inference cost of $0.70 per issue. Repair performance plateaued around 40 candidate patches. The result comes from one benchmark with 2024 API pricing and excludes test infrastructure and human review, so it is not a production forecast. It supports testing a bounded localization, repair, and validation workflow before adding more agent loops or candidates. Source: [Xia et al., Demystifying LLM-Based Software Engineering Agents](https://lingming.cs.illinois.edu/publications/fse2025.pdf), DOI [10.1145/3715754](https://doi.org/10.1145/3715754), PDF pp. 10-15, Table 1 and Figure 6.
+
+---
+
+## Cross-references
+
+- **Orientation map for the whole subject** (spectrum, decision tree for closed platforms, governance checklist): [workflows/agentic-software-factories.md](../workflows/agentic-software-factories.md)
+- **Multi-Claude orchestration** (Gas Town, multiclaude, Ruflo, Conductor desktop): [Third-Party Tools: Multi-Agent Orchestration](./third-party-tools.md#multi-agent-orchestration)
+- **Goose deep dive**: [AI Ecosystem §11.1](./ai-ecosystem.md#111-goose-open-source-alternative-block)
+- **Building custom agents with Anthropic SDK**: [AI Ecosystem §14](./ai-ecosystem.md#14-claude-managed-agents)
+- **Claude Code's own agent team patterns**: [workflows/agent-teams.md](../workflows/agent-teams.md)
+- **Event-driven autonomous patterns**: [workflows/event-driven-agents.md](../workflows/event-driven-agents.md)
+- **Programmatic billing (Hermes, Codex CLI, third-party harnesses)**: [Ultimate Guide: Billing Split (announced, then paused)](../ultimate-guide.md#the-interactiveprogrammatic-billing-split-announced-then-paused)
+- **Agent harness engineering** (architecture, controls, and Claude Code implementation): [core/agent-harness.md](../core/agent-harness.md)
+- **Agent harness landscape** (dated catalog, evidence, and test-drive protocol): [ecosystem/agent-harness-landscape.md](./agent-harness-landscape.md)
+- **Shared harness terminology**: [core/glossary.md](../core/glossary.md)
+- **Coding agents comparison matrix** (23 tools, 11 criteria): [coding-agents-matrix.dev](https://coding-agents-matrix.dev)

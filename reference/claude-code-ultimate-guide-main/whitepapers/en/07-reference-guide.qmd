@@ -1,0 +1,2336 @@
+---
+title: "Claude Code: The Reference Guide"
+subtitle: "Complete synthesis + advanced workflows"
+author: "Florian BRUNIAUX"
+date: "2026-09-26"
+date-format: "MMMM YYYY"
+version: "3.43.0"
+wp-version: "1.4.6"
+series: "Claude Code Ultimate Guide"
+format:
+  whitepaper-typst:
+    toc: true
+    toc-depth: 3
+    section-numbering: "1.1"
+  html:
+    toc: true
+    theme: cosmo
+  epub:
+    toc: true
+    toc-depth: 2
+    epub-cover-image: _extensions/whitepaper/assets/claude-code-ai-logo.jpg
+    css: ../epub-styles.css
+    number-sections: true
+lang: en
+---
+
+::: {.callout-tip title="Who is this whitepaper for?"}
+**Primary audience**: Developers (all levels), daily reference
+
+**Prerequisites**: None (reference guide)
+
+**Reading time**: Variable, consult by section
+
+**Key takeaways**:
+
+- 20 essential commands with usage examples
+- Migration guide from Copilot, Cursor, ChatGPT
+- 15 documented methodologies (TDD-AI, SDD, BDD with Claude Code)
+:::
+
+> **In 5 lines:** This reference guide condenses the ~26,600-line main guide into quickly-consultable sections. The 20 most useful commands, migration patterns from other tools, and 15 development methodologies adapted for Claude Code. Bookmark it and consult during your sessions.
+
+# Introduction
+
+## What is Claude Code
+
+Claude Code is Anthropic's official CLI tool for AI-assisted development. In one sentence: **an autonomous coding agent that operates directly in your terminal, reads your codebase, proposes modifications, and executes commands with your explicit approval**.
+
+| Feature | Description |
+|---------|-------------|
+| **Native CLI** | No IDE lock-in, works in any terminal |
+| **Agentic** | Analyzes, plans, executes, not just autocompletion |
+| **Extensible** | MCP (Model Context Protocol) to connect external tools |
+| **Customizable** | Agents, Skills (user-invocable + model-invocable), Hooks |
+
+## The 5 golden rules
+
+These five principles emerged from thousands of production sessions. They address the most common mistakes during the first weeks of adoption: accepting code without review, saturating the context window, writing vague prompts, losing conventions between sessions, and working directly on main. Applying them from day one avoids the majority of frustrations reported by the community.
+
+1. **Claude proposes, you decide**: every modification goes through your explicit validation
+2. **Context is king**: watch `Ctx(u):` and prepare `/compact` at 50%, run it at 70%
+3. **Specify with WHAT/WHERE/HOW/VERIFY**: precise prompts, fewer iterations
+4. **CLAUDE.md is your memory**: document conventions and preferences
+5. **Feature branches always**: never work directly on main/master
+
+These five rules form the foundation on which the rest of this guide is built. Parts I through IV put them into practice: Part I teaches you to formulate your requests (rule 3) and manage context (rule 2), Part II to configure your project memory (rule 4), Part III to structure your Git workflows (rule 5), and Part IV to manage risks (rule 1).
+
+## How to use this guide
+
+This reference guide **synthesizes the 7 whitepapers** in the series (WP00--WP06 + WP08) and **adds original chapters** on migration, IDE integration, Git, advanced patterns, and development methodologies.
+
+**Structure**:
+
+| Part | Chapters | For whom |
+|------|----------|----------|
+| **I. Basics** | Prompts, Migration, Context | Beginners (week 1) |
+| **II. Customize** | CLAUDE.md, Extensions, IDE | Intermediate (week 2-3) |
+| **III. Workflows** | Git, Patterns, Methodologies | Advanced (month 1+) |
+| **IV. Production** | Security, Privacy, Team | Leads & Architects |
+
+```
+My level?
+├─ Beginner       →  Part I: Basics (Ch.1-3)
+├─ Intermediate   →  Part II: Customize (Ch.4-6)
+├─ Advanced       →  Part III: Workflows (Ch.7-9)
+└─ Lead/Architect →  Part IV: Production (Ch.10-12)
+```
+
+**To go deeper**: Each section links to the corresponding detailed whitepaper.
+
+> **This whitepaper condenses the full guide.** For the exhaustive version (~26,600 lines, 10 chapters): [The Ultimate Claude Code Guide](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/guide/ultimate-guide.md) | [271 ready-to-use templates](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/tree/main/examples/)
+
+{{< pagebreak >}}
+
+# PART I: MASTERING THE BASICS
+
+# Chapter 1: Effective prompts
+
+*-> To go deeper: WP01 "Prompts That Work"*
+
+Before configuring anything, you need to know how to talk to Claude Code. The quality of your prompts directly determines the quality of the responses and the number of iterations required.
+
+## The problem: Vague prompts
+
+An average developer spends **a significant portion of their time with Claude Code** reformulating requests (source: community feedback). Why? Vague prompts generate off-target responses.
+
+| Vague prompt | Result | Typical iterations |
+|--------------|--------|--------------------|
+| "Fix the login" | Claude modifies the wrong file | 3-5 |
+| "Add validation" | Validation too basic or too complex | 2-4 |
+| "Make it faster" | Optimization of the wrong component | 4-6 |
+
+## The WHAT/WHERE/HOW/VERIFY formula
+
+A 4-element formula for accurate responses on the first try.
+
+| Element | Question | Role |
+|---------|----------|------|
+| **WHAT** | What should you deliver? | Concrete expected deliverable |
+| **WHERE** | Where to intervene? | Paths to the relevant files |
+| **HOW** | How to proceed? | Technical constraints, approach |
+| **VERIFY** | How to know it's correct? | Measurable success criteria |
+
+### Complete example
+
+**Before** (vague):
+
+```
+Add email validation
+```
+
+**After** (structured):
+
+```
+Add input validation to the login form.
+WHERE: src/components/LoginForm.tsx
+HOW: Use Zod schema, display inline errors below each field
+VERIFY: Empty email shows "Email required", invalid format shows "Invalid email"
+```
+
+::: {.callout-tip title="Memo: WHAT/WHERE/HOW/VERIFY Formula"}
+**What**: Structure your prompts along 4 dimensions for accurate first-try responses.
+
+**When**: Systematically for any non-trivial task (>5 lines of change).
+
+**How**: Start with WHAT (deliverable), add WHERE (files), HOW (constraints), VERIFY (success criteria).
+
+**Check**: The number of iterations before a satisfactory result decreases (target: 1-2 max).
+:::
+
+## XML prompting for complex tasks
+
+For multi-file tasks, use the XML format:
+
+```xml
+<instruction>
+  Main task to accomplish
+</instruction>
+
+<context>
+  Background information, project state
+</context>
+
+<constraints>
+  - Limitation 1
+  - Limitation 2
+</constraints>
+
+<output>
+  Expected response format
+</output>
+```
+
+## Advanced techniques
+
+### Chain of thought
+
+```
+Analyze the payment code step by step:
+1. Identify the current flow
+2. Spot failure points
+3. Propose improvements
+```
+
+### Few-shot learning
+
+```
+Rename variables following this pattern:
+- userId -> user_id
+- isActive -> is_active
+- getUserData -> get_user_data
+Apply to src/utils/helpers.ts
+```
+
+{{< pagebreak >}}
+
+# Chapter 2: Migrating from other tools
+
+*Original section, not covered in the whitepapers*
+
+If you've mastered prompt formulation (Ch.1), the next question is often: "How do I integrate Claude Code into my existing workflow?" This chapter is for those coming from Copilot, Cursor, or another code assistance tool.
+
+## Why Claude Code is different
+
+Compare the current products on representative tasks: editor interaction, agent execution, context retrieval, customization, permission controls and actual billing. Copilot and Cursor both offer agent workflows; an autocomplete-only description is obsolete. Claude Code supports subscriptions and API billing, with availability depending on the account and provider.
+
+## Migration guide: GitHub Copilot -> Claude Code
+
+### What Copilot does well
+
+- **Inline suggestions**: fast autocompletion while typing
+- **Familiar workflow**: works inside the editor
+- **Low friction**: no context switching
+
+### Tasks to evaluate in Claude Code
+
+- Multi-file changes with a reviewable diff
+- Exploration of an unfamiliar project
+- Debugging against a reproducible failure
+- Test generation and execution
+
+These are evaluation cases, not evidence that competing products lack those capabilities.
+
+### Hybrid approach (recommended)
+
+**Use Copilot for:**
+
+- Fast autocompletion while typing
+- Boilerplate code generation
+- Simple function completion
+
+**Use Claude Code for:**
+
+- Feature implementation (multi-file changes)
+- Debugging complex issues
+- Code reviews and refactoring
+- Understanding unfamiliar codebases
+- Writing tests for entire modules
+
+### Example workflow
+
+```bash
+# Morning: Plan with Claude Code
+claude
+You: "I need to add authentication. What approach for this codebase?"
+# Claude analyzes the project, suggests architecture
+
+# During coding: Use Copilot for completions
+# Type in VS Code, Copilot autocompletes
+
+# Afternoon: Debug with Claude Code
+claude
+You: "Login fails on mobile but works on desktop. Debug this."
+
+# End of day: Review with Claude Code
+claude
+You: "Review my changes. Check for security issues."
+```
+
+## Migration guide: Cursor -> Claude Code
+
+### When to switch
+
+**Stay on Cursor if:**
+
+- You strongly prefer GUI over CLI
+- You want an all-in-one IDE experience
+- Its current plan and usage limits suit your workload
+- You don't need advanced customization
+
+**Switch to Claude Code if:**
+
+- You're comfortable with terminal workflows
+- You want deep customization (agents, hooks)
+- You work with complex multi-repo projects
+- You want to integrate AI into CI/CD
+- Its subscription or API billing fits your measured usage
+
+## Migration checklist
+
+### Week 1: Learning phase
+
+````markdown
+[] Complete the Quick Start
+[] Understand context management (critical!)
+[] Try 3-5 small tasks (bug fixes, small features)
+[] Learn when to use /plan mode
+[] Practice reviewing diffs before accepting
+````
+
+### Week 2: Establish the workflow
+
+````markdown
+[] Create the project's CLAUDE.md file
+[] Create 1-2 user-invocable skills for frequent tasks (`.claude/skills/`, `disable-model-invocation: true`)
+[] Configure MCP servers (Serena, Context7)
+[] Define your hybrid workflow
+[] Track costs and optimize
+````
+
+### Weeks 3-4: Advanced usage
+
+````markdown
+[] Create custom agents for specialized tasks
+[] Configure hooks for automation (formatting, linting)
+[] Integrate into CI/CD if applicable
+[] Build team patterns
+[] Refine CLAUDE.md based on learnings
+````
+
+## Common migration issues
+
+| Issue | Solution |
+|-------|----------|
+| "I miss inline suggestions" | Keep Copilot/Cursor for autocompletion |
+| "Context switching is painful" | Split terminal (editor left, Claude right) |
+| "I don't know when to use which tool" | Choose from task outcomes and the interaction style you need |
+| "Claude Code is slower" | Different problems: autocompletion vs task execution |
+| "Unpredictable costs" | Inspect `/usage`, account limits and provider billing |
+
+{{< pagebreak >}}
+
+# Chapter 3: Context management
+
+*-> To go deeper: WP04 "Architecture Demystified"*
+
+Now that you know how to formulate your prompts (Ch.1) and position Claude Code in your tooling (Ch.2), there's one fundamental concept left to master before moving on to configuration: **context**. It's the most precious resource in a Claude Code session, and poor management is the leading cause of degraded results.
+
+## Context is Critical
+
+Claude Code's context budget depends on the selected model and provider. Understanding how it fills up is essential for productive sessions.
+
+> **Current windows:** Opus 5.5, Sonnet 5 and Fable 5.1 use native 1M context on the direct API; Haiku 4.5 uses 200K. Native 1M models use standard rates beyond 200K and do not require the old beta header. Older `[1m]` variants retain plan/provider restrictions. Inspect `/context`; the schematic below is an illustrative 200K budget, not the current default. See **#4 Architecture** (`04-architecture.qmd`).
+
+```
++--------------------------------------------------------+
+|              CONTEXT BUDGET (~200K tokens)              |
++--------------------------------------------------------+
+|  System Prompt                            (~5-15K)     |
+|  CLAUDE.md Files                          (~1-10K)     |
+|  Conversation History                     (variable)   |
+|  Tool Results                             (variable)   |
+|  Reserved for Response                    (~40-45K)    |
++--------------------------------------------------------+
+
+USABLE = Total - System - Reserved (varies by model and session)
+```
+
+## Context management signals
+
+Use `/context` to inspect capacity and the largest consumers. Compact at a useful boundary when older details are no longer needed, and start fresh when the task changes. Fixed percentage zones are optional reminders, not validated quality thresholds.
+
+## Essential commands
+
+### /compact: Context compression
+
+```bash
+/compact
+# Summarizes history, preserving key decisions
+# Reduction depends on the actual conversation
+```
+
+### /clear: Full reset
+
+```bash
+/clear
+# Starts fresh conversation context; applicable instructions still load
+# Use when you're switching tasks completely
+```
+
+### Monitor the context
+
+Watch the `Ctx(u):` indicator in the prompt:
+
+```
+Ctx(u): 45% <- You are here
+```
+
+::: {.callout-note title="/compact vs /clear vs --continue vs --resume: When to use which?"}
+| Command | What it does | When to use it | What is preserved |
+|---------|-------------|----------------|-------------------|
+| `/compact` | Summarizes the current context | Context full, task continues | Condensed summary, CLAUDE.md |
+| `/clear` | Starts fresh conversation context | Unrelated new task | Applicable configuration and instructions |
+| `--continue` | Resumes the last session | Unexpected restart | Full history |
+| `--resume <id>` | Resumes a specific session | Returning after `cc-sessions search` | Full history |
+
+**Practical rule**: `/compact` if the same task is ongoing, `/clear` if switching to a distinct new task, `--continue` for accidental interruptions, `--resume` when returning after several days.
+:::
+
+## Code quality commands (v2.1.63)
+
+Two bundled commands added in v2.1.63 cover post-implementation code quality and large-scale refactors.
+
+### /simplify: Over-engineering detection
+
+```bash
+/simplify
+# Analyzes recently changed code
+# Detects: over-engineering, redundant abstractions, duplication
+# Fixes the issues it finds
+
+# Targeted usage:
+/simplify focus on error handling
+/simplify check for unnecessary dependencies
+```
+
+`/simplify` operates at the architecture level, not the formatter level. It complements ESLint/Prettier rather than replacing them.
+
+### /batch: Massive refactors via parallel agents
+
+```bash
+/batch migrate from react to vue
+/batch replace all uses of lodash with native equivalents
+/batch add type annotations to all JavaScript files
+```
+
+**How it works**: `/batch` researches, plans, then launches 5–30 agents in isolated git worktrees in parallel. Each agent completes its portion and opens its own PR. This is the native parallel worktrees multi-agent pattern, with zero manual configuration.
+
+::: {.callout-tip title="When to use /batch vs manual agent teams?"}
+| Case | Recommendation |
+|------|---------------|
+| Homogeneous change (migration, annotations) | `/batch`: native, zero config |
+| Heterogeneous tasks (security + API + UI) | Manual agent teams: fine-grained control |
+| Refactor > 20 files | `/batch` |
+| Custom workflow with fine coordination | Manual agent teams |
+:::
+
+## Auto-compaction
+
+Claude Code compacts automatically according to the active model and configuration. Inspect `/context`; use `/autocompact 500k` to choose a smaller window or `/autocompact auto` to restore the model default. There is no documented `autoCompact.enabled/threshold` object for the example previously shown here.
+
+## Optimization strategies
+
+### Split large tasks
+
+```bash
+# Bad: One session for everything
+"Refactor the entire auth module"
+
+# Good: Focused sessions
+Session 1: "Refactor token validation"
+Session 2: "Refactor session management"
+Session 3: "Refactor permissions"
+```
+
+### Use sub-agents
+
+For exploration tasks, use the Task tool:
+
+```
+Claude explores -> summary comes back -> main context preserved
+```
+
+{{< pagebreak >}}
+
+# PART II: CUSTOMIZE
+
+Part I gave you the fundamentals: crafting effective prompts, positioning Claude Code in your tooling, and managing context. Part II moves to customization: how to make Claude Code *your* tool, adapted to *your* project and *your* conventions.
+
+# Chapter 4: CLAUDE.md
+
+*-> To go deeper: WP02 "Customization"*
+
+The CLAUDE.md file is the heart of customization. It transforms Claude Code from a generic tool into an assistant that knows your project, your conventions, and your preferences.
+
+## The 3-level hierarchy
+
+Claude Code loads CLAUDE.md files through a three-level cascade system, from most general to most specific. This architecture separates personal preferences (global), team conventions (project), and machine-specific overrides (local). Applicable instructions are combined; avoid contradictions rather than depending on a guaranteed settings-style override.
+
+| Level | Location | Scope | Versioning |
+|-------|----------|-------|------------|
+| **Global** | `~/.claude/CLAUDE.md` | All your projects | Not versioned |
+| **Project** | `/CLAUDE.md` (root) | This project, entire team | Versioned (git) |
+| **Local** | `CLAUDE.local.md` | Personal project instructions | Add to `.gitignore` |
+
+## Main-session and agent memory
+
+Auto-memory is enabled by default. The main session uses `~/.claude/projects/<project>/memory/MEMORY.md`; its startup index is limited to 200 lines or 25KB, whichever comes first. Inspect it with `/memory` and verify remembered facts against current files.
+
+Custom agent memory is separate:
+
+| Scope | Directory |
+|-------|-----------|
+| `user` | `~/.claude/agent-memory/<agent>/` |
+| `project` | `.claude/agent-memory/<agent>/` |
+| `local` | `.claude/agent-memory-local/<agent>/` |
+
+The `memory` field enables Read, Write and Edit for that agent. Omit it when the agent must remain read-only.
+
+## Reading instructions
+
+User and project instructions are combined. Child CLAUDE.md files and rules scoped with `paths` apply when relevant. `.claude/CLAUDE.md` is an alternative shared project instruction file, not the personal file.
+
+## Recommended structure
+
+An effective CLAUDE.md is short (under 500 lines), organized with clear sections, and focused on what actually changes Claude's behavior. The template below covers the six categories of information that have the most impact on response quality: project context, tech stack, conventions, useful commands, and explicit guardrails.
+
+````markdown
+# [Project Name]
+
+## Context
+2-3 line project description.
+
+## Tech Stack
+- Framework: Next.js 14 (App Router)
+- Language: TypeScript (strict)
+- Database: PostgreSQL + Prisma
+- Testing: Vitest + Playwright
+
+## Code Conventions
+- Naming: camelCase for functions, PascalCase for components
+- Imports: absolute from @/ (src/)
+- Tests: colocated in __tests__/
+
+## Useful Commands
+- `pnpm dev`: Development server
+- `pnpm test`: All tests
+- `pnpm lint`: Linting
+
+## What Claude Should Know
+- Never modify files in /generated/
+- Always use UI components from @/components/ui/
+- Prisma migrations require manual review
+````
+
+## Git conventions in CLAUDE.md
+
+````markdown
+## Git Workflow
+
+### Commit Conventions
+Format: `type(scope): description`
+Types: feat, fix, docs, refactor, test, chore
+Example: `feat(auth): add password reset endpoint`
+
+### Branches
+- Feature: `feature/feature-name`
+- Fix: `fix/bug-description`
+- Never commit to main/master
+
+### Before Committing
+Always run: `pnpm lint && pnpm test`
+````
+
+## Common mistakes
+
+The three mistakes below come up consistently in community feedback. They are all avoidable with minimal discipline from the first week of use.
+
+| Mistake | Problem | Solution |
+|---------|---------|----------|
+| CLAUDE.md too long | Claude forgets instructions | Keep under 500 lines |
+| Contradictory instructions | Unpredictable behavior | One style per aspect |
+| No versioning | Team out of sync | Project CLAUDE.md in git |
+
+{{< pagebreak >}}
+
+# Chapter 5: Agents, skills
+
+*-> To go deeper: WP02 "Customization"*
+
+CLAUDE.md defines *what* Claude Code knows about your project. Extensions (Commands, Skills, Agents) define *how* it acts. It's the difference between giving a collaborator instructions and giving them dedicated tools.
+
+## When to use what
+
+The choice between user-invocable skill, model-invocable skill, and agent depends on how the behavior should be triggered and the need for context isolation. A user-invocable skill is a reusable prompt triggered manually; a model-invocable skill bundles its own reference files and activates automatically; an agent embodies a specialized persona with dedicated behavioral instructions.
+
+| Extension | When | Example |
+|-----------|------|---------|
+| **Skill (user-invocable)** | Manually triggered workflow | `/format`, `/test`, `/commit` |
+| **Skill (model-invocable)** | Knowledge loaded based on context | `security-guardian`, TDD |
+| **Agent** | Specialized persona for a domain | Security Auditor, DBA Expert |
+
+## Slash commands
+
+### Anatomy of a user-invocable skill
+
+````markdown
+---
+name: test
+description: Run tests for modified files
+allowed-tools: Bash, Read
+disable-model-invocation: true
+---
+# Test Command
+
+Run tests only for files that were modified in this session.
+
+1. Identify modified files
+2. Find corresponding test files
+3. Run only those tests
+4. Report results
+````
+
+### Placement (since CC 2.1.3)
+
+```
+.claude/skills/
+├── test/SKILL.md    # /test — disable-model-invocation: true
+├── format/SKILL.md
+└── deploy/SKILL.md
+```
+
+### Usage
+
+```bash
+/test        # Execute the command
+/test:       # Autocomplete available commands
+```
+
+## Skills
+
+Skills are reusable modules covering two use cases: shared knowledge (loaded by the model) and manual workflows (invoked by the user via `/name`). Since CC 2.1.3, they all live in `.claude/skills/`.
+
+### Anatomy of a skill
+
+````markdown
+---
+name: code-review
+description: Comprehensive code review
+allowed-tools: Read, Grep, Glob
+---
+# Code Review Skill
+
+## Process
+1. Identify changed files
+2. Analyze for:
+   - Security vulnerabilities
+   - Performance issues
+   - Code style violations
+3. Generate report
+
+## Output Format
+- Summary (1 paragraph)
+- Issues (prioritized list)
+- Suggestions (actionable items)
+````
+
+### `effort` field (Claude Code v2.1.80+)
+
+Skill frontmatter can set a model-supported `effort` level for that invocation. It overrides the session setting while the skill runs:
+
+```markdown
+---
+name: full-audit
+effort: high
+---
+```
+
+Current adaptive models support `low`, `medium`, `high`, `xhigh`, and `max`; Haiku 4.5 has no effort parameter. Opus 5.5 defaults to `medium`, Sonnet 5 and Fable 5.1 to `high`. Choose a supported level and verify the result; `xhigh` is not the highest API level.
+
+### Bundled resources
+
+Skills can include files:
+
+```
+.claude/skills/
+└── code-review/
+    ├── SKILL.md
+    ├── checklist.md
+    └── patterns.json
+```
+
+## Custom agents
+
+### Anatomy of an agent
+
+````markdown
+---
+name: security-auditor
+description: Security-focused code reviewer
+model: opus
+tools: Read, Grep, Glob
+---
+# Security Auditor Agent
+
+## Persona
+You are a senior security engineer specialized in:
+- OWASP Top 10 vulnerabilities
+- OWASP Agentic AI Top 10 (2026)
+- Authentication/Authorization flaws
+- Input validation issues
+- Cryptographic weaknesses
+
+## Approach
+1. Map attack surface
+2. Identify trust boundaries
+3. Check each OWASP category (including Agentic AI Top 10)
+4. Report with severity levels
+
+## Output
+Use this format:
+- **CRITICAL**: [issue]: [fix]
+- **HIGH**: [issue]: [fix]
+- **MEDIUM**: [issue]: [recommendation]
+````
+
+### Placement
+
+```
+.claude/agents/
+└── security-auditor.md
+```
+
+### Invocation
+
+```bash
+claude --agent security-auditor
+# or within a session
+Ask Claude: Use the security-auditor subagent to review authentication.
+```
+
+{{< pagebreak >}}
+
+# Chapter 6: IDE integration
+
+*Original section, not covered in the whitepapers*
+
+You now have a well-structured CLAUDE.md (Ch.4) and ready-to-use extensions (Ch.5). The last step of customization is integrating Claude Code into your daily development environment, so it's accessible without leaving your editor.
+
+## VS Code integration
+
+Install the official Claude Code extension from your editor's marketplace and follow its sign-in flow. Supported subscription or API authentication depends on the chosen surface; an API key is not universally required.
+
+- [VS Code integration](https://code.claude.com/docs/en/vs-code): extension setup, authentication and interaction.
+- [JetBrains integration](https://code.claude.com/docs/en/jetbrains): plugin installation and terminal/editor connection.
+
+Open the repository in the editor, launch Claude Code through the supported integration, and verify the selected files and diff. Menu names and keyboard bindings vary by editor and extension version.
+
+## Terminal integration
+
+For a native terminal workflow:
+
+### macOS/Linux (bash/zsh)
+
+```bash
+# Add to .bashrc or .zshrc
+alias cc='claude'
+alias ccp='claude --permission-mode plan'
+
+# Quick question
+cq() {
+    claude -p "$*"
+}
+```
+
+Usage:
+
+```bash
+cq "What does this regex do: ^[a-z]+$"
+```
+
+### Windows (PowerShell)
+
+```powershell
+# Add to $PROFILE (run: notepad $PROFILE)
+function cc { claude $args }
+function ccp { claude --permission-mode plan $args }
+
+function cq {
+    param([Parameter(ValueFromRemainingArguments)]$question)
+    claude -p ($question -join ' ')
+}
+```
+
+## Split terminal workflow
+
+The split terminal is the most widely adopted setup among advanced Claude Code users. It eliminates window switching and lets you see modified code and the Claude conversation simultaneously. This configuration works with any editor that has a built-in terminal or with a multiplexer like tmux.
+
+**Recommended setup**:
+
+```
++-----------------------------------------------------+
+|                                                     |
+|   Editor (VS Code / Vim / etc.)                     |
+|                                                     |
++-----------------------------------------------------+
+|                                                     |
+|   Terminal with Claude Code                         |
+|                                                     |
++-----------------------------------------------------+
+```
+
+**Useful shortcuts**:
+
+- `Ctrl+`` (VS Code): Toggle terminal
+- `Cmd+D` (iTerm2): Vertical split
+- `tmux split-window`: Split in tmux
+
+{{< pagebreak >}}
+
+# PART III: ADVANCED WORKFLOWS
+
+Parts I and II gave you the basics and customization tools. Part III gets into concrete workflows: how Claude Code integrates with your Git practices, which advanced patterns to leverage, and which methodology to choose for your context.
+
+# Chapter 7: Git best practices
+
+*Original section, not covered in the whitepapers*
+
+Claude Code interacts directly with Git: it creates commits, manages branches, and can even amend history. These capabilities are powerful but require clear guardrails to avoid accidents.
+
+## Commit messages
+
+Claude Code generates commit messages automatically. Guide it with clear context.
+
+**Default behavior:**
+
+```bash
+git commit -m "feat: add user authentication middleware
+
+- Implement JWT validation
+- Add session management
+- Create auth error handling
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+**Customize in CLAUDE.md:**
+
+````markdown
+## Git Commit Conventions
+
+Follow Conventional Commits format:
+- feat: New features
+- fix: Bug fixes
+- docs: Documentation changes
+- refactor: Code restructuring
+- test: Test additions/changes
+- chore: Maintenance tasks
+
+Keep first line under 72 characters.
+Include ticket number: [PROJ-123]
+````
+
+## Git amend workflow
+
+Amending is a common but risky operation when misused. Claude Code can amend automatically if you ask, but it does not check whether the commit has already been pushed. The absolute rule is to never amend a commit that already exists on the remote.
+
+**When to amend:**
+
+- Fix typos in a recent commit
+- Add forgotten files to the last commit
+- Improve the commit message
+- **Only for unpushed commits**
+
+**Safe pattern:**
+
+```bash
+# Check if the commit is unpushed
+git status
+# Output: "Your branch is ahead of 'origin/main' by 1 commit"
+
+# Amend the commit
+You: "Add the missing test file to the last commit"
+
+Claude:
+git add tests/auth.test.ts
+git commit --amend --no-edit
+```
+
+**Never amend pushed commits** (requires force push, breaks team history)
+
+## Branch management
+
+Feature branches are the fifth golden rule for good reason: Claude Code can execute destructive modifications, and a branch separates committed work but does not back up uncommitted changes. Preserve diffs and checkpoints before discarding files or deleting branches. Document the branch workflow in your project CLAUDE.md so that Claude creates them automatically with the correct naming format.
+
+**Feature branch pattern:**
+
+````markdown
+## CLAUDE.md Git Workflow
+
+Always work on feature branches:
+1. Create branch from main: git checkout -b feature/name
+2. Make changes and commit regularly
+3. Push to remote: git push -u origin feature/name
+4. Create pull request when ready
+5. Never commit directly to main/master
+````
+
+**Naming conventions:**
+
+```
+feature/user-authentication
+fix/login-validation-bug
+refactor/api-endpoints
+docs/update-readme
+chore/dependency-updates
+```
+
+## Rewind vs revert
+
+Confusing `/rewind` and `git revert` is a common mistake among new users. Both undo changes, but at different levels: `/rewind` selects supported conversation/code checkpoints; `git revert` creates a commit that reverses a prior commit. Rewind does not undo arbitrary Bash or external-system effects. The decision tree below clarifies which tool to use based on the state of your changes.
+
+| Command | Usage | Creates a commit? |
+|---------|-------|--------------------|
+| `/rewind` | Select a supported conversation/code checkpoint | No Git commit created |
+| `git revert` | Undo committed changes | Yes |
+
+**Decision tree:**
+
+```
+Supported session checkpoint to restore? -> /rewind, then inspect the diff
+Changes committed but not pushed? -> git reset (careful!)
+Changes committed and pushed? -> git revert
+```
+
+## Git worktrees
+
+Worktrees let you work on multiple branches simultaneously. This is an often-overlooked Git feature that becomes particularly powerful with Claude Code: you can launch a Claude session per worktree and make progress on multiple fronts in parallel.
+
+**Traditional problem:**
+
+```bash
+# Working on feature A
+git checkout feature-a
+# 2 hours of work...
+
+# Urgent hotfix needed
+git stash              # Save work in progress
+git checkout main
+git checkout -b hotfix
+# Fix the bug...
+git checkout feature-a
+git stash pop          # Resume work
+```
+
+**Worktree solution:**
+
+```bash
+# One-time setup
+git worktree add ../myproject-hotfix hotfix
+git worktree add ../myproject-feature-a feature-a
+
+# Work in parallel
+cd ../myproject-hotfix    # Terminal 1
+claude                    # Fix the bug
+
+cd ../myproject-feature-a # Terminal 2
+claude                    # Continue the feature
+```
+
+**When to use:**
+
+- Multiple features simultaneously
+- Testing different approaches in parallel
+- Code review during development
+- Long CI/CD while coding
+
+**When not to use:**
+
+- Simple branch switching is enough
+- Limited disk space
+
+{{< pagebreak >}}
+
+# Chapter 8: Advanced patterns
+
+*Original section, not covered in the whitepapers*
+
+The patterns in this chapter come from community experience with Claude Code. They cover two axes: accelerating feedback loops (to catch errors earlier) and structuring interactions with Claude (for more predictable results).
+
+## Tight feedback loops
+
+Fast feedback loops accelerate learning and catch problems early.
+
+### Feedback loop pyramid
+
+```
+                    +-------------+
+                    |   Deploy    |  <- Hours/Days
+                    |   Tests     |
+                    +-------------+
+                    |    CI/CD    |  <- Minutes
+                    |   Pipeline  |
+                    +-------------+
+                    |   Local     |  <- Seconds
+                    |   Tests     |
+                    +-------------+
+                    |  TypeCheck  |  <- Immediate
+                    |    Lint     |
+                    +-------------+
+```
+
+### Implementation with hooks
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/validate.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**validate.sh:**
+
+```bash
+#!/bin/bash
+INPUT=$(cat)
+FILE=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // empty')
+if [[ "$FILE" == *.ts || "$FILE" == *.tsx ]]; then
+    cd "${CLAUDE_PROJECT_DIR:-.}" || exit 1
+    npx tsc --noEmit
+fi
+```
+
+*-> Full event list, matcher syntax, and exit-code behavior per hook: `guide/core/hooks-events-reference.md`*
+
+## Todo as instruction mirrors
+
+TodoWrite goes beyond tracking: it is an instruction mechanism. Well-written todos guide Claude's execution.
+
+### The mirror principle
+
+```
+Bad: Vague Todo -> Vague Execution
+"Fix the bug"
+
+Good: Specific Todo -> Precise Execution
+"Fix null pointer in getUserById when user not found - return null instead of throwing"
+```
+
+### Todo as specification
+
+````markdown
+## Effective Todo Pattern
+
+- [ ] **What**: Create user validation function
+- [ ] **Where**: src/lib/validation.ts
+- [ ] **How**: Use Zod schema with email, password rules
+- [ ] **Verify**: Test with edge cases (empty, invalid format)
+````
+
+### Granularity
+
+| Task Complexity | Todo Granularity | Example |
+|-----------------|------------------|---------|
+| Simple fix | 1-2 todos | "Fix typo in header component" |
+| Feature | 3-5 todos | Auth flow steps |
+| Epic | 10+ todos | Full feature with tests |
+
+## Output styles
+
+Control how Claude responds to match your workflow preferences.
+
+### Style spectrum
+
+```
+<- Minimal                                      Verbose ->
+-----------------------------------------------------------
+Code only | Code + comments | Explanations | Tutorial
+```
+
+### Directives in CLAUDE.md
+
+**Minimal (Expert Mode):**
+
+````markdown
+Output code only. No explanations unless asked.
+Assume I understand the codebase.
+````
+
+**Balanced:**
+
+````markdown
+Explain significant decisions. Comment complex logic.
+Skip obvious explanations.
+````
+
+**Verbose (Learning Mode):**
+
+````markdown
+Explain each step. Include alternatives considered.
+Link to documentation for concepts used.
+````
+
+## Vibe coding & skeleton projects
+
+### Vibe coding
+
+"Vibe Coding" = rapid prototyping through natural conversation, exploring ideas before committing.
+
+**When to vibe code:**
+
+- **Early exploration**: Testing if an approach works
+- **Proof of concept**: Quick validation before full implementation
+- **Learning**: Understanding a new lib or pattern
+
+**Vibe Coding rules:**
+
+1. **No production code**: This is exploration only
+2. **Throwaway**: No attachment to vibe code
+3. **Learning focus**: Understand the approach
+4. **Clear signal**: "This is vibe code, not for production"
+
+### Skeleton projects
+
+Minimal, functional templates that establish patterns before full implementation.
+
+**Principles:**
+
+1. **Must run**: `pnpm dev` works from day 1
+2. **One complete vertical**: Full stack for one feature
+3. **Patterns, not features**: Shows HOW, not WHAT
+4. **Minimal dependencies**: Only what's necessary
+
+## Batch operations
+
+Batch operations improve efficiency and reduce context usage for similar changes.
+
+### When to batch
+
+| Scenario | Batch? | Why |
+|----------|--------|-----|
+| Same change in 5+ files | Yes | Efficiency |
+| Related changes in 3 files | Yes | Consistency |
+| Unrelated fixes | No | Error risk |
+| Complex refactoring | Maybe | Depends on the pattern |
+
+### Import update pattern
+
+````markdown
+Update all imports in src/components/:
+- Change: import { Button } from '../ui'
+- To: import { Button } from '@/components/ui'
+Apply to all .tsx files in the directory.
+````
+
+{{< pagebreak >}}
+
+# Chapter 8b: Essential v2.x Features
+
+*Original section, key features introduced in v2.0+*
+
+## Tasks API (since v2.1.16)
+
+**Purpose**: Persistent task management with cross-session dependencies.
+
+### Basic usage
+
+```bash
+# Create a task
+You: "Create task: Implement user authentication"
+
+# List tasks
+You: "/tasks" or ask "Show my tasks"
+
+# Mark as complete
+You: "Mark task #1 as done"
+```
+
+### Use cases
+
+| Scenario | Benefit |
+|----------|---------|
+| Multi-session features | Pick up where you left off |
+| Tasks with dependencies | Block task B until task A is done |
+| Teamwork | Share todo list with colleagues |
+| Long projects | Track progress over weeks/months |
+
+### Advanced example
+
+```
+You: Create 3 tasks with dependencies:
+1. Design API schema (no deps)
+2. Implement endpoints (depends on #1)
+3. Write integration tests (depends on #2)
+```
+
+Claude will create all 3 tasks and automatically mark #2 as blocked by #1, #3 as blocked by #2.
+
+> **Removal (v2.1.278)**: `TaskOutput` is removed. Use `Read` on the output path reported by the background task.
+
+## Background Agents (since v2.0.60)
+
+**Purpose**: Delegate tasks to sub-agents that work in the background while you keep coding.
+
+### Usage
+
+```bash
+# Launch a background agent
+You: "Research Next.js 15 best practices in background while I work"
+
+# View tasks in progress
+Ctrl+B  # or /tasks
+
+# Retrieve result when ready
+You: "What did the research find?"
+```
+
+### Use cases
+
+| Background Task | Foreground Task |
+|-----------------|-----------------|
+| Research framework | Keep coding |
+| Legacy code analysis | Implement new feature |
+| Test generation | Review/debug main code |
+| Documentation scraping | Plan architecture |
+
+**Nesting**: Sub-agents can spawn their own sub-agents (since v2.1.172); disabled by default in v2.1.217, restored to a depth of 3 in v2.1.219 (tune via CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH).
+
+## Agent Teams (since v2.1.32)
+
+*-> To go deeper: WP08 "Agent Teams"*
+
+**Purpose**: Coordinate multiple specialized agents on the same project with inter-agent communication.
+
+### Key components
+
+| Component | Role |
+|-----------|------|
+| `TeamCreate` | Create a team of agents |
+| `SendMessage` | Send messages between agents |
+| `TaskList` | View all agents' tasks |
+
+### Team example
+
+```bash
+You: Create a team with:
+- Frontend agent (React expert)
+- Backend agent (API design)
+- Security agent (Audit code)
+
+Workflow:
+1. Backend designs API schema
+2. Frontend implements UI using that schema
+3. Security reviews both for vulnerabilities
+```
+
+### When to use
+
+**Good for:**
+- Full-stack projects (frontend + backend + infra)
+- Multi-perspective code reviews
+- Complex refactoring requiring multiple domains
+- Clear separation of responsibilities
+
+**Avoid for:**
+- Simple tasks (unjustified overhead)
+- Limited budgets (cost increases with agent count)
+- Rapid iterations (coordination slows things down)
+
+*-> For persisting decisions and conventions across a team's agents: `guide/ecosystem/team-knowledge-base.md`. For field-tested practitioner patterns from production usage: `guide/ecosystem/practitioner-insights.md`.*
+
+## Dynamic Workflows (since v2.1.154)
+
+*-> To go deeper: `guide/workflows/dynamic-workflows.md`*
+
+**Purpose**: JavaScript scripts that orchestrate tens to hundreds of subagents in one session, with deterministic control flow and automatic resume on interruption.
+
+A dynamic workflow is a `.js` file exporting a `meta` object and a default execution function. The runtime injects four primitives into scope: `agent` (spawn one subagent), `parallel` (fan out subagents concurrently), `pipeline` (chain stages sequentially), and `phase` (group steps under a named UI header). The orchestrator script itself consumes zero tokens; only the `agent()` calls inside it cost tokens.
+
+**Trigger keyword**: `ultracode` (renamed from `workflow` in v2.1.160 -- existing scripts using the old keyword must be updated). **Monitor**: `/workflows`.
+
+| Criterion | Agent tool | Skill | Dynamic Workflow |
+|-----------|-----------|-------|-------------------|
+| Parallelism | No | No | Yes |
+| Resume on interruption | No | No | Yes |
+| Structured data handoff | Manual | Manual | Built-in (schema validation) |
+| Orchestrator token cost | Moderate | Moderate | Zero |
+
+**When to use**: three or more of the following hold -- multi-stage task, some stages parallelizable, long enough that resume matters, reproducibility required, or structured JSON handoff needed between stages. For a single subagent doing one thing, use the Agent tool directly; for a reusable procedure where Claude picks the steps, use a Skill.
+
+## Auto-Memories (since v2.1.32)
+
+**Purpose**: Retain selected useful notes across sessions; this is not a complete session snapshot.
+
+### How it works
+
+```
+Session 1:
+You: "Implement auth module"
+# 2 hours of work...
+# Claude memorizes: chosen architecture, decisions, modified files
+
+Session 2 (next day):
+You: "Continue auth work"
+# Claude loads auto-memory: can use notes, then verify current files and decisions
+```
+
+### Configuration
+
+In `~/.claude/settings.json`:
+
+```json
+{
+  "autoMemoryEnabled": true
+}
+```
+
+### Best practices
+
+| Practice | Rationale |
+|----------|-----------|
+| Make checkpoints explicit | "Save progress on auth module" |
+| Name your sessions | `claude --name "auth-feature"` |
+| Review memories | `You: "Show what you remember"` |
+| Regular cleanup | Delete obsolete memories |
+
+## Session Forking (since v2.1.19)
+
+**Purpose**: Create conversation branches to compare approaches. A conversation fork does not isolate Git files; use separate worktrees for parallel edits.
+
+### Workflow
+
+```bash
+# Main session
+You: "Implement auth with JWT"
+# After 1h of work...
+
+# Fork to test alternative approach
+You: "Fork this session and try OAuth instead"
+
+# Now 2 parallel sessions:
+# - Session A: JWT approach
+# - Session B: OAuth approach
+
+# Compare and choose
+You: "Show me the diff between both approaches"
+```
+
+### Use cases
+
+| Scenario | Benefit |
+|----------|---------|
+| Architecture testing | Compare multiple designs |
+| Debugging | Test multiple hypotheses in parallel |
+| Code review | Propose alternatives without breaking the original |
+| Learning | Explore different implementations |
+
+## Session Search & Resume: cc-sessions
+
+Naming sessions (`--name "name"`) and forking them is useful. *Finding* them after several days of work is the next challenge. Native `claude --resume` opens a picker; `--resume <id>` selects a known session. `cc-sessions` adds full-text search and additional filters.
+
+| Need | `cc-sessions` |
+|------|--------------|
+| Resume known session | `cc-sessions resume 8d472d` (partial match) |
+| Search by topic | `cc-sessions search "auth"` |
+| Filter by date | `cc-sessions search "api" --since 7d` |
+| Filter by branch | `cc-sessions --branch develop recent 10` |
+| JSON for scripts | `cc-sessions --json search "prisma"` |
+
+Native resume is also available: `claude --resume` opens a picker, and `claude --resume <name-or-id>` selects a matching session. Advanced JSON usage for this community script: `cc-sessions --json search "prisma" | jq -r '.[].id'`
+
+The community script indexes local session records. Measure search latency on your own session history; no portable performance guarantee is established here.
+
+::: {.callout-tip title="Quick Reference: When to use cc-sessions"}
+| Use case | Command |
+|----------|---------|
+| Resume yesterday's work | `cc-sessions recent 5` → `resume <id>` |
+| Find by context | `cc-sessions search "feature name"` |
+| Session on feature branch | `cc-sessions --branch feat/auth recent 3` |
+| Audit all sessions | `cc-sessions --all recent 20` |
+:::
+
+→ **Install**: [examples/scripts/cc-sessions.py](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/scripts/cc-sessions.py): Python stdlib, zero dependencies.
+
+## LSP Tool (since v2.0.74)
+
+**Purpose**: Code intelligence (go-to-definition, find-references) for better codebase understanding.
+
+### Capabilities
+
+| Feature | Usage |
+|---------|-------|
+| **Go to Definition** | Claude: "Navigate to definition of `UserSchema`" |
+| **Find References** | Claude: "Find all usages of this function" |
+| **Hover Info** | Type signatures, inline documentation |
+| **Workspace Symbols** | Global search across the project |
+
+### Setup
+
+Install an appropriate code-intelligence plugin and its language-server binary, then inspect plugin errors. Custom plugins define servers in `.lsp.json` or the manifest's `lspServers` field, including `command` and `extensionToLanguage`. The old `settings.json` example with `lsp.enabled/servers` is not a supported setup. See the [plugin manifest reference](https://code.claude.com/docs/en/plugins-reference#lspservers).
+
+### Practical example
+
+```
+You: "Why is this function failing?"
+
+Claude (with LSP):
+1. Go-to-definition of the function
+2. Find all call sites
+3. Analyze parameters passed vs signature
+4. Identify the type mismatch at line 45
+```
+
+**vs without LSP**: Claude would have to grep manually -> less accurate, slower.
+
+## Remote Control (since v2.1.51)
+
+**Purpose**: Control Claude Code from a mobile device or web browser, without being at your keyboard.
+
+**Availability**: Pro, Max, Team and Enterprise, subject to account and organization controls.
+
+```bash
+# Enable from an active session
+/remote-control
+# or alias
+/rc
+```
+
+Claude generates a temporary link. Scanning that link from your phone opens a web control panel where you can see ongoing activity, send instructions, and approve or reject actions. Useful for long build or analysis sessions running in the background while you are in a meeting.
+
+```bash
+# App links (for the mobile app)
+/mobile
+# -> displays App Store (iOS) and Play Store (Android) links
+```
+
+{{< pagebreak >}}
+
+# Chapter 9: 15 methodologies
+
+*Original section, based on methodologies.md*
+
+The patterns from Ch.8 cover the "how to interact" with Claude Code on a daily basis. This chapter steps back to address the "how to structure" an entire project with Claude Code. The choice of methodology determines whether you fully leverage the tool's capabilities or miss its potential.
+
+## Decision tree: Which methodology?
+
+The choice of methodology depends on your primary goal, not project size. A single project can combine multiple methodologies (TDD for critical code, SDD for APIs, Iterative Refinement for prototyping). The tree below provides the most natural entry point based on your immediate need.
+
+```
++- "I want quality code" ---------------------------> TDD
+|
++- "I want to specify before coding" ---------------> SDD
+|
++- "I need to plan the architecture" ---------------> DDD
+|
++- "I'm iterating on something" --------------------> Iterative Refinement
+|
++- "I'm managing a complex project" ----------------> BMAD
+```
+
+## The 6 methodology tiers
+
+### Tier 1: Strategic orchestration
+
+**BMAD (Breakthrough Method for Agile AI-Driven Development)**
+
+- **What**: A configurable framework of agent roles and workflows
+- **For**: High-complexity projects with stable requirements, compliance or governance needs
+- **Key concept**: Use the framework's documented roles and workflow artifacts; a constitution is not its universal defining mechanism.
+- **When to avoid**: MVPs, rapid prototyping, evolving requirements; BMAD is brittle when specs change mid-project
+
+### Tier 2: Specification & architecture
+
+| Name | What | For | Claude Fit |
+|------|------|-----|------------|
+| **SDD** | Specs before code | APIs, contracts | Core pattern |
+| **Doc-Driven** | Docs = source of truth | Cross-team alignment | CLAUDE.md native |
+| **DDD** | Domain language first | Business logic | Design-time |
+
+**SDD (Spec-Driven Development)**: specifications BEFORE code. Keep acceptance criteria explicit and verify them. CLAUDE.md can point to a specification; it need not contain the entire spec, and no fixed iteration multiplier is established here.
+
+### Tier 3: Behavior & acceptance
+
+| Name | What | For | Claude Fit |
+|------|------|-----|------------|
+| **BDD** | Given-When-Then scenarios | Stakeholder collaboration | Tests & specs |
+| **ATDD** | Acceptance criteria first | Compliance, regulated | Process-heavy |
+| **CDD** | API contracts as interface | Microservices | OpenAPI native |
+
+**BDD (Behavior-Driven Development)**: beyond testing, a collaboration process.
+
+```gherkin
+Feature: Order Management
+  Scenario: Cannot buy without stock
+    Given product with 0 stock
+    When customer attempts purchase
+    Then system refuses with error message
+```
+
+### Tier 4: Feature delivery
+
+| Name | What | For | Claude Fit |
+|------|------|-----|------------|
+| **FDD** | Feature-by-feature delivery | Feature teams, parallel delivery | Structure |
+| **Context Eng.** | Context as a design element | Long sessions | Fundamental |
+
+### Tier 5: Implementation
+
+| Name | What | For | Claude Fit |
+|------|------|-----|------------|
+| **TDD** | Red-Green-Refactor | Quality code | Core workflow |
+| **Eval-Driven** | Evals for LLM outputs | AI products | Agents |
+| **Multi-Agent** | Orchestrate sub-agents | Complex tasks | Task tool |
+
+**TDD (Test-Driven Development)**, the classic cycle:
+
+1. **Red**: Write a failing test
+2. **Green**: Minimal code to pass
+3. **Refactor**: Clean up, tests stay green
+
+With Claude: Be explicit. "Write FAILING tests that don't exist yet."
+
+### Tier 6: Optimization
+
+| Name | What | For | Claude Fit |
+|------|------|-----|------------|
+| **Iterative Loops** | Autonomous refinement | Optimization | Core |
+| **Prompt Engineering** | Foundation technique | Everything | Prerequisite |
+
+## SDD tools reference
+
+Several open-source tools have structured themselves around SDD to automate specification generation and validation with Claude Code. Spec Kit targets greenfield projects with built-in governance, OpenSpec targets existing projects that evolve incrementally, and Specmatic handles API contract validation.
+
+| Tool | Use Case | Claude Integration |
+|------|----------|-------------------|
+| **Spec Kit** | Greenfield, governance | `/speckit.specify`, `/speckit.plan` |
+| **OpenSpec** | Brownfield, changes | Follow the commands generated by the installed OpenSpec version |
+| **Specmatic** | API contract testing | MCP agent available |
+
+## Writing effective specs
+
+> Based on analysis of agent configuration files from the community.
+
+### The 6 essential components
+
+| Component | What to Include | Example |
+|-----------|-----------------|---------|
+| **Commands** | Executables with flags | `npm test -- --coverage` |
+| **Testing** | Framework, coverage, locations | `vitest, 80%, tests/` |
+| **Project structure** | Explicit directories | `src/`, `lib/`, `tests/` |
+| **Code style** | One example > paragraphs | Show a real function |
+| **Git workflow** | Branch, commit, PR format | `feat/name`, conventional commits |
+| **Boundaries** | Permission tiers | Always / Ask / Never |
+
+### Curse of instructions
+
+::: {.callout-warning title="Curse of Instructions"}
+Research shows that **more instructions = less adherence** to each one. Beyond a certain threshold, every added instruction dilutes the attention given to the others.
+
+**Solution**: Provide only the relevant spec sections per task, not the entire document. Use skills or commands to inject the right context at the right time.
+:::
+
+{{< pagebreak >}}
+
+# PART IV: PRODUCTION
+
+You now have the basics, customization, and workflows. Part IV addresses what happens when Claude Code moves beyond individual use into production: security, data privacy, and team adoption. These topics are often overlooked during initial adoption but become critical as usage scales.
+
+# Chapter 10: Essential security
+
+*-> To go deeper: WP03 "Security"*
+
+Claude Code executes commands on your machine with your user's permissions. This power implies an attack surface that you need to know and cover.
+
+## The 5 attack vectors
+
+Claude Code executes shell commands with the same permissions as your system user. Each vector below exploits a different entry point: the prompt, the tools, the conversation history, the configuration files, or the extension supply chain. Understanding these vectors helps you choose the appropriate defense hooks.
+
+| Vector | Mechanism | Risk |
+|--------|-----------|------|
+| **Prompt Injection** | Malicious instructions in context | Unauthorized command execution |
+| **Tool Misuse** | Manipulation of tool calls | Sensitive file access, exfiltration |
+| **Context Manipulation** | History exploitation | Model confusion, security bypass |
+| **.claude/ Attack Surface** | Modified CLAUDE.md, agents, hooks files | Persistence of malicious instructions |
+| **Agent Skills Supply Chain** | Compromised MCP/skills dependencies (e.g., slopsquatting, CVE-2026-23744) | Unverified third-party code execution |
+
+*-> For the nine-component harness architecture (permission enforcement, the lethal trifecta security model, observability stack) behind reliable production agents: `guide/core/agent-harness.md`*
+
+## Top 5 security hooks
+
+These five hooks cover the most common attack vectors and constitute the recommended minimum for any production use. They activate through the PreToolUse/PostToolUse event system and work in cascade: each hook intercepts a specific threat category before or after tool execution.
+
+*(Aligned with WP03, complete templates in `examples/hooks/bash/`)*
+
+| # | Hook | Role |
+|---|------|------|
+| 1 | `dangerous-actions-blocker` | Blocks `rm -rf /`, `sudo`, `chmod 777`, pipe-to-shell |
+| 2 | `prompt-injection-detector` | Checks pending tool input for recognized injection patterns |
+| 3 | `unicode-injection-scanner` | Spots invisible characters (homoglyphs, RTL override) |
+| 4 | `repo-integrity-scanner` | Verifies commit signatures, modified .claude/ files |
+| 5 | `output-secrets-scanner` | Reports suspected secrets after tool execution; does not undo disclosure or block commits |
+
+> **Complementary tool**: `mcpwn`, MCP vulnerability scanner (supply chain attack detection, slopsquatting).
+
+> **To go deeper:** [§7 Hooks](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/guide/ultimate-guide.md#7-hooks), event system, 33 hook templates
+
+Complete configuration (place in `.claude/settings.json`):
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "dangerous-actions-blocker"
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "prompt-injection-detector"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/block-sensitive.sh"
+          },
+          {
+            "type": "command",
+            "command": "./hooks/confine-directory.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/validate-bash.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "output-secrets-scanner"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/audit-log.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+## Available hook events
+
+The hook system supports additional events across the session lifecycle. Full reference: `guide/core/hooks-events-reference.md`. The two core events (`PreToolUse`, `PostToolUse`) remain the most widely used, but new events now cover worktrees, teammate agents, parallel batches, and MCP interactions.
+
+| Event | Trigger | Version |
+|-------|---------|---------|
+| `PreToolUse` | Before any tool call | Core |
+| `PostToolUse` | After any tool call | Core |
+| `PostToolBatch` | After a batch of parallel tool calls fully resolves | v2.1.x |
+| `Notification` | When Claude sends a notification | Core |
+| `Stop` | When Claude finishes a response | Core |
+| `SubagentStop` | When a sub-agent finishes | Core |
+| `WorktreeCreate` | Git worktree created | v2.1.50+ |
+| `WorktreeRemove` | Git worktree removed | v2.1.50+ |
+| `TeammateIdle` | A teammate agent becomes idle | v2.1.32+ |
+| `TaskCompleted` | A task is completed | v2.1.32+ |
+| `Elicitation` | An MCP server requests structured input | v2.1.76 |
+| `ElicitationResult` | Result of an MCP elicitation | v2.1.76 |
+| `PostCompact` | After a `/compact` (can trigger a save) | v2.1.76 |
+| `CwdChanged` | When the working directory changes | v2.1.83 |
+| `FileChanged` | When a file is modified | v2.1.83 |
+| `TaskCreated` | When a new task is created | v2.1.84 |
+| `PermissionDenied` | When the auto-mode classifier denies a tool call; request retry via `hookSpecificOutput` with `hookEventName: "PermissionDenied"` and `retry: true` | v2.1.88 |
+| `UserPromptExpansion` | When a slash command expands into a prompt | v2.1.x |
+| `MessageDisplay` | During streaming of the assistant's response text (10s timeout) | v2.1.x |
+
+**Example: PostCompact to save context:**
+
+```json
+{
+  "hooks": {
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/save-compact-summary.sh"
+          }
+        ]
+      }
+    ],
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/setup-worktree-env.sh"
+          }
+        ]
+      }
+    ],
+    "WorktreeRemove": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/cleanup-worktree.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Conditional `if` filter (v2.1.85+)**: Hooks now support an `if` field to run only when the condition matches (permission rule syntax). Reduces subprocess overhead.
+
+```json
+{"matcher": "Bash", "hooks": [{"type": "command", "command": "./validate.sh", "if": "!read-only"}]}
+```
+
+## Minimum security checklist
+
+This checklist represents the security floor to validate before any professional use. Each item corresponds to a documented vulnerability from community feedback. Validate it once during setup, then re-verify after each major Claude Code update.
+
+````markdown
+[] Sensitive file blocking hooks enabled
+[] Bash command validation configured
+[] Audit logging in place
+[] Working directory confined
+[] .env and credentials in .gitignore
+[] Diffs reviewed before acceptance
+[] Feature branches (never main directly)
+[] velocity-governor.sh enabled (long sessions/agents)
+````
+
+## AI kill switch (v3.27.4)
+
+For autonomous agents in long sessions, implement a 3-level containment architecture:
+
+| Level | Mechanism | Trigger |
+|-------|-----------|---------|
+| Scoped Revocation | `permissions.deny` + agent scope | Agent exceeds perimeter |
+| **Velocity Governor** | Hook rate-limiter PreToolUse | >20 ops/min (runaway) |
+| Global Hard Stop | `Ctrl+C` / `SIGTERM` | Total emergency |
+
+Template `velocity-governor.sh` available in `examples/hooks/bash/`.
+
+> Governance context: define and test stop/recovery controls for unattended agents. Legal obligations depend on classification and deployment; these references do not create a universal kill-switch mandate for every coding agent.
+
+{{< pagebreak >}}
+
+# Chapter 11: Privacy in 5 minutes
+
+*-> To go deeper: WP06 "Privacy"*
+
+Security (Ch.10) covers what can go wrong on your machine. Privacy covers what leaves your machine: what data is sent to Anthropic, how it's stored, and how you control this flow.
+
+## Check the account and data path
+
+Consumer accounts offer a model-improvement choice; retention differs with that choice. Commercial products do not train on customer content by default. Standard commercial/API retention and an eligible organization's Zero Data Retention agreement have different terms and exceptions. Confirm the active account, provider, contractual scope and third-party tools rather than treating these as universal compliance tiers.
+
+## What leaves the machine
+
+Prompts, instructions, file excerpts and tool results included in model requests can leave the machine. A file need not be manually pasted to be included: a tool, hook or MCP server can read or transmit it. Gitignored files and secrets are not automatically excluded from every access path. Inspect accessible data and restrict tools accordingly.
+
+## Training, feedback and local records
+
+For consumer accounts, review the model-improvement setting in Claude's privacy controls. Feedback has its own data-sharing implications. To disable Claude Code's feedback command where required:
+
+```bash
+export DISABLE_FEEDBACK_COMMAND=1
+```
+
+This is separate from the model-improvement choice. Local transcripts also need an access and retention policy.
+
+## Privacy checklist
+
+- Confirm account/provider retention and training terms.
+- Review feedback settings and local transcript handling.
+- Keep credentials out of prompts and reviewed configuration files.
+- Restrict sensitive-file access and MCP credentials.
+- Review results before sharing them with another service.
+
+Sources: [Data usage](https://code.claude.com/docs/en/data-usage), [Zero Data Retention](https://code.claude.com/docs/en/zero-data-retention).
+
+{{< pagebreak >}}
+
+# Chapter 12: Deploying for teams
+
+*-> To go deeper: WP05 "Team"*
+
+With security and privacy covered, the final question is: how do you go from individual use to team adoption? The challenge is mostly organizational: standards, onboarding, and measuring impact. The configuration side stays covered by previous chapters.
+
+## Decision matrix
+
+Three deployment models coexist depending on team size and desired level of control. Transitioning between models is progressive: start with Individual, migrate to Team Shared when conventions diverge between members, then to Team Managed when governance requires it.
+
+| Criterion | Individual | Team Shared | Team Managed |
+|-----------|------------|-------------|--------------|
+| Team size | 1 | 2-10 | 10+ |
+| CLAUDE.md | Local | Git versioned | Centralized |
+| Hooks | Personal | Team standards | Enforced |
+| MCP Servers | Your choice | Recommended | Required |
+| Costs | Personal | Shared | Budgeted |
+
+## Typical team configuration
+
+### 1. Project CLAUDE.md (versioned)
+
+````markdown
+# [Project Name] - Team Standards
+
+## Code Style
+- Naming: camelCase functions, PascalCase components
+- Max file length: 500 lines
+- Required: TypeScript strict mode
+
+## Commit Messages
+Format: type(scope): description
+Types: feat|fix|docs|refactor|test|chore
+Include ticket: [PROJ-XXX]
+
+## Required Before Commit
+- pnpm lint (0 errors)
+- pnpm test (100% pass)
+- pnpm tsc --noEmit (0 errors)
+````
+
+### 2. Shared hooks
+
+```
+project/
+├── .claude/
+│   ├── hooks/
+│   │   ├── pre-commit.sh
+│   │   ├── validate-types.sh
+│   │   └── security-check.sh
+│   └── settings.json
+└── CLAUDE.md
+```
+
+### 3. Standard MCP servers
+
+Declare shared servers in the project's `.mcp.json`, using real transport fields. “Required” or “recommended” are team conventions, not server-entry settings:
+
+```json
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    }
+  }
+}
+```
+
+Review and approve the configuration before enabling it. Use managed MCP policy when organization-level enforcement is required.
+
+> **To go deeper:** [§8 MCP Servers](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/guide/ultimate-guide.md#8-mcp-servers), configuration, evaluation, security
+
+## Progressive adoption
+
+### Phase 1: Pilot (2 weeks)
+
+````markdown
+[] 1-2 early adopters
+[] Initial CLAUDE.md created
+[] Basic hooks configured
+[] Feedback collected daily
+````
+
+### Phase 2: Expansion (4 weeks)
+
+````markdown
+[] 5-10 users
+[] CLAUDE.md refined based on feedback
+[] Hooks standardized
+[] Team documentation created
+[] Training sessions
+````
+
+### Phase 3: Generalization (ongoing)
+
+````markdown
+[] Entire team
+[] Onboarding process defined
+[] Productivity metrics tracked
+[] Continuous improvement of setup
+````
+
+## Metrics to track
+
+Measuring adoption without concrete metrics leads to subjective decisions. The five indicators below cover the key dimensions: effective adoption, prompt efficiency, time savings, code quality, and team satisfaction. Collect them from the pilot phase onward to establish a comparison baseline.
+
+| Metric | Measure | Target |
+|--------|---------|--------|
+| Adoption rate | % team using | >80% |
+| Iterations per task | Prompts before success | <3 |
+| Time per feature | Hours (before/after) | -30% |
+| Bugs introduced | Defects per sprint | -20% |
+| Satisfaction | Survey 1-5 | >4 |
+
+{{< pagebreak >}}
+
+# APPENDICES
+
+# Appendix A: Commands & shortcuts
+
+## Decision tree: Which tool for this problem?
+
+When something does not work as expected, the natural reflex is to rephrase the prompt. But the problem often lies elsewhere: saturated context, blocked permissions, lost session, or uncontrolled costs. This decision tree guides the diagnosis toward the right command in under 30 seconds.
+
+```
+Problem with Claude Code
+│
+├─ Claude responding slowly?
+│   ├─ Yes → Context loaded > 70%?
+│   │         ├─ Yes → /compact (reduce) or /clear (reset)
+│   │         └─ No  → Check network connection or restart claude
+│   └─ No  → Off-topic responses?
+│             ├─ Yes → Review CLAUDE.md or rephrase with WHAT/WHERE/HOW/VERIFY
+│             └─ No  → Session lost / interrupted?
+│                       ├─ Yes → --continue (last session) or cc-sessions search
+│                       └─ No  → Tool blocked or refused?
+│                                 ├─ Yes → Check permissions.deny or approve (Shift+Tab)
+│                                 └─ No  → Costs too high?
+│                                           ├─ Yes → /compact regularly or /model sonnet
+│                                           └─ No  → Try /debug or rephrase prompt
+```
+
+## The 20 most-used commands and shortcuts
+
+This selection groups common commands and shortcuts by practical use. It is not a measured frequency ranking.
+
+| # | Command / Shortcut | One-line usage |
+|---|--------------------|----------------|
+| 1 | `/compact` | Compact at a useful task boundary |
+| 2 | `/clear` | Full reset for a new task |
+| 3 | `/plan` | Enter planning mode (no file changes) |
+| 4 | Approve the plan | Leave Plan Mode and apply it (`Shift+Tab` leaves without approving) |
+| 5 | `/rewind` | Open checkpoint selection |
+| 6 | `Shift+Tab` | Cycle through permission modes |
+| 7 | `Ctrl+C` | Interrupt Claude mid-execution |
+| 8 | `Esc Esc` | Quick rewind (keyboard alias) |
+| 9 | `Ctrl+D` | Exit the session |
+| 10 | `Ctrl+L` | Clear screen (context preserved) |
+| 11 | `/status` | View account and settings state |
+| 12 | `/model` | Switch model (sonnet / opus / opusplan) |
+| 13 | `/cost` | View current session costs (alias `/usage`) |
+| 14 | `/memory` | Manage persistent memory |
+| 15 | `/tasks` | View background agents |
+| 16 | `claude --continue` | Resume the last session |
+| 17 | `claude --resume <id>` | Resume a specific session |
+| 18 | `claude -p "..."` | Run a one-shot prompt (non-interactive) |
+| 19 | `Ctrl+R` | Search prompt history |
+| 20 | `Tab` | Autocomplete commands and paths |
+
+## Essential commands
+
+These eight commands form the core vocabulary of any Claude Code session. They cover context management (`/compact`, `/clear`), planning (`/plan`, then approving the plan to leave the mode), error recovery (`/rewind`), and monitoring (`/help`, `/status`, `/context`).
+
+| Command | Action | Usage |
+|---------|--------|-------|
+| `/help` | Contextual help | Anytime |
+| `/status` | Account and settings state | Monitoring |
+| `/context` | Detailed token breakdown | Context analysis |
+| `/compact` | Compress context | When earlier context is no longer needed |
+| `/clear` | Reset session | Task switch |
+| `/plan` | Planning mode (no changes) | Before implementation |
+| `/code-review` | Review the diff for correctness bugs | Before shipping |
+| `/rewind` | Open checkpoint selection | Claude made an error |
+
+## Advanced commands
+
+These commands target specific use cases: cost optimization (`/model`, `/cost`, `/fast`), structured debugging (`/debug`), long session management (`/memory`, `/tasks`), and migration from the web interface (`/teleport`). They are not needed daily but become indispensable as your usage professionalizes.
+
+| Command | Action | When |
+|---------|--------|------|
+| `/model` | Switch model (sonnet/opus/opusplan) | Cost/quality optimization |
+| `/insights` | Usage analytics + optimization report | Productivity analysis |
+| `/teleport` | Teleport session from web | Web->CLI migration |
+| `/tasks` | Monitor background tasks | Background agents |
+| `/remote-env` | Configure cloud environment | Remote setup |
+| `/fast` | Toggle Opus 5.5 fast mode ($8/$40 per MTok, up to 2.5x output speed) | Compare latency and total cost |
+| `/debug` | Systematic troubleshooting | Structured debugging |
+| `/config` | View/modify config | Setup |
+| `/cost` | View session costs (alias `/usage`) | Monitoring |
+| `/memory` | Manage persistent memory | Long sessions |
+
+## New Commands (since v2.1.71+)
+
+The table combines built-in commands and optional custom skills from several releases. Entries with a guide version (v3.x) describe this repository's examples, not a Claude Code release. They cover daily productivity (`/stats`, `/rename`, `/copy`), fine-grained agent control (`/effort`, `/btw`), recurring automation (`/loop`), and multi-device access (`/remote-control`, `/mobile`, `/voice`).
+
+| Command | Action | Version |
+|---------|--------|---------|
+| `/loop [interval] [prompt]` | Recurring scheduler (e.g. `/loop 5m check the deploy`) | v2.1.71 |
+| `/simplify` | Detects over-engineering in modified code + auto-fix | v2.1.63 |
+| `/batch` | Large-scale refactors via 5-30 parallel worktree agents | v2.1.63 |
+| `/stats` | Usage chart, favorite model, streak (alias `/usage`) | v2.1.71+ |
+| `/rename [name]` | Name or rename the current session | v2.1.71+ |
+| `/copy [N]` | Interactive copy of a code block or the Nth last response | v2.1.71+ |
+| `/effort` | Save per-model effort; **s** applies once, `max` is session-only | v2.1.71+ |
+| `/branch` | Creates a parallel branch/timeline (replaced `/fork` in v2.1.77; `/fork` reappeared as of v2.1.212 with a different meaning: copies the conversation into a separate background session, not a parallel timeline) | v2.1.77 |
+| `/btw [question]` | Ephemeral side question, read-only agent with no history | v2.1.71+ |
+| `/voice` | Enable voice input | v2.1.71+ |
+| `/remote-control` (`/rc`) | Remote control from mobile/browser (Pro/Max/Team/Enterprise) | v2.1.51 |
+| `/mobile` | App Store + Play Store links | v2.1.51+ |
+| `/investigate` (custom skill) | Root-cause debugging, 5-phase Iron Law | v3.37.x |
+| `/qa` (custom skill) | Browser QA testing, diff-aware, detects visual regressions | v3.37.x |
+| `/canary` (custom skill) | Post-deploy monitoring, 4 alert levels | v3.37.x |
+| `/land-and-deploy` (custom skill) | Automated merge-to-verify pipeline | v3.37.x |
+| `/session-save` (custom skill) | Structured session handoff | v3.37.x |
+| `/autoresearch` (custom skill) | Autonomous code quality loop | v3.37.x |
+| `/loop [interval] [cmd]` | Fixed interval when supplied; otherwise Claude chooses the delay. Custom skills must allow model invocation | v2.1.71 |
+| `/ultrareview` | Cloud-based parallel multi-agent code review (local branch or GitHub PR) | v3.39.1 |
+| `/fewer-permission-prompts` | Auto-generates an allowlist from transcript history to reduce permission prompts (shipped as `/less-permission-prompts` in v2.1.111) | v3.39.1 |
+| `/usage` | Unified command: session costs, stats and usage charts (replaces `/cost` and `/stats`) | v2.1.118 |
+| `/proactive` | Alias for `/loop`: reruns a prompt on repeat while the session stays open | v2.1.105 |
+| `/team-onboarding` | Generates a personalized onboarding guide for the team | v2.1.106 |
+| `/undo` | Alias for `/rewind`: returns to a checkpoint (conversation and/or code) | v2.1.108 |
+| `/recap` | Contextual session recap on return (resuming an interrupted session) | v2.1.108 |
+| `/reload-plugins` | Reload installed plugins without restarting | v2.1.69 |
+| `/tui [default\|fullscreen]` | Pick the terminal renderer and relaunch into it | v2.1.110 |
+| `/focus` | Focus view: last prompt, tool-call summary, final response (fullscreen only) | v2.1.110 |
+| `/keybindings` | Display and configure keyboard shortcuts | v2.1.100+ |
+| `/terminal-setup` | Terminal setup assistant | v2.1.100+ |
+| `/goal [condition]` | Autonomous multi-turn mode: Claude works until the condition is met, live overlay shows elapsed time, turns, and tokens | v2.1.139 |
+| `/scroll-speed` | Tune mouse wheel scroll speed with an interactive real-time slider | v2.1.139 |
+
+::: {.callout-note title="CLI Subcommand: claude project purge (v2.1.126)"}
+`claude project purge [path]`: deletes all Claude Code state for a project (local CLAUDE.md, sessions, local settings). Useful for starting from a clean configuration without deleting source code. This is a CLI command, not a session slash command.
+:::
+
+
+## Current models
+
+Standard API rates, verified September 24, 2026. USD per million input/output tokens, excluding caching.
+
+| Model | Input / output | Context | Default effort |
+|-------|----------------|---------|----------------|
+| Haiku 4.5 | $1 / $5 | 200K | Unsupported |
+| Sonnet 5 | $2 / $10 | 1M | high |
+| Opus 5.5 | $4 / $20 | 1M | medium |
+| Fable 5.1 | $10 / $50 | 1M | high |
+
+Sonnet's published rate remains $2/$10 after the launch promotion. Opus 5.5 is the direct-service default; account policy can override it. Model choice does not establish a typical task cost.
+
+## Select and save
+
+`/model` opens the picker. **Enter** saves a default; **s** applies it to this session only. `claude --model sonnet` applies to the launched session. Project and managed settings can reapply at the next launch.
+
+Aliases depend on the provider. `opus` maps to 5.5 on most providers, but 4.6 on Foundry. `sonnet` maps to 5 on the direct API, 4.6 on Claude Platform on AWS, and 4.5 on Bedrock, Google, and Foundry.
+
+`fable` selects 5.1 where available, or 5 through the Claude apps gateway. `best` selects Fable when available, otherwise Opus. Pin a supported full ID when version identity matters.
+
+## Thinking and effort
+
+Opus 5.5, Sonnet 5, and Fable 5.1 use adaptive thinking. Haiku 4.5 supports extended thinking but has **no effort parameter**.
+
+Current adaptive models support `low`, `medium`, `high`, `xhigh`, and `max`. Opus 4.6 and Sonnet 4.6 support `max` but not `xhigh`.
+
+`/effort` saves levels through `xhigh` per model. Use **s** for a session-only choice. `max` is session-only; `/effort auto` clears the active model's saved choice.
+
+`Option+T` / `Alt+T` toggles thinking where supported. It has no effect on Opus 5.5 or Fable, whose thinking is always enabled. Lower effort for bounded work instead.
+
+`ultrathink` adds a reasoning instruction without changing API effort. `think hard` is ordinary prompt text.
+
+## Choose by measured results
+
+Evaluate Haiku on bounded tasks, Sonnet on routine work, and Opus or Fable on harder tasks. Compare accepted outcomes, retries, latency, and total cost on the same task set. Teammates can use different models.
+
+Sources: [Model configuration](https://code.claude.com/docs/en/model-config), [API pricing](https://platform.claude.com/docs/en/about-claude/pricing).
+
+
+Reliable knowledge cutoffs: Opus 5.5 and Fable 5.1, June 2026; Sonnet 5, January 2026; Haiku 4.5, February 2025.
+
+## Keyboard shortcuts
+
+Keyboard shortcuts let you control Claude Code without breaking your flow. The most important is `Shift+Tab`, which cycles through the three permission modes -- this is the central mechanism for fine-grained control over Claude's autonomy.
+
+::: {.callout-tip title="Shortcut guide: Permission modes (Shift+Tab)"}
+`Shift+Tab` cycles through 3 permission modes, visible in the prompt:
+
+| Mode | Symbol | Behavior |
+|------|--------|----------|
+| **Default** | (none) | Claude asks for confirmation on sensitive actions |
+| **Auto-approve** | `(auto)` | A classifier decides whether to allow actions |
+| **Plan only** | `(plan)` | Claude plans and uses read-only exploration tools |
+
+Use **Plan only** for risky refactorings: review the plan, then `Shift+Tab` back to Default to execute.
+
+**v3.39.1 changes**: Auto mode is now available directly for Max subscribers without the `--enable-auto-mode` flag. Read-only bash glob patterns no longer trigger permission prompts.
+:::
+
+| Shortcut | Action | When to use |
+|----------|--------|-------------|
+| `Shift+Tab` | Cycle permission modes | Fine-grained control over authorizations |
+| `Esc` x 2 | Open rewind checkpoint selection | Claude made an error |
+| `Ctrl+C` | Interrupt Claude | Stop an ongoing execution |
+| `Ctrl+D` | Exit the session | Clean session exit |
+| `Ctrl+L` | Clear screen | Clean display (context preserved) |
+| `Ctrl+R` | Search prompt history | Find a previous prompt |
+| `Ctrl+B` | Background a running task | Inspect it with `/tasks` |
+| `Tab` | Autocomplete | Commands, file paths |
+| `Shift+Enter` | New line (without sending) | Multi-line prompts |
+| `Alt+T` | Toggle thinking where supported | No effect on Opus 5.5/Fable; summaries are a separate setting |
+| Up / Down | Prompt history | Navigate previous prompts |
+
+## CLI flags
+
+CLI flags are used at launch to modify Claude Code's behavior from the start. The `-p` flag turns Claude into a scriptable one-shot tool (ideal for CI/CD pipelines), while `--agent` selects the main session agent instead of the default conversational mode.
+
+| Flag | Usage | Example |
+|------|-------|---------|
+| `-p` | One-shot prompt | `claude -p "explain this file"` |
+| `--agent` | Select the main session agent | `claude --agent security-auditor` |
+| `-n` / `--name <name>` | Name the session at startup (v2.1.76) | `claude --name auth-refactor` |
+| `--continue` | Resume the last session | `claude --continue` |
+| `--resume <id>` | Resume a session by ID | `claude --resume abc123` |
+| `--worktree` / `-w` | Execute in an isolated git worktree | `claude --worktree` |
+| `--tools "Tool1,Tool2"` | Enable specific tools for the session | `claude --tools "Bash,Read"` |
+| `--max-budget-usd 5.00` | API spending limit (print mode) | `claude -p "..." --max-budget-usd 1.00` |
+| `--add-dir ../lib` | Access directories outside the CWD | `claude --add-dir ../shared-lib` |
+| `--output-format` | Output format: `text`, `json`, `stream-json` | `claude -p "..." --output-format json` |
+| `--permission-mode` | Permission mode: `default`, `auto`, `plan` | `claude --permission-mode plan` |
+| `--bare` | Skip discovery of project/user instructions, hooks, skills, agents, plugins, MCP and auto-memory | `claude -p "..." --bare` |
+| `--channels` | Enable explicitly installed channel plugins | `claude --channels plugin:name@marketplace` |
+| `--console` | API billing (for `claude auth login`) | `claude auth login --console` |
+| `--fork-session` | Fork the current session for parallel exploration | `claude --fork-session` |
+| `--plugin-url <url>` | Fetch a plugin `.zip` archive from a URL and load it for the current session (v2.1.129) | `claude --plugin-url https://ci.example.com/plugin.zip` |
+
+::: {.callout-note title="worktree.sparsePaths: Sparse checkout for monorepos (v2.1.76)"}
+For large monorepos, configure `worktree.sparsePaths` in `.claude/settings.json` to limit checkout to relevant directories during worktree operations:
+
+```json
+{
+  "worktree": {
+    "sparsePaths": ["packages/api", "packages/shared", "apps/web"]
+  }
+}
+```
+
+This significantly speeds up worktree creation on repositories with thousands of files.
+:::
+
+::: {.callout-note title="Advanced Settings Features"}
+**`managed-settings.d/` (v2.1.83+)**: Place reviewed policy fragments in the OS managed directory, such as `/etc/claude-code/managed-settings.d/` on Linux or `/Library/Application Support/ClaudeCode/managed-settings.d/` on macOS. This is managed policy, not user configuration.
+
+**`${CLAUDE_PLUGIN_DATA}` (v2.1.78+)**: Environment variable exposing a persistent storage path for plugins and skills across sessions.
+
+**Settings Reference**: The file `guide/core/settings-reference.md` documents 60+ settings and 100+ environment variables.
+:::
+
+::: {.callout-note title="Recent Environment Variables"}
+**`CLAUDE_CODE_SESSION_ID` (v2.1.132)**: Unique identifier for the current session. Injected into all Bash subprocess environments. Matches the `session_id` field in hook stdin JSON. Use for correlating tool output with sessions in observability pipelines.
+
+**`CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1` (v2.1.132)**: Opt out of the fullscreen alternate-screen renderer. Terminal output stays in the native scrollback buffer. Use in environments that don't support alternate screen (some log-capture setups, embedded terminals).
+
+**`CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE=1` (v2.1.129)**: Enable automatic background upgrades via Homebrew or WinGet, with a restart prompt when a new version is available.
+:::
+
+{{< pagebreak >}}
+
+# Appendix B: Checklists by profile
+
+## Junior developer (week 1)
+
+The goal of week one is to build fundamental reflexes: always review diffs, watch the context, and understand that Claude proposes but does not decide. Do not try to master everything -- focus on the 6 points below.
+
+````markdown
+[] Installation and authentication OK
+[] First interactive session completed
+[] Understand the workflow: Describe -> Analyze -> Review -> Accept
+[] Use /compact when context > 70%
+[] Always review diffs before accepting
+[] Create a basic project CLAUDE.md
+````
+
+## Intermediate developer (week 2-4)
+
+By this stage, you should be comfortable with basic interactions. The focus for weeks 2 through 4 is to move from occasional use to a structured workflow: custom commands, validation hooks, and a first specialized agent for your recurring tasks.
+
+````markdown
+[] Master the WHAT/WHERE/HOW/VERIFY formula
+[] Configure 2-3 custom commands
+[] Use hooks for automatic validation
+[] Understand context management
+[] Git workflow with feature branches
+[] At least one custom agent created
+````
+
+## Power user (month 1+)
+
+The Power User milestone is reached when Claude Code integrates naturally into your daily workflow without friction. MCP servers, security hooks, and a chosen methodology (TDD, SDD) transform the tool from an occasional assistant into a permanent development partner.
+
+````markdown
+[] MCP servers configured (Context7, Sequential)
+[] Security hooks in place
+[] Specialized agents for recurring tasks
+[] CI/CD integration if applicable
+[] Methodology chosen and applied (TDD, SDD...)
+[] Contributing to team CLAUDE.md
+````
+
+## Tech lead / architect
+
+The Tech Lead's role is to turn individual usage into a cohesive team practice. This means standardizing configuration (project CLAUDE.md), enforcing guardrails (security hooks), and measuring the real impact on productivity and code quality.
+
+````markdown
+[] Team standards documented in CLAUDE.md
+[] Security hooks enforced
+[] Onboarding process defined
+[] Productivity metrics tracked
+[] Budget and costs monitored
+[] Review process including Claude Code
+````
+
+{{< pagebreak >}}
+
+# Appendix C: Whitepaper index
+
+To go deeper on each topic, consult the dedicated whitepapers:
+
+| # | Title | Pages | Main Topic |
+|---|-------|-------|------------|
+| 00 | From Zero to Productive | ~8 | Installation, quickstart, 5 golden rules |
+| 01 | Prompts That Work | ~18 | WHAT/WHERE/HOW/VERIFY formula, XML prompting |
+| 02 | Customization | ~32 | CLAUDE.md, Agents, Skills, Commands, Hooks |
+| 03 | Security | ~25 | 17 security hooks, attack vectors, defense |
+| 04 | Architecture | ~20 | Master Loop, 8 native tools, context |
+| 05 | Team | ~28 | Adoption, standards, CI/CD, metrics |
+| 06 | Privacy | ~18 | Data retention, compliance, opt-out |
+| **07** | **Reference Guide** | **~120** | **This document: synthesis + new content** |
+| 08 | Agent Teams | ~15 | TeamCreate, SendMessage, multi-agent coordination |
+
+## Reading matrix by need
+
+Depending on your immediate goal, you do not need to read all 9 whitepapers. This matrix indicates the minimal reading path for each common use case.
+
+| Need | Recommended Whitepapers |
+|------|------------------------|
+| Get started quickly | 00 -> 01 |
+| Customize my setup | 02 |
+| Secure my usage | 03 -> 06 |
+| Understand the architecture | 04 |
+| Deploy for a team | 05 |
+| Complete overview | 07 (this document) |
+
+{{< pagebreak >}}
+
+# Appendix D: Resources
+
+## Official documentation
+
+These three sources constitute the reference documentation maintained by Anthropic and the MCP community.
+
+- [Anthropic Claude Code Docs](https://docs.anthropic.com/claude-code)
+- [Model Context Protocol (MCP)](https://modelcontextprotocol.io)
+- [Claude API Reference](https://docs.anthropic.com/claude/reference)
+
+## Repositories
+
+- Claude Code Ultimate Guide: This repository
+- MCP Servers Registry: github.com/modelcontextprotocol/servers
+- Examples maintained with this guide: github.com/FlorianBruniaux/claude-code-ultimate-guide/tree/main/examples
+
+## Complementary tools
+
+These tools integrate with Claude Code via MCP or slash commands to extend its capabilities in specific domains: specifications, API contracts, and documentation.
+
+| Tool | Usage | URL |
+|------|-------|-----|
+| Spec Kit | SDD Greenfield | github.blog/spec-kit |
+| OpenSpec | SDD Brownfield | github.com/Fission-AI/OpenSpec |
+| Specmatic | API Contracts | specmatic.io |
+| Context7 | Documentation | Via MCP |
+| Sequential Thinking | Complex analysis | Via MCP |
+
+For a broader survey of third-party tools in the ecosystem (session managers, observability, MCP servers), see `guide/ecosystem/agentic-tools.md`.
+
+To choose a portable harness, distinguish the runtime that owns the loop, the repository contract, and the orchestrator that coordinates sessions. The comparison and trial protocol are in the [Agent Harness Map](https://cc.bruniaux.com/guide/agent-harness-landscape/); adjacent tooling is in [Agent Tools](https://cc.bruniaux.com/guide/agentic-tools/) and terms are defined in the [glossary](https://cc.bruniaux.com/guide/glossary/).
+
+## Community
+
+- Discord Claude Code: https://discord.gg/anthropic
+- GitHub Discussions: Issues and discussions
+- Anthropic Blog: New features and guides
+
+---
+
+*This Reference Guide synthesizes the 7 whitepapers of the Claude Code Ultimate Guide series and adds original content on migration, IDE integration, Git, advanced patterns, and development methodologies.*
+
+*Version 3.43.0, September 2026 (updated: Opus 5.5 model defaults, Dynamic Workflows, sub-agent nesting depth 3, `/ultrareview`, `/fewer-permission-prompts`, read-only glob patterns skip permission prompts)*
+
+---
+
+| Type | License |
+|------|---------|
+| Content | CC BY-SA 4.0 |
+| Code | MIT |
+
+**Repository**: [github.com/FlorianBruniaux/claude-code-ultimate-guide](https://github.com/FlorianBruniaux/claude-code-ultimate-guide)
+
+**Author**: Florian BRUNIAUX
+
+**Co-Authored-By**: Claude (Anthropic)
+
+# The series
+
+This whitepaper is part of the **Claude Code Ultimate Guide** series, a complete resource for mastering Claude Code, from installation to production deployment.
+
+**13 whitepapers in the series:**
+
+- **WP00** Introduction & Fundamentals
+- **WP01** Effective Prompts
+- **WP02** Customization & Configuration
+- **WP03** Security in Production
+- **WP04** Internal Architecture
+- **WP05** Team Adoption
+- **WP06** Privacy & Compliance
+- **WP07** Condensed Reference Guide
+- **WP08** Agent Teams & Sub-Agents
+- **WP09** Learning with AI (UVAL)
+- **WP10** AI Budget & ROI
+- **WP11** Team Metrics in the AI Era
+- **WP12** Agent Engineering
+
+Full series available at [cc.bruniaux.com/whitepapers/](https://cc.bruniaux.com/whitepapers/)

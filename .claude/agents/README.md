@@ -37,6 +37,11 @@
 | `engine-expert.md` | `engine-expert` | Engine-Fire(A-RMS 수집·집계 엔진: Java 21 · Spring Boot 3.5.6 · OpenSearch esframework · ALM 이슈 수집 · 요구사항 기준 집계 · 인덱스 운영) — 상세 규약은 `engine-expert` 스킬 |
 | `config-expert.md` | `config-expert` | Global-Config(A-RMS 중앙 설정·스케줄 허브: Spring Cloud Config Server/Gitea 백엔드 · 설정 변경 웹훅 전파 · 동적 크론 스케줄러 · 언어팩 · system-info) — 상세 규약은 `config-expert` 스킬 |
 | `ai-expert.md` | `ai-expert` | AI(A-RMS 생성·검색 모듈: Java 21 · Spring Boot 3.5.6 · Spring AI M8 · WebFlux · RAG/OpenSearch VectorStore · 역할별 LLM 분리 · 도구 호출·멀티에이전트 · 문서 벡터화 · 프롬프트 외부화) — 상세 규약은 `ai-expert` 스킬 |
+| `review-expert.md` | `review-expert` | 위 모듈 전체의 코드 변경 **읽기 전용 적대적 리뷰** — 모듈별 짝 스킬의 `references/pitfalls.md` 를 기준으로 탐지 → 반박 패스 → 증거 기반 판정(ACCEPT · REQUEST_CHANGES · UNKNOWN). 수정은 하지 않는다. `tasks/` brief 기반 리뷰는 Worker Pool 의 `claude-reviewer` 담당 |
+| `contract-reviewer.md` | `contract-reviewer` | 모듈 **사이** 계약 정합성 읽기 전용 검증 — Feign 시그니처·DTO · Kafka REQADD · STOMP · 게이트웨이 라우트 체인 · 설정 키 · `/ai-search` VO · 스케줄 name↔Feign 메서드. 생산자·소비자 필드 대조 + 호환성·배포 순서 판정(COMPATIBLE · BREAKING · UNKNOWN) |
+| `security-auditor.md` | `security-auditor` | 보안 심층 감사(읽기 전용) — 게이트웨이 단일 인증 경계 · pathMatchers/permitAll 노출 · 인젝션 · XSS · 자격증명 · SSRF · 로그 민감정보, OWASP/CWE + Critical 데이터 흐름 추적. 수정은 domain expert |
+| `plan-challenger.md` | `plan-challenger` | 구현 계획 착수 전 적대적 검증(읽기 전용) — 가정·누락 경우·보안·비가역성(스키마·계약·배포 순서)·검증·복잡도 공격 후 반박 패스(PROCEED · REVISE · BLOCKED). `tasks/` 산출물 리뷰는 `claude-reviewer`, 설계는 `claude-main` |
+| `test-writer.md` | `test-writer` | 자동화 테스트 작성·실행 — 대상 저장소 `src/test/**` 만 쓴다(운영 코드·build.gradle 수정 금지, 결함은 보고). 스프링 컨텍스트 없는 JUnit 5 단위 테스트 우선, 실행 결과(PASS · FAIL · NOT_RUN) 보고 |
 
 **이 계층에 에이전트를 추가하려면** 이 표에 한 줄 추가하고 `.claude/agents/<name>.md` 를 둔다.
 정본 5개(Worker Pool 문서)는 건드리지 않는다.

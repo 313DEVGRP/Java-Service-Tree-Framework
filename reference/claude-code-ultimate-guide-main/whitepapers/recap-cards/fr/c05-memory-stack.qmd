@@ -1,0 +1,62 @@
+---
+title: "Memory Stack (4 niveaux)"
+subtitle: "Où vit l'information que Claude utilise et comment la gérer"
+card-number: "C05"
+category: "Conception"
+difficulty: "intermediate"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: fr
+format:
+  recap-card-typst: default
+---
+
+## Les 4 niveaux de mémoire
+
+Claude Code enregistre les transcriptions locales et active l’auto-mémoire par défaut. Utiliser des instructions explicites et inspecter la mémoire stockée pour décider quelles informations doivent influencer le travail futur.
+
+**Niveau 1 : CLAUDE.md (règles explicites)**
+Fichiers Markdown lus au démarrage de chaque session. Contiennent les conventions projet, les commandes importantes, les décisions d'architecture. Lisibles par l'humain, versionnés avec le code.
+
+```
+~/.claude/CLAUDE.md          # Global (toutes sessions)
+.claude/CLAUDE.md             # Projet (équipe)
+CLAUDE.md                     # Racine (dossier courant)
+```
+
+**Niveau 2 : Auto-memories (apprentissage automatique)**
+Claude enregistre automatiquement les décisions prises pendant les sessions dans `~/.claude/projects/*/memory/MEMORY.md`. Ce mécanisme est transparent : vous pouvez relire ces fichiers pour auditer ce que Claude a appris.
+
+**Niveau 3 : Tasks API (état structuré cross-session)**
+Pour les workflows à plusieurs étapes, activer les outils de tâches avec `CLAUDE_CODE_ENABLE_TODO_TOOLS=1`. Choisir une liste persistante partagée entre sessions via `CLAUDE_CODE_TASK_LIST_ID` et inspecter ses enregistrements actuels avant de reprendre.
+
+**Niveau 4 : Agent memory field (contexte local)**
+Chaque agent spécialisé peut avoir sa propre mémoire déclarative dans son frontmatter YAML, indépendante de la session principale.
+
+## Ce qui disparaît à chaque session
+
+Le contexte actif est propre à la session, mais les conversations enregistrées peuvent être reprises. `claude --continue` choisit la conversation récente ; `claude --resume` permet d’en choisir une ancienne. Aucun des deux ne restaure les fichiers ou l’état d’un service distant.
+
+## Règle de sélection
+
+| Besoin | Niveau à utiliser |
+|--------|-------------------|
+| Convention permanent du projet | CLAUDE.md |
+| Décision prise en session | Auto-memory (ou CLAUDE.md manuel) |
+| État d'une tâche longue | Tasks API |
+| Contexte d'un agent spécialisé | Agent memory field |
+| Configuration éphémère | Session (pas de persistance) |
+
+## CLAUDE.md comme mémoire composée
+
+> "You should never have to correct Claude twice for the same mistake." (Boris Cherny, créateur de Claude Code)
+
+Chaque erreur corrigée une fois devient une règle CLAUDE.md. Sur 3 mois, un CLAUDE.md bien maintenu accumule les conventions, les gotchas, et les décisions d'architecture qui accélèrent toutes les sessions suivantes, y compris pour les nouveaux membres de l'équipe.
+
+Relire les nouvelles règles pour vérifier leur pertinence, retirer doublons et décisions obsolètes, puis vérifier qu’elles améliorent les tâches visées.
+
+**Taille cible :** rester concis, avec environ 200 lignes comme point de départ pratique. La longueur du fichier n’est pas un seuil mesuré de cohérence du modèle.

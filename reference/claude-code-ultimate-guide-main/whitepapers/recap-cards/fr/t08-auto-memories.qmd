@@ -1,0 +1,73 @@
+---
+title: "Auto-Memories : Quand et Comment"
+subtitle: "Le système de mémorisation automatique vs CLAUDE.md manuel"
+card-number: "T08"
+category: "Technique"
+difficulty: "intermediate"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: fr
+format:
+  recap-card-typst: default
+---
+
+## Qu'est-ce que c'est ?
+
+Introduites en v2.1.59 (février 2026), les auto-memories permettent à Claude Code de sauvegarder du contexte utile entre les sessions sans édition manuelle de CLAUDE.md. Claude identifie les décisions clés pendant les conversations et les stocke automatiquement pour les sessions futures du même projet.
+
+**Ne pas confondre** avec la mémoire de Claude.ai (interface web). Ce sont deux systèmes distincts. Les auto-memories de Claude Code sont locales, par projet, sans lien avec votre compte claude.ai.
+
+## Où sont stockées les memories
+
+```
+~/.claude/projects/<chemin-encodé>/memory/MEMORY.md
+```
+
+C'est l'emplacement natif par défaut. Configurer `autoMemoryDirectory` seulement si un autre emplacement est nécessaire ; un dossier `.claude/memory/` ne devient pas automatiquement le stockage mémoire du projet.
+
+Depuis v2.1.63, les auto-memories sont partagées entre les git worktrees du même repo.
+
+## Ce qui se retrouve mémorisé
+
+```
+Décisions architecturales :
+  "Ce projet utilise Prisma pour l'accès base de données"
+
+Préférences équipe :
+  "Les composants fonctionnels sont préférés aux classes"
+
+Patterns spécifiques :
+  "Les routes API suivent le nommage RESTful dans /api/v1/"
+
+Problèmes connus :
+  "Ne pas utiliser le package X, conflit de version avec Y"
+```
+
+## CLAUDE.md vs auto-memories
+
+| Aspect | CLAUDE.md | Auto-Memories |
+|--------|-----------|---------------|
+| Gestion | Edition manuelle | Capture automatique |
+| Source | Documentation explicite | Analyse de conversation |
+| Visibilité | Git, partagé équipe | Local utilisateur, gitignore |
+| Contenu idéal | Conventions équipe | Découvertes personnelles |
+| Contrôle | Modifier les instructions | Inspecter, modifier, supprimer ou désactiver la mémoire |
+
+## Gérer les memories avec /memory
+
+```bash
+# Dans Claude Code (mode interactif)
+/memory          # Voir, éditer ou supprimer les entrées
+```
+
+## Quand utiliser quoi
+
+**Écrire dans CLAUDE.md manuellement :** conventions d'équipe, règles critiques que tout le monde doit respecter, décisions architecturales officielles.
+
+**Laisser les auto-memories travailler :** préférences de flux de travail personnelles, patterns découverts en cours de session, contexte temporaire lié à une fonctionnalité en cours.
+
+**Relire régulièrement** : inspecter la mémoire avec `/memory` et corriger les notes obsolètes. La mémoire automatique est activée par défaut ; `autoMemoryEnabled: false` la désactive. L'index de démarrage est limité à 200 lignes ou 25 Ko ; les fichiers thématiques se chargent à la demande. Les fichiers mémoire par défaut restent locaux à la machine et ne sont pas partagés via le dépôt. [Référence mémoire](https://code.claude.com/docs/en/memory).

@@ -1,0 +1,62 @@
+---
+title: "Sandbox : Natif vs Docker"
+subtitle: "Choisir le bon niveau d'isolation selon le contexte"
+card-number: "T17"
+category: "Technique"
+difficulty: "advanced"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: fr
+format:
+  recap-card-typst: default
+---
+
+## Comparer les limites réelles
+
+Le sandbox Bash natif de Claude Code utilise l'isolation des processus du système d'exploitation. Docker Sandboxes fournit un environnement distinct pour l'agent, avec des options microVM locales et cloud. Sa documentation actuelle utilise la CLI `sbx` ; vérifier installation et plateformes avant de reprendre d'anciens exemples `docker sandbox`.
+
+| Aspect | Sandbox Claude natif | Docker Sandboxes |
+|--------|-----------------------|------------------|
+| Limite | Isolation de processus par l'OS | Environnement sandbox séparé |
+| Noyau | Partagé avec l'hôte | Noyau séparé dans la microVM locale |
+| Installation | `/sandbox` ; dépendances sur Linux | Installer et configurer `sbx` |
+| Espace de travail | Répertoire actuel et ajouts explicites | Montages et synchronisation configurés |
+| Réseau | Politique de domaines et permissions | Politique réseau du sandbox |
+| Coût et performances | Mesurer vos commandes | Mesurer séparément calcul et usage des modèles |
+
+## Sandbox natif
+
+macOS utilise Seatbelt ; Linux et WSL2 utilisent bubblewrap et socat. Windows natif et WSL1 ne sont pas pris en charge par le sandbox natif de Claude Code.
+
+```text
+/sandbox
+```
+
+En mode de permissions normal, les règles existantes restent applicables. Auto-allow réduit les demandes pour les commandes sandboxées, avec des exceptions documentées. Inspecter la politique de reprise hors sandbox avant de compter sur l'isolation.
+
+## Docker Sandboxes
+
+Consulter la [documentation Docker Sandboxes](https://docs.docker.com/ai/sandboxes/) actuelle pour `sbx`, les plateformes, les différences local/cloud, l'accès matériel et le comportement du workspace. Une ancienne version de Docker Desktop ou un tableau historique ne décrit pas nécessairement la version installée.
+
+Une microVM ajoute une frontière de noyau sans garantir l'immunité aux évasions, à l'abus d'identifiants ou aux dégâts dans les espaces montés. Contourner les demandes de permission de l'agent exige toujours de limiter explicitement les données et services externes accessibles.
+
+## Choisir un environnement
+
+- Utiliser le sandbox natif si les accès requis entrent dans ses contrôles de fichiers et de réseau.
+- Évaluer un sandbox distinct pour une séparation plus forte ou des services propres à la tâche.
+- Avant de donner de l'autonomie, vérifier identifiants, montages, réseau, budget et reprise après échec.
+- Mesurer surcharge et résultats des tâches terminées, sans supposer de pourcentages universels de CPU ou de mémoire.
+
+## Runtime open-source
+
+Anthropic publie aussi un runtime sandbox capable d'encadrer d'autres commandes :
+
+```bash
+npx @anthropic-ai/sandbox-runtime node mcp-server.js
+```
+
+Source : [Sandboxing Claude Code](https://code.claude.com/docs/en/sandboxing).

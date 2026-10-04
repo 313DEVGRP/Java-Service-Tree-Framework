@@ -1,0 +1,56 @@
+---
+title: "Agent SDK & IDE Integrations"
+subtitle: "Integrating Claude Code into Xcode, VS Code, and other environments"
+card-number: "C12"
+category: "Design"
+difficulty: "advanced"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: en
+format:
+  recap-card-typst: default
+---
+
+## Two products, separate surfaces to verify
+
+**Claude Code** is an interactive development product. **Claude Agent SDK** supports integrations or applications that call Claude. Their exact relationship depends on the version and surface published by Anthropic; do not infer a shared architecture from a similar interface.
+
+| Surface | Check before deciding |
+|---------|-----------------------|
+| IDE extension | Editor documentation and official product page |
+| SDK | API reference, supported versions, and permission model |
+| MCP | Server, exposed tools, transport, and requested permissions |
+
+## MCP and IDE integration
+
+MCP is a tooling protocol. An integration can use MCP, an SDK, a native extension, or several of these mechanisms. None should be presented as a required condition for another.
+
+```
+IDE or local service ↔ published integration ↔ authorized tools
+```
+
+The security decision is unchanged: identify the tools actually exposed, their scope, and the execution path before granting permission.
+
+## MCP vetting before installation
+
+```bash
+# 1. Check the maintainer, repository, and targeted release
+gh repo view <mcp-repo>
+
+# 2. Check the version (never use "latest")
+# Always pin: @1.2.3 not @latest
+
+# 3. Read tools and permissions, then scan if available
+# Follow the current scanner installation and scope documentation
+# https://github.com/snyk/agent-scan
+```
+
+Do not use stars or a ranking as security evidence. Never approve an MCP from an unknown source without checking its tools, permissions, version, and update mechanism.
+
+## Custom Agent SDK use cases
+
+The Agent SDK can support integrations beyond standard IDEs: CI, PR analysis, dashboards, or review systems. Check the current API and limits in official documentation before designing the integration. See also [Agent Tools](https://cc.bruniaux.com/guide/agentic-tools/) and the [glossary](https://cc.bruniaux.com/guide/glossary/).

@@ -1,0 +1,75 @@
+---
+title: "Config Multi-Machine & Backup"
+subtitle: "Synchroniser sa configuration Claude Code entre plusieurs postes"
+card-number: "T10"
+category: "Technique"
+difficulty: "intermediate"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: fr
+format:
+  recap-card-typst: default
+---
+
+## Ce qui reste local ou peut être partagé
+
+| Local uniquement | Partageable |
+|------------|-----------|
+| `settings.local.json` | `agents/`, `skills/` |
+| Clés API, tokens | `hooks/`, `rules/` |
+| Historique des sessions | `settings.template.json` |
+| `.env` avec secrets | CLAUDE.md (conventions d'équipe) |
+
+**Règle d'or** : ne jamais committer de clés API ou d'identifiants. Utiliser des modèles avec des placeholders `${VAR_NAME}` pour les valeurs sensibles.
+
+## Versionner les fichiers de configuration relus
+
+Conserver les fichiers eux-mêmes dans un dépôt de configuration. Un lien symbolique du dépôt vers `~/.claude` ne stocke dans Git que la cible du lien, pas le contenu référencé.
+
+```bash
+# Create a new private configuration repository
+mkdir ~/claude-config-backup
+cd ~/claude-config-backup
+git init
+# Copy only directories that exist and have been reviewed
+cp -R ~/.claude/agents ./agents
+cp -R ~/.claude/skills ./skills
+cp -R ~/.claude/hooks ./hooks
+# Inspect copies for secrets and machine-specific paths before staging
+git add agents skills hooks
+git diff --cached
+# Commit and push only after reviewing the staged content
+```
+
+Créer séparément un modèle de paramètres nettoyé des secrets. Sur une autre machine, cloner le dépôt et comparer les fichiers à la configuration actuelle avant de les copier. Sauvegarder les fichiers existants et relire les hooks avant de les activer.
+
+## `settings.local.json` pour les choix propres à la machine
+
+Chaque machine peut avoir ses préférences sans toucher à la configuration partagée. Ce fichier prime sur `settings.json` et n'est jamais committé.
+
+```json
+{
+  "permissions": {
+    "allow": ["Bash(brew *)", "Bash(docker *)"]
+  },
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:8080"
+  }
+}
+```
+
+## Périmètre de sauvegarde cloud
+
+Sauvegarder les modèles de configuration relus plutôt que tout `~/.claude`, qui contient aussi des transcriptions et potentiellement des identifiants. Choisir les accès et la conservation selon les données réelles.
+
+## Sauvegarde automatique avec cron
+
+Créer d'abord le répertoire de sauvegarde et le protéger. Cette entrée archive le dépôt relu ; cron exige d'échapper le signe pourcentage dans `date`.
+
+```cron
+0 2 * * * tar -czf "$HOME/claude-backups/config-$(date +\%F).tar.gz" -C "$HOME" claude-config-backup
+```

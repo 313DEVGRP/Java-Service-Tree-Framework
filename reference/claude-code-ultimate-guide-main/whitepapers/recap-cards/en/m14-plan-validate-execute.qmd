@@ -1,0 +1,79 @@
+---
+title: "Plan-Validate-Execute Pipeline"
+subtitle: "The production 3-command workflow: research, validation, execution to a merged PR"
+card-number: "M14"
+category: "Methodology"
+difficulty: "advanced"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: en
+format:
+  recap-card-typst: default
+---
+
+## Overview
+
+Plan-Validate-Execute is a production workflow in three commands that extends native Plan Mode: `/plan-start`, `/plan-validate`, `/plan-execute`. Each run feeds an ADR learning loop that reduces human interruptions over time. Confidence: Tier 2, battle-tested by production teams shipping AI-first products at scale.
+
+## The 3 commands
+
+```bash
+/plan-start    # PRD + dynamic research team + ADRs
+/plan-validate # Structural checks + triggered specialist agents
+/plan-execute  # Worktree + TDD + parallel execution + merged PR
+```
+
+Run `/clear` between each command: every command reads its inputs from disk (the plan file, ADRs), nothing needs to stay in context memory.
+
+## /plan-start: 5-phase planning
+
+| Phase | Content |
+|-------|---------|
+| 1. PRD & design | Missing/ambiguous requirements, compliance |
+| 2. Technical | Explore agents, ADR creation for new decisions |
+| 3. Scope | Research team selection (tier 0 to 4) |
+| 4. Research | Agents run in parallel, `planning-coordinator` (Opus) synthesizes |
+
+If 3+ confirmed ADRs already cover the decision, phase 2 auto-resolves with no agent.
+
+## /plan-validate: 2-layer validation
+
+Layer 1 (structural, instant): plan format, task ordering, ADR consistency. Layer 2 (specialists, 0 to 8 agents by risk): `security-reviewer`, `db-migration-reviewer`, `performance-reviewer`, among others, each triggered by a precise criterion (auth, schema migration, new route...).
+
+Every issue must be resolved: auto-resolved from an existing ADR or `PATTERNS.md` entry, or settled by a human, which becomes a rule for next time.
+
+## /plan-execute: to a merged PR
+
+Isolated worktree, TDD scaffolding, parallel execution of independent tasks (commit per task), quality gate (tests + smoke test), PR and squash merge, worktree cleanup. If the quality gate fails: up to 3 auto-fix attempts by dedicated debug agents, then human notification.
+
+## ADR learning loop
+
+Every significant architectural decision generates an ADR. 1 ADR: watching. 2 ADRs: recommended default. 3+ ADRs: confirmed, auto-resolved on future plans, candidate for promotion to a hard rule in `CLAUDE.md`. On a 20-plan project, roughly 80% of architecture decisions auto-resolve.
+
+## When to use this pipeline
+
+| Criterion | Answer |
+|-----------|--------|
+| Multi-layer feature (API + DB + UI) | Yes |
+| Sensitive change (auth, payments, PII) | Yes |
+| Typo, trivial refactor | No, native `/plan` is enough |
+| Exploratory prototyping with unclear requirements | No |
+
+## Cost
+
+Measure all planning, validation, implementation and retry calls. Current standard rates per million input/output tokens are $2/$10 for Sonnet 5 and $4/$20 for Opus 5.5; a task label alone does not determine the pipeline cost.
+
+## Auto plan mode
+
+Force native Plan Mode on all operations via `--append-system-prompt`:
+
+```bash
+alias claude-safe='claude --append-system-prompt \
+  "$(cat ~/.claude/auto-plan-mode.txt)"'
+```
+
+The `auto-plan-mode.txt` file instructs Claude to present a plan and wait for explicit approval before each tool. Useful for sessions on critical or unfamiliar codebases, outside the 3-command pipeline.

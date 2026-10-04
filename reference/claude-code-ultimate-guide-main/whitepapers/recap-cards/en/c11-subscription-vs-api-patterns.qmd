@@ -1,0 +1,85 @@
+---
+title: "Subscription vs API: Cost Patterns"
+subtitle: "Understanding when each billing model is advantageous"
+card-number: "C11"
+category: "Design"
+difficulty: "intermediate"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: en
+format:
+  recap-card-typst: default
+---
+
+## Two fundamentally different models
+
+**Subscription:** you pay a fixed monthly amount and consume within a token budget limit. The cost is predictable, but the budget is capped and the limits are deliberately opaque.
+
+**API:** per-token billing, no cap. The cost is proportional to usage. Ideal for irregular or very high usage, but without protection against overruns.
+
+The practical distinction: subscription favors solo developers with regular daily usage, API favors teams, CI/CD pipelines, and high-volume use cases.
+
+## How subscription limits work
+
+Subscriptions use a hybrid model: a 5-hour rolling window and a weekly cap. Both apply simultaneously. Billing is announced in "messages" but actually corresponds to tokens, making limits difficult to anticipate.
+
+**Quota is not an API price ratio.** Model, context, tools and account policy affect subscription consumption. Inspect `/usage` and compare real sessions; the API token prices below do not predict how quickly a weekly allowance runs out.
+
+## Strategies by plan
+
+| Plan | Recommendation |
+|------|---------------|
+| Pro | Choose an available model for the task; monitor `/usage` |
+| Max 5x | Explicit Sonnet routing can be evaluated against the default |
+| Max 20x | More Opus freedom, but monitor weekly consumption |
+| API | Haiku for mechanical tasks, Sonnet for dev, Opus for audit |
+
+## The OpusPlan pattern for saving
+
+On a limited budget, compare Opus for planning with Sonnet or Haiku for bounded execution. Measure retries and accepted results before assuming this routing saves money.
+
+```bash
+# Phase 1: planning (Opus)
+claude --model opus
+"Analyze the architecture and propose a migration plan"
+
+# Phase 2: execution (Sonnet/Haiku)
+claude --model sonnet
+"Implement the plan according to the defined specs"
+```
+
+`/model opusplan` specifically uses Opus for planning and Sonnet for execution; it does not select Haiku.
+
+## Consumption monitoring
+
+```bash
+/usage             # Costs, usage limits and statistics
+/context           # Token breakdown
+
+# Community tool for cross-session history
+ccusage            # Overview all periods
+ccusage daily     # Daily totals
+ccusage monthly   # Monthly totals
+ccusage --breakdown # By model
+```
+
+`/usage` provides built-in metrics; `ccusage` adds local cross-session analysis. Neither estimate replaces an invoice.
+
+## When API wins
+
+Subscription hits its limits in three cases: teams where multiple developers consume simultaneously, CI/CD pipelines with a high PR volume, and projects with long daily sessions that exhaust the budget before the end of the week. In these contexts, API billing (with Haiku for mechanical tasks) often ends up cheaper than expected, especially with a progressive escalation strategy.
+
+## Explicit token-budget examples
+
+Standard direct-API USD, excluding caching and fast mode:
+
+| Input / output | Sonnet 5 | Opus 5.5 |
+|---|---|---|
+| 50K / 5K | $0.15 | $0.30 |
+| 150K / 20K | $0.50 | $1.00 |
+
+Actual task cost depends on all calls and retries.

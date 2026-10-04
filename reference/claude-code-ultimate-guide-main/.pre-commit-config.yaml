@@ -1,0 +1,69 @@
+---
+# Pre-commit hooks for quality gates
+# Install: pip install pre-commit && pre-commit install
+# Run: pre-commit run --all-files
+
+default_language_version:
+  python: python3
+
+repos:
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.37.0
+    hooks:
+      - id: markdownlint
+        name: Markdown lint
+        args: [--fix]
+        exclude: |
+          (?x)(
+            whitepapers/.*|
+            claudedocs/.*|
+            quiz/.*|
+            CHANGELOG\.md|
+            machine-readable/.*
+          )$
+
+  # Check YAML syntax
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.33.0
+    hooks:
+      - id: yamllint
+        name: YAML lint
+        args: [--strict]
+        exclude: |
+          (?x)(
+            whitepapers/.*|
+            claudedocs/.*|
+            node_modules/.*
+          )$
+
+  # Check for broken symlinks, JSON validity, line endings
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-symlinks
+      - id: check-json
+        exclude: quiz/src/questions\.json
+      - id: check-case-conflict
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+
+  # Custom version sync check
+  - repo: local
+    hooks:
+      - id: check-version-sync
+        name: Check VERSION file consistency
+        entry: scripts/check-version-sync.sh
+        language: script
+        files: >-
+          (^VERSION$|guide/ultimate-guide\.md$|guide/cheatsheet\.md$|
+          machine-readable/reference\.yaml$)
+        stages: [commit]
+
+  # Check for accidental commits of sensitive files
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: detect-private-key
+      - id: detect-aws-credentials
+        args: [--allow-missing-credentials]

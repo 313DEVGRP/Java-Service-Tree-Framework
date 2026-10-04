@@ -1,0 +1,56 @@
+# Question Template for Claude Code Knowledge Quiz
+#
+# Use this template to contribute new questions to the quiz.
+# Submit as a PR to: https://github.com/FlorianBruniaux/claude-code-ultimate-guide
+#
+# Guidelines:
+# - Test practical understanding, not memorization
+# - Make distractors plausible but clearly distinguishable
+# - Explanations should teach, not just state the correct answer
+# - Reference accurate sections from the guide
+#
+# Difficulty levels:
+# - junior: Basic commands, installation, simple concepts
+# - senior: Context management, configuration patterns, agent design
+# - power: Advanced orchestration, Trinity pattern, optimization
+#
+# Profile visibility:
+# - junior: Questions for new users (Day 1)
+# - senior: Questions for experienced developers (Week 1-2)
+# - power: Questions for advanced users (Month 1+)
+# - pm: Conceptual questions for non-technical stakeholders
+
+category: "Category Name"  # One of: Quick Start, Core Concepts, Memory & Settings, Agents, Skills, Commands, Hooks, MCP Servers, Advanced Patterns, Reference
+category_id: 1             # 1-10 matching category
+
+questions:
+  - id: "xx-001"           # Category prefix + unique number (qs=Quick Start, cc=Core Concepts, ms=Memory Settings, ag=Agents, sk=Skills, cm=Commands, hk=Hooks, mcp=MCP, ap=Advanced, rf=Reference)
+    difficulty: "junior"   # junior | senior | power
+    profiles: ["junior", "senior", "power", "pm"]  # Who sees this question
+    question: "What is the recommended action when context usage reaches 70%?"
+    options:
+      a: "Continue working normally"
+      b: "Use /compact to compress context"
+      c: "Use /clear to reset completely"
+      d: "Exit and restart Claude Code"
+    correct: "b"           # a | b | c | d
+    explanation: |
+      At 70% context usage (orange zone), you should use /compact to summarize
+      the conversation and free up space while preserving key context.
+
+      /clear is a more drastic option that completely resets context, which
+      is typically only needed at 90%+ usage (red/critical zone).
+
+      The context zones are:
+      - 0-50%: Green (work freely)
+      - 50-70%: Yellow (be selective)
+      - 70-90%: Orange (/compact now)
+      - 90%+: Red (/clear required)
+    doc_reference:
+      file: "guide/ultimate-guide.md"
+      section: "2.2 Context Management"
+      anchor: "#22-context-management"
+
+  # Add more questions following this format...
+  # - id: "xx-002"
+  #   ...

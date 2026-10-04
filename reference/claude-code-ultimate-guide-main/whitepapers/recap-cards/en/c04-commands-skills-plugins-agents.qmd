@@ -1,0 +1,92 @@
+---
+title: "Skills, Plugins & Agents"
+subtitle: "Choosing the right extension mechanism for the task"
+card-number: "C04"
+category: "Design"
+difficulty: "intermediate"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: en
+format:
+  recap-card-typst: default
+---
+
+## Comparison table
+
+| Mechanism | Scope | Invocation | Resources | Use Case |
+|-----------|-------|-----------|-----------|----------|
+| **Skill (user)** | Codified workflow | `/name` (user) | Yes | Repeatable task triggered manually |
+| **Skill (auto)** | Reusable knowledge | Auto by model | Yes | Shared expertise across agents |
+| **Plugin** | Marketplace | Global | Yes | Third-party integration |
+| **Agent** | Autonomous specialist | Agent tool | Via memory | Complex delegation |
+
+> **CC 2.1.3**: Custom commands and skills share invocation behavior. Existing `.claude/commands/*.md` files remain supported. Add `disable-model-invocation: true` for user-triggered-only skills.
+
+## User-Invocable Skills (formerly "Commands")
+
+Since CC 2.1.3, manually triggered workflows live in `.claude/skills/` with `disable-model-invocation: true`.
+
+```yaml
+# .claude/skills/release/SKILL.md
+---
+name: release
+description: Prepare a release (bump version, CHANGELOG, tag)
+allowed-tools: [Read, Write, Bash]
+disable-model-invocation: true
+---
+1. Read current version from package.json
+2. Bump according to semver (patch/minor/major)
+3. Update CHANGELOG.md
+4. Create git tag
+```
+
+**When to choose:** You have a sequence of instructions you trigger intentionally several times a week.
+
+## Model-invocable skills
+
+A skill without `disable-model-invocation` may be invoked by the model when its description fits the task.
+
+```yaml
+# .claude/skills/security-guardian/SKILL.md
+---
+name: security-guardian
+description: OWASP security review -- use when reviewing auth, routes, or user input
+allowed-tools: [Read, Grep, Glob]
+---
+Analyze code for OWASP Top 10 vulnerabilities...
+```
+
+**When to choose:** Multiple agents need the same specialized knowledge, or you want Claude to automatically load the right expertise.
+
+## Plugins: Third-Party integrations
+
+Plugins come from the marketplace and add external capabilities. Add a catalog with `/plugin marketplace add <source>`, then install a selected plugin with `/plugin install <name>@<marketplace>`.
+
+**When to choose:** An existing third-party integration covers exactly your need.
+
+`${CLAUDE_PLUGIN_DATA}` (v2.1.78+): Persistent directory for storing state between sessions.
+
+## Agents: Complex task delegation
+
+An agent is a specialized Claude with its own tools and scope. It isolates context, not simulates a human role.
+
+```yaml
+# .claude/agents/security-audit.md
+---
+name: security-audit
+description: Review authentication and input handling for security defects
+model: opus
+tools: Read, Grep, Glob
+---
+Analyze code for OWASP vulnerabilities...
+```
+
+**When to choose:** A long task that would pollute the main context, or parallelizable work.
+
+## Quick decision rule
+
+Manually triggered workflow = **User-invocable Skill**. Knowledge to share across agents = **Model-invocable Skill**. Third-party integration = **Plugin**. Task to delegate with isolated context = **Agent**.

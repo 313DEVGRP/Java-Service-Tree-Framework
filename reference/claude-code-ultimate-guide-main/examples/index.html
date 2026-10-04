@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Code Examples Catalog</title>
+  <meta name="description" content="Browse 50+ ready-to-use templates for Claude Code: agents, commands, hooks, skills, and more.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --border-default: #30363d;
+      --border-muted: #21262d;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent-green: #238636;
+      --accent-green-hover: #2ea043;
+      --accent-blue: #58a6ff;
+      --accent-purple: #a371f7;
+      --accent-orange: #d29922;
+      --accent-red: #f85149;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border-default);
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 1rem;
+      margin: 2rem auto;
+      max-width: 600px;
+    }
+
+    .search-input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 1rem;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
+    }
+
+    .search-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .stats {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--accent-blue);
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    .category {
+      margin-bottom: 1.5rem;
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.15s;
+    }
+
+    .category-header:hover {
+      background-color: var(--bg-tertiary);
+    }
+
+    .category-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .category-icon {
+      font-size: 1.25rem;
+    }
+
+    .category-count {
+      background-color: var(--bg-tertiary);
+      color: var(--text-secondary);
+      padding: 0.125rem 0.5rem;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .category-toggle {
+      color: var(--text-secondary);
+      transition: transform 0.2s;
+    }
+
+    .category.expanded .category-toggle {
+      transform: rotate(180deg);
+    }
+
+    .category-content {
+      display: none;
+      border-top: 1px solid var(--border-default);
+    }
+
+    .category.expanded .category-content {
+      display: block;
+    }
+
+    .category-description {
+      padding: 0.75rem 1.25rem;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      background-color: var(--bg-tertiary);
+    }
+
+    .file-list {
+      list-style: none;
+    }
+
+    .file-item {
+      border-bottom: 1px solid var(--border-muted);
+    }
+
+    .file-item:last-child {
+      border-bottom: none;
+    }
+
+    .file-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.25rem;
+      gap: 1rem;
+    }
+
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+      font-size: 0.875rem;
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+
+    .file-name:hover {
+      text-decoration: underline;
+    }
+
+    .file-description {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      padding: 0.375rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid var(--border-default);
+      background-color: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+
+    .btn:hover {
+      background-color: var(--border-default);
+    }
+
+    .btn-view {
+      background-color: transparent;
+    }
+
+    .btn-view.active {
+      background-color: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: white;
+    }
+
+    .btn-copy {
+      background-color: var(--accent-green);
+      border-color: var(--accent-green);
+      color: white;
+    }
+
+    .btn-copy:hover {
+      background-color: var(--accent-green-hover);
+    }
+
+    .btn-copy.copied {
+      background-color: var(--accent-purple);
+      border-color: var(--accent-purple);
+    }
+
+    .btn-download {
+      background-color: transparent;
+      color: var(--text-secondary);
+    }
+
+    .file-content {
+      display: none;
+      padding: 0;
+      background-color: var(--bg-primary);
+      border-top: 1px solid var(--border-muted);
+    }
+
+    .file-item.viewing .file-content {
+      display: block;
+    }
+
+    .file-content pre {
+      margin: 0;
+      padding: 1rem 1.25rem;
+      overflow-x: auto;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+    }
+
+    .file-content code {
+      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background-color: var(--accent-green);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 500;
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-secondary);
+    }
+
+    .no-results-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-default);
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+    }
+
+    footer a {
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        padding: 1rem 0.75rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .stats {
+        gap: 1rem;
+      }
+
+      .file-header {
+        flex-wrap: wrap;
+      }
+
+      .file-actions {
+        width: 100%;
+        justify-content: flex-end;
+        margin-top: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Claude Code Examples</h1>
+      <p class="subtitle">Ready-to-use templates for agents, commands, hooks, and more</p>
+    </header>
+
+    <div class="search-bar">
+      <input type="text" class="search-input" id="searchInput" placeholder="Search examples..." autocomplete="off">
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <main id="catalog"></main>
+
+    <div id="noResults" class="no-results" style="display: none;">
+      <div class="no-results-icon">🔍</div>
+      <p>No examples found matching your search.</p>
+    </div>
+
+    <footer>
+      <p>
+        Part of the <a href="https://github.com/anthropics/claude-code-guide">Claude Code Ultimate Guide</a>
+        &bull; <a href="../guide/ultimate-guide.md">Read the Guide</a>
+        &bull; <a href="./README.md">View on GitHub</a>
+      </p>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast">Copied to clipboard!</div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/powershell.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
+  <script>
+    // Examples data structure
+    const EXAMPLES = {
+      agents: {
+        icon: "🤖",
+        description: "Custom AI personas for specialized tasks. Place in .claude/agents/ or ~/.claude/agents/",
+        files: [
+          { name: "code-reviewer.md", path: "agents/code-reviewer.md", description: "Thorough code review with best practices" },
+          { name: "test-writer.md", path: "agents/test-writer.md", description: "TDD/BDD test generation specialist" },
+          { name: "security-auditor.md", path: "agents/security-auditor.md", description: "Security vulnerability detection (OWASP)" },
+          { name: "refactoring-specialist.md", path: "agents/refactoring-specialist.md", description: "Clean code refactoring expert" },
+          { name: "output-evaluator.md", path: "agents/output-evaluator.md", description: "LLM-as-a-Judge quality gate" }
+        ]
+      },
+      skills: {
+        icon: "📚",
+        description: "Reusable knowledge modules. Place in .claude/skills/ or ~/.claude/skills/",
+        files: [
+          { name: "tdd-workflow.md", path: "skills/tdd-workflow.md", description: "Test-Driven Development process" },
+          { name: "security-checklist.md", path: "skills/security-checklist.md", description: "OWASP Top 10 security checks" }
+        ]
+      },
+      commands: {
+        icon: "⚡",
+        description: "Custom slash commands. Place in .claude/commands/ or ~/.claude/commands/",
+        files: [
+          { name: "commit.md", path: "commands/commit.md", description: "/commit - Conventional commit messages" },
+          { name: "pr.md", path: "commands/pr.md", description: "/pr - Create well-structured PRs" },
+          { name: "review-pr.md", path: "commands/review-pr.md", description: "/review-pr - PR review workflow" },
+          { name: "release-notes.md", path: "commands/release-notes.md", description: "/release-notes - Generate in 3 formats" },
+          { name: "sonarqube.md", path: "commands/sonarqube.md", description: "/sonarqube - Analyze SonarCloud issues" },
+          { name: "generate-tests.md", path: "commands/generate-tests.md", description: "/generate-tests - Test generation" },
+          { name: "git-worktree.md", path: "commands/git-worktree.md", description: "/git-worktree - Isolated worktree setup" },
+          { name: "diagnose.md", path: "commands/diagnose.md", description: "/diagnose - Interactive troubleshooting" },
+          { name: "validate-changes.md", path: "commands/validate-changes.md", description: "/validate-changes - Pre-commit validation" }
+        ]
+      },
+      "hooks/bash": {
+        icon: "🔒",
+        description: "Event-driven automation scripts (Bash). Place in .claude/hooks/ or ~/.claude/hooks/",
+        files: [
+          { name: "dangerous-actions-blocker.sh", path: "hooks/bash/dangerous-actions-blocker.sh", description: "Block dangerous commands/edits" },
+          { name: "security-check.sh", path: "hooks/bash/security-check.sh", description: "Block secrets in commands" },
+          { name: "prompt-injection-detector.sh", path: "hooks/bash/prompt-injection-detector.sh", description: "Detect injection attempts" },
+          { name: "unicode-injection-scanner.sh", path: "hooks/bash/unicode-injection-scanner.sh", description: "Detect zero-width, RTL, ANSI escape" },
+          { name: "repo-integrity-scanner.sh", path: "hooks/bash/repo-integrity-scanner.sh", description: "Scan README/package.json for injection" },
+          { name: "mcp-config-integrity.sh", path: "hooks/bash/mcp-config-integrity.sh", description: "Verify MCP config hash (CVE)" },
+          { name: "output-secrets-scanner.sh", path: "hooks/bash/output-secrets-scanner.sh", description: "Detect secrets in output" },
+          { name: "auto-format.sh", path: "hooks/bash/auto-format.sh", description: "Auto-format after edits" },
+          { name: "notification.sh", path: "hooks/bash/notification.sh", description: "macOS sound alerts" },
+          { name: "output-validator.sh", path: "hooks/bash/output-validator.sh", description: "Heuristic output validation" },
+          { name: "session-logger.sh", path: "hooks/bash/session-logger.sh", description: "Log operations for monitoring" },
+          { name: "pre-commit-evaluator.sh", path: "hooks/bash/pre-commit-evaluator.sh", description: "LLM-as-a-Judge pre-commit" },
+          { name: "privacy-warning.sh", path: "hooks/bash/privacy-warning.sh", description: "Warn on privacy-sensitive ops" },
+          { name: "claudemd-scanner.sh", path: "hooks/bash/claudemd-scanner.sh", description: "Scan CLAUDE.md for issues" }
+        ]
+      },
+      "hooks/powershell": {
+        icon: "🪟",
+        description: "Event-driven automation scripts (PowerShell/Windows)",
+        files: [
+          { name: "security-check.ps1", path: "hooks/powershell/security-check.ps1", description: "Block secrets in commands" },
+          { name: "auto-format.ps1", path: "hooks/powershell/auto-format.ps1", description: "Auto-format after edits" }
+        ]
+      },
+      config: {
+        icon: "⚙️",
+        description: "Configuration file templates. Place in .claude/ or ~/.claude/",
+        files: [
+          { name: "settings.json", path: "config/settings.json", description: "Hooks and preferences config" },
+          { name: "mcp.json", path: "config/mcp.json", description: "MCP servers configuration" },
+          { name: ".gitignore-claude", path: "config/.gitignore-claude", description: "Git ignore patterns for Claude files" }
+        ]
+      },
+      memory: {
+        icon: "🧠",
+        description: "CLAUDE.md memory file templates for persistent context",
+        files: [
+          { name: "CLAUDE.md.project-template", path: "memory/CLAUDE.md.project-template", description: "Team project memory template" },
+          { name: "CLAUDE.md.personal-template", path: "memory/CLAUDE.md.personal-template", description: "Personal global memory template" }
+        ]
+      },
+      scripts: {
+        icon: "🛠️",
+        description: "Utility scripts for setup, diagnostics, and monitoring",
+        files: [
+          { name: "audit-scan.sh", path: "scripts/audit-scan.sh", description: "Fast setup audit scanner" },
+          { name: "check-claude.sh", path: "scripts/check-claude.sh", description: "Health check (macOS/Linux)" },
+          { name: "check-claude.ps1", path: "scripts/check-claude.ps1", description: "Health check (Windows)" },
+          { name: "clean-reinstall-claude.sh", path: "scripts/clean-reinstall-claude.sh", description: "Clean reinstall (macOS/Linux)" },
+          { name: "clean-reinstall-claude.ps1", path: "scripts/clean-reinstall-claude.ps1", description: "Clean reinstall (Windows)" },
+          { name: "session-stats.sh", path: "scripts/session-stats.sh", description: "Analyze session logs & costs" },
+          { name: "session-search.sh", path: "scripts/session-search.sh", description: "Search & resume sessions" }
+        ]
+      },
+      "github-actions": {
+        icon: "🚀",
+        description: "CI/CD workflows for GitHub Actions automation",
+        files: [
+          { name: "claude-pr-auto-review.yml", path: "github-actions/claude-pr-auto-review.yml", description: "Auto code review on PRs" },
+          { name: "claude-security-review.yml", path: "github-actions/claude-security-review.yml", description: "Security-focused PR scan" },
+          { name: "claude-issue-triage.yml", path: "github-actions/claude-issue-triage.yml", description: "Auto-triage issues with labels" }
+        ]
+      },
+      workflows: {
+        icon: "📋",
+        description: "Advanced development workflow guides",
+        files: [
+          { name: "database-branch-setup.md", path: "workflows/database-branch-setup.md", description: "Isolated feature dev with DB branches" }
+        ]
+      },
+      modes: {
+        icon: "🎭",
+        description: "Behavioral modes for Claude (SuperClaude framework). Place in ~/.claude/",
+        files: [
+          { name: "MODE_Learning.md", path: "modes/MODE_Learning.md", description: "Just-in-time explanations mode" }
+        ]
+      }
+    };
+
+    // State
+    let contentCache = {};
+    let expandedCategories = new Set();
+
+    // DOM elements
+    const catalogEl = document.getElementById('catalog');
+    const statsEl = document.getElementById('stats');
+    const searchInput = document.getElementById('searchInput');
+    const noResultsEl = document.getElementById('noResults');
+    const toastEl = document.getElementById('toast');
+
+    // Utility functions
+    function getLanguage(filename) {
+      const ext = filename.split('.').pop().toLowerCase();
+      const langMap = {
+        'md': 'markdown',
+        'json': 'json',
+        'yml': 'yaml',
+        'yaml': 'yaml',
+        'sh': 'bash',
+        'ps1': 'powershell',
+        'gitignore': 'plaintext'
+      };
+      return langMap[ext] || 'plaintext';
+    }
+
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 2000);
+    }
+
+    async function loadContent(path) {
+      if (contentCache[path]) {
+        return contentCache[path];
+      }
+      try {
+        const response = await fetch(path);
+        if (!response.ok) throw new Error('Failed to load');
+        const text = await response.text();
+        contentCache[path] = text;
+        return text;
+      } catch (error) {
+        return `Error loading file: ${error.message}`;
+      }
+    }
+
+    async function copyToClipboard(path) {
+      const content = await loadContent(path);
+      try {
+        await navigator.clipboard.writeText(content);
+        showToast('Copied to clipboard!');
+        return true;
+      } catch (error) {
+        showToast('Failed to copy');
+        return false;
+      }
+    }
+
+    function downloadFile(path, filename) {
+      const a = document.createElement('a');
+      a.href = path;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    async function toggleView(path, contentEl, viewBtn) {
+      const fileItem = contentEl.closest('.file-item');
+      const isViewing = fileItem.classList.contains('viewing');
+
+      if (isViewing) {
+        fileItem.classList.remove('viewing');
+        viewBtn.classList.remove('active');
+        viewBtn.textContent = 'View';
+      } else {
+        // Load and display content
+        const content = await loadContent(path);
+        const filename = path.split('/').pop();
+        const language = getLanguage(filename);
+
+        contentEl.innerHTML = `<pre><code class="language-${language}">${escapeHtml(content)}</code></pre>`;
+        hljs.highlightElement(contentEl.querySelector('code'));
+
+        fileItem.classList.add('viewing');
+        viewBtn.classList.add('active');
+        viewBtn.textContent = 'Hide';
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function renderStats() {
+      let totalFiles = 0;
+      let totalCategories = Object.keys(EXAMPLES).length;
+
+      Object.values(EXAMPLES).forEach(cat => {
+        totalFiles += cat.files.length;
+      });
+
+      statsEl.innerHTML = `
+        <div class="stat">
+          <div class="stat-number">${totalFiles}</div>
+          <div class="stat-label">Templates</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">${totalCategories}</div>
+          <div class="stat-label">Categories</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">100%</div>
+          <div class="stat-label">Copy-Ready</div>
+        </div>
+      `;
+    }
+
+    function renderCatalog(filter = '') {
+      const filterLower = filter.toLowerCase();
+      let html = '';
+      let hasResults = false;
+
+      Object.entries(EXAMPLES).forEach(([categoryId, category]) => {
+        const filteredFiles = category.files.filter(file =>
+          file.name.toLowerCase().includes(filterLower) ||
+          file.description.toLowerCase().includes(filterLower) ||
+          categoryId.toLowerCase().includes(filterLower)
+        );
+
+        if (filteredFiles.length === 0) return;
+        hasResults = true;
+
+        const isExpanded = expandedCategories.has(categoryId) || filter !== '';
+        const categoryName = categoryId.replace('/', ' / ').replace(/(^|\s)\S/g, t => t.toUpperCase());
+
+        html += `
+          <div class="category ${isExpanded ? 'expanded' : ''}" data-category="${categoryId}">
+            <div class="category-header" onclick="toggleCategory('${categoryId}')">
+              <div class="category-title">
+                <span class="category-icon">${category.icon}</span>
+                <span>${categoryName}</span>
+                <span class="category-count">${filteredFiles.length}</span>
+              </div>
+              <span class="category-toggle">▼</span>
+            </div>
+            <div class="category-content">
+              <div class="category-description">${category.description}</div>
+              <ul class="file-list">
+                ${filteredFiles.map(file => `
+                  <li class="file-item" data-path="${file.path}">
+                    <div class="file-header">
+                      <div class="file-info">
+                        <a class="file-name" href="${file.path}" target="_blank">${file.name}</a>
+                        <div class="file-description">${file.description}</div>
+                      </div>
+                      <div class="file-actions">
+                        <button class="btn btn-view" onclick="handleView('${file.path}', this)">View</button>
+                        <button class="btn btn-copy" onclick="handleCopy('${file.path}', this)">Copy</button>
+                        <button class="btn btn-download" onclick="downloadFile('${file.path}', '${file.name}')">↓</button>
+                      </div>
+                    </div>
+                    <div class="file-content"></div>
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          </div>
+        `;
+      });
+
+      catalogEl.innerHTML = html;
+      noResultsEl.style.display = hasResults ? 'none' : 'block';
+    }
+
+    function toggleCategory(categoryId) {
+      if (expandedCategories.has(categoryId)) {
+        expandedCategories.delete(categoryId);
+      } else {
+        expandedCategories.add(categoryId);
+      }
+      renderCatalog(searchInput.value);
+    }
+
+    async function handleView(path, btn) {
+      const fileItem = btn.closest('.file-item');
+      const contentEl = fileItem.querySelector('.file-content');
+      await toggleView(path, contentEl, btn);
+    }
+
+    async function handleCopy(path, btn) {
+      const success = await copyToClipboard(path);
+      if (success) {
+        const originalText = btn.textContent;
+        btn.textContent = '✓';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.classList.remove('copied');
+        }, 1500);
+      }
+    }
+
+    // Event listeners
+    let debounceTimer;
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        renderCatalog(e.target.value);
+      }, 150);
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== searchInput) {
+        e.preventDefault();
+        searchInput.focus();
+      }
+      if (e.key === 'Escape') {
+        searchInput.blur();
+        searchInput.value = '';
+        renderCatalog('');
+      }
+    });
+
+    // Initialize
+    renderStats();
+    renderCatalog();
+  </script>
+</body>
+</html>

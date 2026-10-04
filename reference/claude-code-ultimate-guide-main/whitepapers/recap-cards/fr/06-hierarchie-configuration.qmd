@@ -1,0 +1,89 @@
+---
+title: "Hiérarchie de Configuration"
+subtitle: "Où configurer quoi, de global à local"
+card-number: "T05"
+category: "Technique"
+guide-version: "3.43.0"
+difficulty: "beginner"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+wp-version: "1.1.1"
+date: "2026-09-26"
+layout: "two-col"
+lang: fr
+format:
+  recap-card-typst: default
+---
+
+## Niveaux de Configuration
+
+| Niveau | Fichier | Scope | Git |
+|--------|---------|-------|-----|
+| Global user | `~/.claude/settings.json` | Tous projets | Non |
+| Global rules | `~/.claude/CLAUDE.md` | Tous projets | Non |
+| Projet partagé | `.claude/settings.json` | Équipe | Oui |
+| Projet local | `.claude/settings.local.json` | Perso | Non |
+| Projet rules | `CLAUDE.md` (racine) | Équipe | Oui |
+| Sous-dossier | `sous-dossier/CLAUDE.md` | Dossier | Oui |
+
+## Résolution des Conflits
+
+```
+~/.claude/CLAUDE.md          (1 - base globale)
+↓ + merge
+./CLAUDE.md                  (2 - règles projet)
+↓ + merge
+sous-dossier/CLAUDE.md       (3 - règles locales)
+↓ + merge
+@import explicite             (4 - import inline)
+```
+
+Les règles du niveau inférieur **complètent** et ne remplacent pas les niveaux supérieurs.
+
+## settings.json : Structure
+
+```json
+{
+  "model": "claude-sonnet-5",
+  "permissions": {
+    "allow": ["Bash(git *)"],
+    "deny": ["Bash(rm -rf*)"]
+  },
+  "env": {
+    "DISABLE_TELEMETRY": "1"
+  }
+}
+```
+
+## CLAUDE.md : Bonnes pratiques
+
+```markdown
+# Conventions Projet
+
+## Stack
+- TypeScript strict mode
+- pnpm (pas npm)
+- Tests: Vitest
+
+## Règles
+- Toujours vérifier les types avant de modifier
+- Commit en anglais
+- Ne jamais modifier package-lock.json
+```
+
+## Ce qui Va Où
+
+**Global CLAUDE.md** : préférences personnelles, style de code, conventions universelles.
+
+**Projet CLAUDE.md** : architecture, stack, conventions équipe, commandes de build/test.
+
+**settings.json projet** : permissions d'outils, modèle par défaut, variables d'env de dev.
+
+**settings.local.json** : overrides perso qui ne doivent pas affecter l'équipe.
+
+## .gitignore obligatoire
+
+```
+# Dans .gitignore du projet
+.claude/settings.local.json
+```

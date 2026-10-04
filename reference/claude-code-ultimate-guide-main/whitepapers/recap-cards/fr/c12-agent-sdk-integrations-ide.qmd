@@ -1,0 +1,56 @@
+---
+title: "Agent SDK & Intégrations IDE"
+subtitle: "Intégrer Claude Code dans Xcode, VS Code et d'autres environnements"
+card-number: "C12"
+category: "Conception"
+difficulty: "advanced"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: fr
+format:
+  recap-card-typst: default
+---
+
+## Deux produits, des surfaces à vérifier séparément
+
+**Claude Code** est un produit de développement interactif. **Claude Agent SDK** permet de construire des intégrations ou des applications qui appellent Claude. Leur relation exacte dépend de la version et de la surface publiée par Anthropic; ne pas déduire une architecture commune à partir d'une interface similaire.
+
+| Surface | Vérification avant décision |
+|---------|-----------------------------|
+| Extension IDE | Documentation de l'éditeur et page officielle du produit |
+| SDK | Référence API, versions supportées et modèle de permissions |
+| MCP | Serveur, outils exposés, transport et permissions demandées |
+
+## MCP et intégration IDE
+
+MCP est un protocole d'outillage. Une intégration peut utiliser MCP, un SDK, une extension native ou plusieurs de ces mécanismes. Il ne faut pas présenter l'un comme une condition nécessaire de l'autre.
+
+```
+IDE ou service local ↔ intégration publiée ↔ outils autorisés
+```
+
+La décision de sécurité reste la même: identifier les outils réellement exposés, leur portée et le chemin d'exécution avant d'accorder une permission.
+
+## Vetting MCP avant installation
+
+```bash
+# 1. Vérifier le mainteneur, le dépôt et la release ciblée
+gh repo view <mcp-repo>
+
+# 2. Vérifier la version (ne jamais utiliser "latest")
+# Toujours épingler : @1.2.3 pas @latest
+
+# 3. Lire les outils et permissions, puis scanner si disponible
+# Suivre la documentation actuelle d’installation et de périmètre du scanner
+# https://github.com/snyk/agent-scan
+```
+
+Ne pas utiliser les étoiles ou un classement comme preuve de sécurité. Ne jamais approuver un MCP d'une source inconnue sans vérifier les outils, les permissions, la version et le mécanisme de mise à jour.
+
+## Cas d'usage Agent SDK custom
+
+L'Agent SDK peut servir à construire des intégrations au-delà des IDEs standards: CI, analyses de PR, tableaux de bord ou systèmes de revue. Vérifier l'API et les limites actuelles dans la documentation officielle avant de concevoir l'intégration. Voir aussi [Agent Tools](https://cc.bruniaux.com/guide/agentic-tools/) et le [glossaire](https://cc.bruniaux.com/guide/glossary/).

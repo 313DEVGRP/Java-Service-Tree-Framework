@@ -1,0 +1,62 @@
+---
+title: "Sandbox: Native vs Docker"
+subtitle: "Choosing the right isolation level for your context"
+card-number: "T17"
+category: "Technical"
+difficulty: "advanced"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: en
+format:
+  recap-card-typst: default
+---
+
+## Compare the actual boundaries
+
+Claude Code's native Bash sandbox uses OS process isolation. Docker Sandboxes provides a separate environment for an agent, with local microVM and cloud options. The current Docker documentation uses the `sbx` CLI; check its installation and platform requirements before adopting commands from older `docker sandbox` examples.
+
+| Aspect | Native Claude sandbox | Docker Sandboxes |
+|--------|-----------------------|------------------|
+| Boundary | OS process isolation | Separate sandbox environment |
+| Kernel | Shares the host kernel | Local microVM has a separate kernel |
+| Setup | `/sandbox`; Linux requires dependencies | Install and configure `sbx` |
+| Workspace | Current and explicitly added directories | Configured workspace mounts and synchronization |
+| Network | Domain policy and permission flow | Sandbox network policy |
+| Cost and performance | Measure your commands | Measure compute and model use separately |
+
+## Native sandbox
+
+macOS uses Seatbelt; Linux and WSL2 use bubblewrap and socat. Native Windows and WSL1 are not supported by Claude Code's native sandbox.
+
+```text
+/sandbox
+```
+
+In regular permissions mode, existing permission rules still apply. Auto-allow reduces prompts for sandboxed commands, with documented exceptions. Inspect the unsandboxed retry policy before relying on isolation.
+
+## Docker Sandboxes
+
+Follow the current [Docker Sandboxes documentation](https://docs.docker.com/ai/sandboxes/) for `sbx`, supported platforms, local/cloud differences, hardware access and workspace behavior. Do not assume an older Docker Desktop version or a historical platform table describes the installed release.
+
+A microVM adds a kernel boundary but does not guarantee immunity from escape, misuse of credentials or damage to mounted workspaces. Bypassing agent permission prompts still requires deliberate restrictions on accessible data and external services.
+
+## Choosing an environment
+
+- Use the native sandbox for commands whose required access fits its filesystem and network controls.
+- Evaluate a separate sandbox when the workload needs stronger separation or its own services.
+- For unattended work, verify credentials, mounts, network rules, budget and recovery behavior before granting autonomy.
+- Measure overhead and completed-task outcomes instead of relying on universal CPU or memory percentages.
+
+## Open-source runtime
+
+Anthropic also publishes a sandbox runtime that can wrap other commands:
+
+```bash
+npx @anthropic-ai/sandbox-runtime node mcp-server.js
+```
+
+Source: [Claude Code sandboxing](https://code.claude.com/docs/en/sandboxing).

@@ -1,0 +1,90 @@
+---
+title: "Non-Interactive & Headless Mode"
+subtitle: "Using Claude Code without human interaction: scripts, CI, pipes"
+card-number: "T02"
+category: "Technical"
+difficulty: "intermediate"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: en
+format:
+  recap-card-typst: default
+---
+
+## Base flag: `-p`
+
+The `-p` flag (or `--print`) activates non-interactive mode. Claude returns the response in the terminal and exits immediately without waiting for user input.
+
+```bash
+# Direct prompt
+claude -p "Analyze this file and list the bugs"
+
+# With pipe stdin (content becomes the input)
+git diff | claude -p "Explain these changes"
+cat error.log | claude -p "Identify the root cause"
+```
+
+## Output formats
+
+`--output-format` controls the response structure, which is essential for integration into scripts.
+
+| Format | Usage |
+|--------|-------|
+| `text` | Human-readable, default |
+| `json` | Parseable by `jq` |
+| `stream-json` | Real-time streaming |
+
+```bash
+# JSON output for automatic parsing
+git status --short | claude -p "Categorize the changes" \
+  --output-format json | jq -r '.result'
+
+# Stream JSON for long operations
+cat report.txt | claude -p "Summarize" --output-format stream-json --verbose
+```
+
+## Flow control in pipes
+
+In print mode, `claude -p` waits for the complete response and writes it to stdout in a single block, which simplifies pipes with tools that expect complete input. Real-time streaming is opt-in via `--output-format stream-json`.
+
+```bash
+claude -p "Generate a report" > report.md
+```
+
+## CI/CD usage
+
+In an isolated container, `--dangerously-skip-permissions` suppresses all confirmation requests. Reserve exclusively for sandboxed environments where Claude cannot access sensitive resources.
+
+```bash
+# GitHub Actions (isolated container)
+claude -p "Run the tests and fix failures" \
+  --dangerously-skip-permissions \
+  --output-format json
+```
+
+## Common patterns
+
+```bash
+# Automated log analysis
+tail -n 200 app.log | claude -p "Critical alerts only" \
+  --output-format json
+
+# PR review (package.json integration)
+git diff main...HEAD | claude -p "Security review, JSON format" \
+  --output-format json > review.json
+```
+
+## Interactive vs non-interactive
+
+| Aspect | Interactive | Non-Interactive (`-p`) |
+|--------|-------------|------------------------|
+| Output | Stream UI | Raw stdout |
+| Permissions | Prompts or saved rules | Configure allow rules or a bounded permission mode |
+| Usage | Development | CI, scripts, pipes |
+| Session | Persistent | Saved by default; can continue or resume |
+
+**Best practice**: limit pipe size to avoid exceeding the context window. Filter with `head`, `grep` or `--name-only` before sending to Claude.

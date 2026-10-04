@@ -1,0 +1,86 @@
+---
+title: "Gestion du Contexte"
+subtitle: "Gérer la fenêtre de contexte pour des sessions efficaces"
+card-number: "M02"
+category: "Méthodologie"
+guide-version: "3.43.0"
+difficulty: "beginner"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+wp-version: "1.1.2"
+date: "2026-09-26"
+layout: "two-col"
+lang: fr
+format:
+  recap-card-typst: default
+---
+
+## Indicateurs de contexte
+
+Consultez `/context` pour la capacité actuelle et les postes les plus volumineux. Compactez lorsque les anciens détails ne sont plus nécessaires ; repartez de zéro lorsque la tâche change. Les seuils en pourcentage peuvent servir de rappels personnels, mais ne prouvent pas une perte universelle de qualité du raisonnement.
+
+## Sources de Contexte (par priorité)
+
+```
+1. ~/.claude/CLAUDE.md       Règles globales
+2. ./CLAUDE.md               Règles projet (racine)
+3. sous-dossier/CLAUDE.md    Règles locales (cumulé)
+4. .claude/rules/*.md        Règles générales au démarrage ; règles paths si pertinentes
+5. @fichier                  Import explicite inline (en session)
+```
+
+## Commandes de Gestion
+
+```bash
+/compact        # Résumer le contexte ancien ; réduction variable
+/clear          # Nouveau contexte ; les sessions enregistrées restent reprenables
+/usage          # Utilisation et limites de l’offre
+/context        # État détaillé du contexte
+```
+
+## Ajouter du Contexte Intelligemment
+
+```
+# Dans le prompt
+@src/auth.ts Regarde cette fonction
+
+# Via CLAUDE.md (persistant)
+Always read package.json before working on deps.
+
+# Via .claude/rules/ (auto-chargé au démarrage)
+Rules scopées par chemin (paths:) ou globales
+```
+
+## Stratégies par Scénario
+
+**Session longue (refactoring)** : créer des points de contrôle aux transitions pertinentes de la tâche. Enregistrer les décisions importantes dans `CLAUDE.md`.
+
+**Débogage complexe** : Donner uniquement les fichiers pertinents avec `@fichier`. Éviter d'ouvrir tout le projet d'un coup.
+
+**Multi-fichiers** : demander à Claude de déléguer via l’outil Agent. `--agent` choisit l’agent de la session principale.
+
+## Ce qui Consomme le Plus
+
+| Source | Impact |
+|--------|--------|
+| Gros fichiers lus en entier | Très élevé |
+| Historique de conversation | Élevé |
+| Sorties de commandes verbeuses | Élevé |
+| CLAUDE.md trop long | Moyen |
+| Réponses Claude longues | Moyen |
+
+## Optimiser CLAUDE.md
+
+```markdown
+# Bon : règles courtes et actionnables
+- Always use TypeScript strict mode
+- Prefer pnpm over npm
+
+# Mauvais : contexte narratif long
+We have been working on this project since 2023
+and the team decided after many debates to...
+```
+
+## Anti-patterns Fréquents
+
+Ne pas coller de gros JSON ou logs bruts dans le prompt. Utiliser un fichier temporaire et `@fichier`. En cas d’avertissement de contexte, inspecter son contenu et préserver les décisions avant compaction.

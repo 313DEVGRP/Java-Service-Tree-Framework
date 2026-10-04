@@ -1,0 +1,104 @@
+---
+title: "Settings.json : Structure Complète"
+subtitle: "Toutes les clés de configuration et leur portée"
+card-number: "T06"
+category: "Technique"
+difficulty: "intermediate"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: fr
+format:
+  recap-card-typst: default
+---
+
+## Hiérarchie des fichiers
+
+```
+~/.claude/settings.json         (global, tous les projets)
+        ↓ surchargé par
+.claude/settings.json           (projet, partagé équipe)
+        ↓ surchargé par
+.claude/settings.local.json     (machine locale, gitignore)
+```
+
+Les réglages locaux du projet prennent le dessus sur ceux du projet et de l’utilisateur. Les arguments CLI et la politique administrée sont prioritaires. Utilisez les réglages locaux pour vos ajustements personnels sans conflit Git.
+
+## Structure complète
+
+```json
+{
+  "model": "claude-sonnet-5",
+  "permissions": {
+    "allow": ["Bash(git *)", "Bash(pnpm *)", "Read"],
+    "deny":  ["Bash(rm -rf *)", "Write(*.env*)"],
+    "ask":   ["Bash(npm publish)"],
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": ["../shared-libs/"]
+  },
+  "env": {
+    "NODE_ENV": "development",
+    "LOG_LEVEL": "debug"
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh"
+  },
+  "outputStyle": "Explanatory",
+  "hooks": {
+    "PostToolUse": [{
+      "matcher": "Edit|Write",
+      "hooks": [{ "type": "command",
+                  "command": ".claude/hooks/format.sh" }]
+    }]
+  }
+}
+```
+
+## Clés disponibles
+
+| Clé | Rôle |
+|-----|------|
+| `model` | Modèle par défaut |
+| `permissions.allow` | Outils auto-approuvés |
+| `permissions.deny` | Outils bloqués |
+| `permissions.ask` | Outils avec confirmation |
+| `permissions.defaultMode` | Mode par défaut (default/acceptEdits/plan/auto/dontAsk/bypassPermissions) |
+| `permissions` → `additionalDirectories` | Répertoires additionnels accessibles |
+| `env` | Variables d'environnement injectées |
+| `hooks` | Scripts déclenchés sur événements |
+| `statusLine` | Ligne de statut personnalisée |
+| `outputStyle` | Style de communication (Default/Proactive/Concise/Explanatory/Learning) |
+| `spinnerVerbs` | Mots dans le spinner de chargement |
+| `spinnerTipsOverride` | Conseils affichés pendant le traitement |
+| `enableAllProjectMcpServers` | Active tous les serveurs MCP du projet |
+
+## Personnalisation du spinner
+
+```json
+{
+  "spinnerVerbs": {
+    "mode": "replace",
+    "verbs": ["Cafféination…", "Réflexion…", "Optimisation…"]
+  },
+  "spinnerTipsOverride": {
+    "tips": ["/compact quand le contexte est plein"],
+    "excludeDefault": true
+  }
+}
+```
+
+`mode: "append"` étend la liste par défaut plutôt que de la remplacer. Ces clés n'ont aucun impact fonctionnel, uniquement cosmétique.
+
+## Ce qui doit rester en .gitignore
+
+```gitignore
+.claude/settings.local.json   # Overrides machine locale
+CLAUDE.local.md              # Instructions personnelles du projet
+.env.local                    # Secrets
+```
+
+Les fichiers à committer (`settings.json`, `agents/`, `skills/`, `hooks/`, `rules/`) représentent la configuration d'équipe partagée. Ne jamais inclure de clés API ou de tokens dans ces fichiers.

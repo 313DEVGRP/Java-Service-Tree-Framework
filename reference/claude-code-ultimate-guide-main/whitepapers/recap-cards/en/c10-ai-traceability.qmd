@@ -1,0 +1,81 @@
+---
+title: "AI Traceability"
+subtitle: "Tracking AI contributions in code and commits"
+card-number: "C10"
+category: "Design"
+difficulty: "intermediate"
+guide-version: "3.43.0"
+wp-version: "1.0.1"
+author: "Florian BRUNIAUX"
+version: "3.43.0"
+date: "2026-09-26"
+layout: "two-col"
+lang: en
+format:
+  recap-card-typst: default
+---
+
+## Why trace now
+
+The majority of AI tools (Copilot, Cursor, ChatGPT) leave no trace in version control. AI contributions become indistinguishable from human contributions. This silence creates three concrete problems: reviewers don't know what to examine more carefully, auditors cannot verify AI usage, and when a bug appears, it is impossible to know whether the logic came from a human decision or an automated generation.
+
+Claude Code adds a `Co-Authored-By` trailer to commits by default. It is a starting point, but not the only option.
+
+## The disclosure spectrum
+
+| Level | Method | When to use |
+|-------|---------|-------------|
+| Minimal | `Co-Authored-By` trailer | Casual OSS, small teams |
+| Standard | `Assisted-by` trailer + PR disclosure | Active projects, OSS contributions |
+| Full | git-ai checkpoints + preserved prompts | Enterprise, compliance, audit |
+
+**`Co-Authored-By` convention (Claude Code default):**
+
+```
+feat: implement user authentication
+
+JWT-based auth with refresh tokens.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+```
+
+**`Assisted-by` convention (LLVM standard):** different semantics. The developer remains the primary author, AI assisted.
+
+```
+Assisted-by: Claude (Anthropic)
+```
+
+## Policies of major projects
+
+| Project | Policy | Trigger |
+|---------|---------|---------|
+| LLVM (Jan. 2026) | `Assisted-by` required | Significant assistance |
+| Ghostty | Disclosure in PR | Any AI tool |
+| Fedora | Disclosure + accountability | "Substantial" usage |
+
+All three projects prohibit fully autonomous agents and require that a human understands, reviews, and remains responsible for the code.
+
+**What traceability is not:** a quality certification. Mentioning Claude does not guarantee that the code is good, nor that it was reviewed. It is transparency about origin, not a validation.
+
+## CONTRIBUTING.md template for your team
+
+```markdown
+## AI Assistance Disclosure
+
+If you use an AI tool to contribute, indicate it
+in your PR description.
+
+What to disclose: generated code, assisted research,
+suggested algorithms, written documentation.
+
+No need to disclose: trivial autocomplete,
+grammar correction, IDE helpers.
+```
+
+## AI code Halflife
+
+Traceability makes longitudinal maintenance studies possible. Compare equivalent cohorts, observation periods and review practices before attributing differences in code survival to AI assistance. This card does not establish a measured lifespan or a causal effect.
+
+## Advanced tool: Entire CLI
+
+For enterprise teams, Entire CLI (Feb 2026, Thomas Dohmke) captures complete sessions as Git checkpoints: prompts, tool calls, diffs, and reasoning, on an orphan branch without polluting the main history. Review capture scope, access and retention against your organization's audit requirements. Recording sessions does not itself demonstrate compliance.
