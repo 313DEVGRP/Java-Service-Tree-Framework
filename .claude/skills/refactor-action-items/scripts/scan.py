@@ -235,6 +235,7 @@ def main():
     ap.add_argument("targets", nargs="*", default=[])
     ap.add_argument("--diff", action="store_true", help="git 변경분에 걸친 후보만")
     ap.add_argument("--base", default=None, help="비교 기준 (기본: HEAD 대비 작업 트리)")
+    ap.add_argument("--all", action="store_true", help="같은 유형도 줄이지 않고 후보를 전부 출력")
     a = ap.parse_args()
 
     if a.diff:
@@ -272,15 +273,15 @@ def main():
         shown = collections.Counter()
         for ln, cat, msg in items:
             shown[(cat, msg.split(" ")[0])] += 1
-            if shown[(cat, msg.split(" ")[0])] <= 6:
+            if a.all or shown[(cat, msg.split(" ")[0])] <= 6:
                 print(f"  {f}:{ln}  [{cat}] {msg}")
-        more = sum(max(0, v - 6) for v in shown.values())
+        more = 0 if a.all else sum(max(0, v - 6) for v in shown.values())
         if more:
             print(f"  … 같은 유형 {more}건 더")
         print()
     if dup:
         print("## 여러 파일에 같은 이름으로 선언된 전역 함수 (JS-05 · JS-13)")
-        for k, v in sorted(dup.items(), key=lambda x: -len(x[1]))[:15]:
+        for k, v in sorted(dup.items(), key=lambda x: -len(x[1]))[:None if a.all else 15]:
             print(f"  {k}: {len(v)}곳 — " + ", ".join(v[:5]) + (" …" if len(v) > 5 else ""))
 
 
