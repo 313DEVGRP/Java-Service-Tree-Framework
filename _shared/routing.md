@@ -23,7 +23,7 @@
 │   └── — (전담 워커 없음 → Orchestrator 직접)
 │
 ├── [reviewer] 산출물 리뷰 / 비판적 검증?
-│   └── claude-reviewer   (Sonnet 5 · 읽기 전용)
+│   └── claude-reviewer   (Sonnet 5.5 · 읽기 전용)
 │
 ├── [multimodal] 이미지 · 스크린샷 분석 / 50페이지+ 문서?
 │   └── — (전담 워커 없음 → Orchestrator 직접)
@@ -71,10 +71,10 @@ decision tree로 "누구를" 고른 뒤, "어떻게 엮을지" 고른다. **단�
 - **호출 명령**: Claude Code 내장 **Task tool (sub-agent)**
   - `subagent_type`: `claude-main` (`.claude/agents/claude-main.md`에 정의)
   - `prompt`: brief.md 내용 그대로 전달
-  - `model`: agent 정의 파일 frontmatter의 `model: opus`가 자동 적용 (별칭 — 현재 환경의 Opus로 해석. 버전 문자열 핀하지 않음. 모델 정책 참조)
+  - `model`: agent 정의 파일 frontmatter의 `model: claude-opus-5-5`가 자동 적용 (사용자 지정 핀 — 모델 정책 참조)
   - `description`: 짧은 작업명 (3~5 단어)
 - **권한**: 메인 Claude Code 세션의 권한 모드 상속. `--dangerously-skip-permissions` (yolo) 모드면 sub-agent도 yolo로 작동. 단 MultiAgent 시스템 게이트(`workers_approved`, 외부 쓰기 4조건)는 별개로 유지된다
-- **비용**: 있음 (Opus(`opus` 별칭) sub-agent 호출. 별도 모델 호출이며 비용·쿼터 대상) → 승인 필요
+- **비용**: 있음 (Opus 5.5(`claude-opus-5-5` 핀) sub-agent 호출. 별도 모델 호출이며 비용·쿼터 대상) → 승인 필요
 - **파일 쓰기**: ❌ 직접 X. Task tool이 반환한 텍스트를 Orchestrator가 받아 `result.md`에 기록
 - ※ Orchestrator의 내부 추론과 다름.
 
@@ -86,7 +86,7 @@ decision tree로 "누구를" 고른 뒤, "어떻게 엮을지" 고른다. **단�
 - **호출 명령**: Claude Code 내장 **Task tool (sub-agent)**
   - `subagent_type`: `claude-reviewer` (`.claude/agents/claude-reviewer.md`에 정의)
   - `prompt`: brief.md 내용 그대로 전달. brief에 "비평 모드" 명시, `target_repo` 명시(비평 대상 repo 컨텍스트), `write_scope: none`
-  - `model`: agent frontmatter `model: claude-sonnet-5` 자동 적용 (사용자 지정 핀 — 모델 정책 참조)
+  - `model`: agent frontmatter `model: claude-sonnet-5-5` 자동 적용 (사용자 지정 핀 — 모델 정책 참조)
   - `description`: 짧은 작업명 (3~5 단어)
 - **brief 필수 필드** (`gate.sh` G5 가 읽는다):
   ```yaml
@@ -94,9 +94,9 @@ decision tree로 "누구를" 고른 뒤, "어떻게 엮을지" 고른다. **단�
   write_scope: none                                     # 값 집합 none | tasks-only | "src/**, tests/**" (CLAUDE.md 정의) — claude-reviewer 는 항상 none
   ```
 - **읽기 전용 강제**: agent `tools` 화이트리스트 = `Read, Grep, Glob, Bash` (Write·Edit·NotebookEdit 없음). Bash 쓰기는 도구로 막히지 않으므로 `target_repo`가 git repo면 호출 전후 `scope_check.sh`(`write_scope=none`) 대조로 변경 0건 확인 (CLAUDE.md Task Lifecycle 6)
-- **비용**: 있음 (Sonnet 5 sub-agent 호출. 별도 모델 호출이며 비용·쿼터 대상) → 승인 필요
+- **비용**: 있음 (Sonnet 5.5 sub-agent 호출. 별도 모델 호출이며 비용·쿼터 대상) → 승인 필요
 - **파일 쓰기**: ❌ 직접 X. Orchestrator 경유
-- **독립성**: 생성 쪽(Orchestrator · claude-main = Opus)과 다른 모델 + 깨끗한 컨텍스트. 교차 벤더 검증은 아님 — 같은 계열 편향이 우려되는 작업이면 사용자에게 외부 검토를 제안한다
+- **독립성**: 생성 쪽(Orchestrator · claude-main = Opus 5.5)과 다른 모델 + 깨끗한 컨텍스트. 교차 벤더 검증은 아님 — 같은 계열 편향이 우려되는 작업이면 사용자에게 외부 검토를 제안한다
 
 ### 폐기된 워커 (2026-10-01, design-basis D15)
 - `codex-main` · `codex-critic`(`mcp__codex__codex`) · `gemini`(`agy` CLI · `call_worker.sh gemini`)는 **삭제**됐다. 활성 호출 경로로 쓰지 말 것. 옛 작업의 brief·result·log 에 남은 이름은 이력이다.
@@ -105,9 +105,9 @@ decision tree로 "누구를" 고른 뒤, "어떻게 엮을지" 고른다. **단�
 
 각 worker가 실제 어떤 모델로 도는지 정리. 사용자가 매번 명시할 필요는 없으며, 아래 기본이 자동 적용된다.
 
-- **claude-main**: 별칭 **`opus`** (`.claude/agents/claude-main.md` frontmatter `model: opus`). 버전 문자열을 핀하지 않는다 — 별칭이 현재 환경의 최신 Opus로 자동 해석되므로 모델이 올라가도 갱신 불필요.
+- **claude-main**: **`claude-opus-5-5` 핀** (`.claude/agents/claude-main.md` frontmatter `model: claude-opus-5-5`, `backends.json` 동일 값). 사용자가 Opus 5.5를 지정했으므로 별칭(`opus`)이 아닌 버전 핀이다 — 모델이 올라가도 자동 이동하지 않으며, 변경은 두 파일을 함께 바꾼다(D16).
   - **추론 강도(effort)**: claude-main 정의엔 `effort` 필드가 **없음 → 세션 `/effort` 값을 상속**한다(현재 세션이 high면 high로 동작). 세션과 무관하게 고정하려면 frontmatter에 `effort: high` 등을 명시(상속 끔). 고정은 결정성↑이나 현재는 상속 유지가 기본.
-- **claude-reviewer**: **`claude-sonnet-5` 핀** (`.claude/agents/claude-reviewer.md` frontmatter `model: claude-sonnet-5`, `backends.json` 동일 값). 사용자가 "Sonnet 5"를 지정했으므로 별칭(`sonnet`)이 아닌 버전 핀이다 — 별칭은 다음 Sonnet 세대로 자동 이동해 지정과 어긋날 수 있다(D7 예외, D15). 모델 변경은 두 파일을 함께 바꾼다.
+- **claude-reviewer**: **`claude-sonnet-5-5` 핀** (`.claude/agents/claude-reviewer.md` frontmatter `model: claude-sonnet-5-5`, `backends.json` 동일 값). 사용자가 "Sonnet 5.5"를 지정했으므로 별칭(`sonnet`)이 아닌 버전 핀이다 — 별칭은 다음 Sonnet 세대로 자동 이동해 지정과 어긋날 수 있다(D7 예외, D15·D16). 모델 변경은 두 파일을 함께 바꾼다.
   - **추론 강도(effort)**: claude-main과 같이 `effort` 필드 없음 → 세션 `/effort` 상속.
 
 ## 최소 Worker Set 원칙

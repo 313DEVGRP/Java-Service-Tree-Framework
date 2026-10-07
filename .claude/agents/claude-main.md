@@ -1,7 +1,7 @@
 ---
 name: claude-main
 description: MultiAgent 시스템의 claude-main 워커 (strategist 슬롯). 기획·설계 문서·아키텍처·전략 수립·디자인 방향·문체가 중요한 글쓰기·디버깅 원인 분석을 담당한다. Orchestrator가 brief.md를 prompt로 전달하면 결과 텍스트를 반환한다. 파일 시스템에 직접 쓰지 않고 응답은 Orchestrator가 받아 result.md에 저장한다.
-model: opus
+model: claude-opus-5-5
 tools: '*'
 ---
 

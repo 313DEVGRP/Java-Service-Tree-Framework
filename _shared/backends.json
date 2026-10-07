@@ -4,23 +4,23 @@
   "multiagent_root_env": "MULTIAGENT_ROOT",
   "workers": {
     "claude-main": {
-      "model": "host-default",
+      "model": "claude-opus-5-5",
       "call_type": "native",
       "native": {
         "subagent_type": "claude-main",
         "prompt_source": "brief",
-        "model_alias": "opus"
+        "model_alias": "claude-opus-5-5"
       },
       "approval_class": "worker",
       "result_capture": "orchestrator"
     },
     "claude-reviewer": {
-      "model": "claude-sonnet-5",
+      "model": "claude-sonnet-5-5",
       "call_type": "native",
       "native": {
         "subagent_type": "claude-reviewer",
         "prompt_source": "brief",
-        "model_alias": "claude-sonnet-5"
+        "model_alias": "claude-sonnet-5-5"
       },
       "approval_class": "worker",
       "result_capture": "orchestrator"

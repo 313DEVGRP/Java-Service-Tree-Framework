@@ -31,8 +31,8 @@
 
 | Worker | 예상 비용 | 쿼터 부담 |
 |--------|---------|----------|
-| claude-main | 중간 | Claude API/구독 쿼터 차감 (Opus) |
-| claude-reviewer | 낮음-중간 | Claude API/구독 쿼터 차감 (Sonnet 5) |
+| claude-main | 중간 | Claude API/구독 쿼터 차감 (Opus 5.5) |
+| claude-reviewer | 낮음-중간 | Claude API/구독 쿼터 차감 (Sonnet 5.5) |
 
 claude-main이 "내부 추론"과 같은 모델이라도 별도 호출이므로 쿼터·비용 발생.
 전담 워커가 없는 슬롯(engineer · computer-use · multimodal)의 Orchestrator 직접 작업은 worker 호출이 아니므로 승인 대상이 아니다.

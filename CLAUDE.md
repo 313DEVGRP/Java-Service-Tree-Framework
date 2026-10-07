@@ -7,7 +7,7 @@ Orchestrator (Claude Code session, internal reasoning)
 │   └── [engineer·computer-use·multimodal] 전담 워커 없음 → Orchestrator 직접 수행 (구현 · 테스트 · 브라우저 · 이미지/긴 문서)
 └── Worker Pool (모두 별도 모델 호출 — 승인 필요)
     ├── claude-main      [strategist] 기획 · 설계 · 아키텍처 · 전략 · 디자인 방향 · 문체 글쓰기 · 디버깅 원인 분석
-    └── claude-reviewer  [reviewer] 산출물 리뷰·비평 (Sonnet 5 · 읽기 전용)
+    └── claude-reviewer  [reviewer] 산출물 리뷰·비평 (Sonnet 5.5 · 읽기 전용)
 ```
 
 능력 슬롯 → 워커 배정의 정본은 `_shared/capability-profile.md`(가변층 — 신모델 출시 시 프로필만 갱신).

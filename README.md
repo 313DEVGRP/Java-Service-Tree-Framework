@@ -6,8 +6,8 @@ Claude Code를 오케스트레이터로 두고 Claude 워커(claude-main · clau
 
 - **Orchestrator = Claude Code 세션** (이 폴더 안에서 실행 시 `CLAUDE.md` 자동 적용)
 - **Workers** = 별도 모델 호출(Task tool sub-agent). 모두 승인 게이트 통과 필요.
-  - `claude-main` — [strategist] 기획·설계·아키텍처·전략·디자인 방향·문체 글쓰기 (Opus)
-  - `claude-reviewer` — [reviewer] 산출물 리뷰·비평, 읽기 전용 (Sonnet 5)
+  - `claude-main` — [strategist] 기획·설계·아키텍처·전략·디자인 방향·문체 글쓰기 (Opus 5.5)
+  - `claude-reviewer` — [reviewer] 산출물 리뷰·비평, 읽기 전용 (Sonnet 5.5)
   - engineer · computer-use · multimodal 슬롯은 전담 워커 없이 Orchestrator가 직접 수행
 
   슬롯→워커 배정의 정본은 `_shared/capability-profile.md`(가변층) — 신모델 출시 시 프로필만 갱신.

@@ -95,12 +95,12 @@ wc -w "$ROOT/tasks/$TASK/workers/$ROLE/brief.md"   # 영문 단어수 ≤ 240
 - **claude-main**: Claude Code 내장 **Task tool (sub-agent)** 호출
   - `subagent_type`: `claude-main` (`.claude/agents/claude-main.md`에 정의)
   - `prompt`: brief.md 내용 그대로
-  - `model`: agent frontmatter `model: opus` 자동 적용
+  - `model`: agent frontmatter `model: claude-opus-5-5` 자동 적용
   - 응답 텍스트를 Orchestrator가 받아 `result.md`에 기록
 - **claude-reviewer**: Claude Code 내장 **Task tool (sub-agent)** 호출
   - `subagent_type`: `claude-reviewer` (`.claude/agents/claude-reviewer.md`에 정의)
   - `prompt`: brief.md 내용 그대로 ("비평 모드" 명시)
-  - `model`: agent frontmatter `model: claude-sonnet-5` 자동 적용
+  - `model`: agent frontmatter `model: claude-sonnet-5-5` 자동 적용
   - 읽기 전용: `target_repo`가 git repo면 호출 전 `bash _shared/adapters/scope_check.sh --snapshot <target_repo> > tasks/<task>/artifacts/.scope-before`, 호출 후 `bash _shared/adapters/scope_check.sh <target_repo> none tasks/<task>/artifacts/.scope-before <task>` 로 변경 0건 확인
   - 응답 텍스트를 Orchestrator가 받아 `result.md`에 기록
 - engineer · computer-use · multimodal 작업(구현·테스트·브라우저·이미지/긴 문서)은 worker를 부르지 않고 **Orchestrator가 직접** 수행한다. 외부 repo를 직접 고치면 `task.md` Constraints 에 write_scope 를 적고 `log.md` `[DECISION]` 에 남긴다. 대상 경로가 없으면 `tasks/<task>/artifacts/`에 diff·patch 로 산출

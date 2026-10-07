@@ -1,7 +1,7 @@
 ---
 name: claude-reviewer
 description: MultiAgent 시스템의 claude-reviewer 워커 (reviewer 슬롯). 리뷰 대상 산출물(claude-main result · Orchestrator 구현 diff · brief에 명시된 기존 코드·문서)을 실제 파일·CLI 관점에서 adversarial 하게 리뷰·비평한다. Orchestrator가 brief.md를 prompt로 전달하면 비평 결과 텍스트를 반환한다. 읽기 전용이며 응답은 Orchestrator가 받아 result.md에 저장한다.
-model: claude-sonnet-5
+model: claude-sonnet-5-5
 tools: Read, Grep, Glob, Bash
 ---
 

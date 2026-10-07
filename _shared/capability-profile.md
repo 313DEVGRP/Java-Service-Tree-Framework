@@ -11,7 +11,7 @@
 | strategist | claude-main (경량은 Orchestrator 직접) | 설계·UI/UX 디자인·전략·문체 우위 |
 | engineer | — (Orchestrator 직접) | 전담 워커 없음. 구현·테스트·diff·로컬 검증은 Orchestrator 세션이 수행 |
 | computer-use | — (Orchestrator 직접) | 전담 워커 없음. 브라우저·도구 워크플로우는 Orchestrator 세션 도구로 수행 |
-| reviewer | claude-reviewer | 생성 모델(Opus)과 다른 모델(Sonnet 5)·깨끗한 컨텍스트의 독립 검증 (자기검수 회피) |
+| reviewer | claude-reviewer | 생성 모델(Opus 5.5)과 다른 모델(Sonnet 5.5)·깨끗한 컨텍스트의 독립 검증 (자기검수 회피) |
 | multimodal | — (Orchestrator 직접) | 전담 워커 없음. 이미지·PDF·긴 문서는 Orchestrator 세션이 직접 읽음 |
 
 > "—" 슬롯은 워커 호출이 아니라 Orchestrator 내부 작업이다 — `workers_approved` 승인 대상이 아니며,
@@ -25,6 +25,8 @@
 - **2026-10-01** codex-main · codex-critic · gemini 워커 삭제, reviewer 슬롯에 `claude-reviewer`(model `claude-sonnet-5`) 신설.
   engineer · computer-use · multimodal 은 전담 워커 없이 Orchestrator 직접 수행. 근거: 사용자 지시(외부 벤더 워커 운용 중단).
   reviewer 독립성은 교차 벤더 → 교차 모델(생성 Opus · 검증 Sonnet 5) + 컨텍스트 격리로 대체. 요지는 design-basis D15.
+- **2026-10-07** 모델 핀 갱신 — `claude-main` `opus` 별칭 → `claude-opus-5-5` 핀, `claude-reviewer` `claude-sonnet-5` → `claude-sonnet-5-5`.
+  슬롯 배정 불변. 근거: 사용자 지시. 요지는 design-basis D16.
 
 ## 갱신 절차
 
