@@ -41,6 +41,7 @@
 | `contract-reviewer.md` | `contract-reviewer` | 모듈 **사이** 계약 정합성 읽기 전용 검증 — Feign 시그니처·DTO · Kafka REQADD · STOMP · 게이트웨이 라우트 체인 · 설정 키 · `/ai-search` VO · 스케줄 name↔Feign 메서드. 생산자·소비자 필드 대조 + 호환성·배포 순서 판정(COMPATIBLE · BREAKING · UNKNOWN) |
 | `security-auditor.md` | `security-auditor` | 보안 심층 감사(읽기 전용) — 게이트웨이 단일 인증 경계 · pathMatchers/permitAll 노출 · 인젝션 · XSS · 자격증명 · SSRF · 로그 민감정보, OWASP/CWE + Critical 데이터 흐름 추적. 수정은 domain expert |
 | `plan-challenger.md` | `plan-challenger` | 구현 계획 착수 전 적대적 검증(읽기 전용) — 가정·누락 경우·보안·비가역성(스키마·계약·배포 순서)·검증·복잡도 공격 후 반박 패스(PROCEED · REVISE · BLOCKED). `tasks/` 산출물 리뷰는 `claude-reviewer`, 설계는 `claude-main` |
+| `design.md` | `design` | 멀티모듈 **설계 전용** — 소유 모듈 판정 · 모듈 간 계약(Feign · Kafka · STOMP · 라우트 · 설정 키 · 스케줄)·스키마·배포 순서를 포함한 구현 착수용 설계안(모드 A), 또는 코드 역추출 설계 산출물(SDS · 인터페이스 정의서 · 시퀀스 · CRUD · ERD, 모드 B). 운영 코드 수정 금지, 지정된 출력 경로에만 문서 작성. 검증은 `plan-challenger`, `tasks/` 설계 워커는 `claude-main` |
 | `test-writer.md` | `test-writer` | 자동화 테스트 작성·실행 — 대상 저장소 `src/test/**` 만 쓴다(운영 코드·build.gradle 수정 금지, 결함은 보고). 스프링 컨텍스트 없는 JUnit 5 단위 테스트 우선, 실행 결과(PASS · FAIL · NOT_RUN) 보고 |
 
 **이 계층에 에이전트를 추가하려면** 이 표에 한 줄 추가하고 `.claude/agents/<name>.md` 를 둔다.

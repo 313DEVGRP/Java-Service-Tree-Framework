@@ -115,3 +115,15 @@
 **교훈**: Windows Git Bash 에서 `scope_check.sh` 가 scope 안 파일까지 `../<path>` 로 보고하며 exit 10 을 내면, `git rev-parse --show-toplevel`(`C:/...`)과 `pwd -P`(`/c/...`) 표기 불일치로 prefix 정규화가 실패한 오탐이다. 이 경우 대상 repo 의 `git status --porcelain` 을 write_scope 와 수동 대조해 판정하고 log 에 [ERROR]+수동 근거를 남긴다(스크립트 보정은 별도 과제: 두 경로를 `cygpath -u`/`pwd -P` 로 같은 표기로 맞춰 비교).
 **근거**: ai-agent-process-color-themes — 변경 4파일 전부 scope 안인데 exit 10.
 **worker**: frontend-expert(외부 쓰기) 사후 검사
+
+## [2026-10-06] [concurrent-session-same-repo]
+**교훈**: 같은 target_repo 를 다른 세션(다른 작업)이 동시에 수정 중이면 실행 전 스냅샷·사후 `scope_check`·`git diff` 가 타 작업 변경까지 섞어 보고한다(공유 파일은 한 파일 안에 두 작업 hunk 공존). 착수 시 대상 파일 사본(`artifacts/before/`)과 대상 파일 md5 를 따로 떠 두고, scope 판정·리뷰어 읽기전용 검증은 그 사본·해시 기준으로 하며, 정본 diff 는 사본 대비로 만들어 공유 파일은 본 작업 hunk 만 분리한다. 리뷰 brief 에 "작업트리 diff 대신 impl.patch 가 정본"을 명시하고, 커밋 시 `git add -p` 분리 필요를 log 에 남긴다.
+**근거**: arms-aiagent-phase-header — 착수 시 clean 이던 Frontend-Web 에 arms-aiagent-ai-status(in_progress) 세션 변경이 실행 중 출현, hub content-container.html·changelog 공유.
+**worker**: frontend-expert(외부 쓰기) 사후 검사 · 리뷰 5종
+
+- (2026-10-06, arms-aiagent-ai-status) 헤드리스 브라우저 검증을 맡긴 워커에게는 "띄운 프로세스는 PID로만 종료(이름 단위 taskkill 금지)"를 brief에 명시한다 — 이름 단위 종료가 사용자의 브라우저 창까지 닫을 수 있다. 또 동시 세션이 같은 repo를 편집 중이면 scope_check 위반이 타 작업 변경일 수 있으므로 diff 내용·mtime으로 귀속을 판정한 뒤 채택한다.
+
+## [2026-10-07] [approval-line-role-names]
+**교훈**: gate.sh G3 는 log.md `[APPROVAL]` 줄에 **역할명 자체**가 있어야 통과한다. "리뷰 서브 4종" 같은 묶음 표현은 task.md workers_approved 에 등재돼 있어도 거부된다 → 다수 워커 승인 시 `[APPROVAL]` 에 각 역할명을 나열한다. 또 `[WORKER_CALL]` 은 반드시 GATE_OK 를 받은 뒤 기록한다(선기록 시 append-only 라 [ERROR] 정정 줄이 남는다). API 연결 오류·스트림 정체로 서브에이전트가 결과 없이 끝나면 같은 brief 로 재호출하되, 재호출 프롬프트에서 읽을 파일 범위를 좁히면 정체가 덜하다.
+**근거**: arms-aiagent-mgmt-pm-link — 리뷰 서브 4종 G3 거부, plan-challenger 2회 실패(ENOTFOUND·600s 정체) 후 범위 축소 3차 성공.
+**worker**: plan-challenger · review-expert · contract-reviewer · security-auditor
