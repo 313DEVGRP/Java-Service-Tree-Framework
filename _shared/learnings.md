@@ -127,3 +127,13 @@
 **교훈**: gate.sh G3 는 log.md `[APPROVAL]` 줄에 **역할명 자체**가 있어야 통과한다. "리뷰 서브 4종" 같은 묶음 표현은 task.md workers_approved 에 등재돼 있어도 거부된다 → 다수 워커 승인 시 `[APPROVAL]` 에 각 역할명을 나열한다. 또 `[WORKER_CALL]` 은 반드시 GATE_OK 를 받은 뒤 기록한다(선기록 시 append-only 라 [ERROR] 정정 줄이 남는다). API 연결 오류·스트림 정체로 서브에이전트가 결과 없이 끝나면 같은 brief 로 재호출하되, 재호출 프롬프트에서 읽을 파일 범위를 좁히면 정체가 덜하다.
 **근거**: arms-aiagent-mgmt-pm-link — 리뷰 서브 4종 G3 거부, plan-challenger 2회 실패(ENOTFOUND·600s 정체) 후 범위 축소 3차 성공.
 **worker**: plan-challenger · review-expert · contract-reviewer · security-auditor
+
+## [2026-10-08] [scope-check-gitbash-path]
+**교훈**: Windows Git Bash 에서 `scope_check.sh` 사후 검사가 전 파일을 scope_violation(exit 10)으로 오탐한다 — `git rev-parse --show-toplevel` 은 `C:/…`, `pwd -P` 는 `/c/…` 를 돌려 prefix 제거가 실패하고 모든 경로가 `../` 로 처리된다. 수정 전까지는 exit 10 이면 출력이 전부 `../` 인지 먼저 보고, 기준선 대비 `git status -uall` 대조로 대체 검증해 log 에 [ERROR] 로 남긴다. 워커가 파일을 다 쓴 뒤 stall 하면 재호출(중복 쓰기 위험)보다 diff↔설계 대조 + Orchestrator 직접 검증이 안전하다.
+**근거**: arms-aiagent-status-2col — frontend-expert 600s stall 후 직접 검증, scope_check exit 10 전 파일 `../`.
+**worker**: frontend-expert
+
+## [2026-10-08] [gitbash-sed-crlf]
+**교훈**: Windows Git Bash 의 `sed -i` 는 CRLF 파일을 다시 쓰면서 CR 을 지울 수 있다(같은 세션에서 LF 파일·일부 CRLF 파일은 무사했으나 ai-agent-deliv.css 는 CR 370→0). 외부 repo 의 CRLF 파일은 Edit 도구나 node(읽을 때 \r\n→\n, 쓸 때 원래 줄바꿈 복원)로만 고치고, 수정 직후 `tr -cd '\r' < f | wc -c` 와 `wc -l` 을 비교해 줄바꿈 보존을 확인한다. 같은 이유로 "아무것도 안 바꾸는" sed -i 도 파일을 git 상 M 으로 만든다.
+**근거**: arms-aiagent-deliv-flow2 2차(CR 전량 소실 → node 로 복원), arms-aiagent-deliv-flow-blink(무의미 sed -i 로 ai-agent-deliv.js M → git checkout 복원).
+**worker**: (Orchestrator 직접 수행)
