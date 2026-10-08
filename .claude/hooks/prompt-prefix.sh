@@ -5,7 +5,7 @@ cat <<'JSON'
 {
   "hookSpecificOutput": {
     "hookEventName": "UserPromptSubmit",
-    "additionalContext": "[prompt-prefix] Java-Service-Tree-Framework-Frontend-Web/docs/file 폴더 내 모든 파일을 읽고 분석한다.\n해당 폴더 안의 파일은 프로젝트 산출물이므로 최대한 자세하게 읽고, 이미 한번 읽은 file들이라면 이 단계는 skip 한다."
+    "additionalContext": "[prompt-prefix] Java-Service-Tree-Framework-Frontend-Web/docs/file 의 모든 파일(프로젝트 산출물)을 최대한 자세히 읽고 분석한다(이미 읽은 파일은 skip)."
   }
 }
 JSON
