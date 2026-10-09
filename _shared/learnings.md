@@ -137,3 +137,8 @@
 **교훈**: Windows Git Bash 의 `sed -i` 는 CRLF 파일을 다시 쓰면서 CR 을 지울 수 있다(같은 세션에서 LF 파일·일부 CRLF 파일은 무사했으나 ai-agent-deliv.css 는 CR 370→0). 외부 repo 의 CRLF 파일은 Edit 도구나 node(읽을 때 \r\n→\n, 쓸 때 원래 줄바꿈 복원)로만 고치고, 수정 직후 `tr -cd '\r' < f | wc -c` 와 `wc -l` 을 비교해 줄바꿈 보존을 확인한다. 같은 이유로 "아무것도 안 바꾸는" sed -i 도 파일을 git 상 M 으로 만든다.
 **근거**: arms-aiagent-deliv-flow2 2차(CR 전량 소실 → node 로 복원), arms-aiagent-deliv-flow-blink(무의미 sed -i 로 ai-agent-deliv.js M → git checkout 복원).
 **worker**: (Orchestrator 직접 수행)
+
+## [2026-10-09] [unregistered-subagent-names]
+**교훈**: 사용자가 지정한 서브에이전트(예: plan-challenger · review-expert)가 세션 에이전트 목록에 없으면, 먼저 로컬 체크아웃이 origin 보다 뒤처져 정의 파일이 빠진 것인지 `git log HEAD..origin/main -- .claude/agents/` 로 확인한다. 확인 없이 진행할 땐 같은 워커 동시 호출 금지(routing.md) 때문에 claude-reviewer 1회 호출 안에 이름별 독립 섹션(서로 결과 미참조)으로 접고 [DECISION] 에 남긴다.
+**근거**: ai-agent-process-row-height — 두 에이전트는 origin/main 에 이미 추가돼 있었으나 로컬 미반영으로 세션 미등록. 1회 호출로 두 관점 확보, 판정 승인.
+**worker**: claude-main · claude-reviewer
