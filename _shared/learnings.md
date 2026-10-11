@@ -142,3 +142,9 @@
 **교훈**: 사용자가 지정한 서브에이전트(예: plan-challenger · review-expert)가 세션 에이전트 목록에 없으면, 먼저 로컬 체크아웃이 origin 보다 뒤처져 정의 파일이 빠진 것인지 `git log HEAD..origin/main -- .claude/agents/` 로 확인한다. 확인 없이 진행할 땐 같은 워커 동시 호출 금지(routing.md) 때문에 claude-reviewer 1회 호출 안에 이름별 독립 섹션(서로 결과 미참조)으로 접고 [DECISION] 에 남긴다.
 **근거**: ai-agent-process-row-height — 두 에이전트는 origin/main 에 이미 추가돼 있었으나 로컬 미반영으로 세션 미등록. 1회 호출로 두 관점 확보, 판정 승인.
 **worker**: claude-main · claude-reviewer
+
+## [2026-10-11] [windows-long-path-worktree]
+**교훈**: Windows 에서 scratchpad 처럼 깊은 경로에 git worktree 를 만들면 긴 파일명 모듈(Backend-Core·Engine-Fire)이 `Filename too long` 으로 실패하고, `scope_check.sh --snapshot` 도 hash 실패(exit 12)한다. worktree 는 `git -c core.longpaths=true worktree add`, 스냅샷 대체는 `git -c core.longpaths=true` HEAD+status 전후 비교로 하고 log 에 [ERROR] 로 남긴다. Python 에서 그 경로를 os.walk 하면 같은 이유로 FileNotFoundError 가 나므로 grep 을 쓴다.
+
+## [2026-10-11] [baseline-diff-before-rescan]
+**교훈**: 이전 판 산출물과 비교하는 작업은 재점검 전에 ① 로컬 브랜치가 원격보다 뒤처졌는지(`git ls-remote`) ② 이전 판 기준 커밋 → 현재 HEAD 의 `diff --stat` 을 먼저 본다. 변경 0 모듈은 이전 판 위치를 diff 로 줄 재계산해 이어받고, 신규 탐지는 이전 판이 다루지 않은 후보·변경 파일에 집중하면 비교 판정 근거가 명확해진다. 리뷰어는 건수·'호출처 없음' 주장을 grep 으로 재확인하게 하면 수치 오류를 잡는다.
