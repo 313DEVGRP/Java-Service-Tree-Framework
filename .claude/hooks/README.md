@@ -1,6 +1,6 @@
 Java-Service-Tree-Framework-Frontend-Web/docs/file의 모든 파일(프로젝트 산출물)을
 최대한 자세히 읽고 분석한다. (이미 읽은 파일은 skip)
-
+작업 대상은 Java-Service-Tree-Framework-Frontend-Web 모듈의 arms\html\ai-agent 이다.
 
 
 --> 여기에 요구사항 기록
