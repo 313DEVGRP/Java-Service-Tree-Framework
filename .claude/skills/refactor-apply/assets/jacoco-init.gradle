@@ -1,0 +1,9 @@
+// build.gradle 을 고치지 않고 JaCoCo 를 붙이는 init script (refactor-apply 스킬)
+allprojects {
+    apply plugin: 'jacoco'
+    jacoco { toolVersion = '0.8.12' }
+    tasks.withType(Test).configureEach { finalizedBy 'jacocoTestReport' }
+    tasks.matching { it.name == 'jacocoTestReport' }.configureEach {
+        reports { xml.required = true; html.required = true }
+    }
+}
